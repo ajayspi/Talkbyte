@@ -234,6 +234,13 @@ LLM_PROVIDER_REGISTRY = (
         default_base_url="https://api.openai.com/v1",
     ),
     LLMProviderSpec(
+        "openrouter",
+        "OpenRouter",
+        api_key_url="https://openrouter.ai/keys",
+        default_model="meta-llama/llama-3.3-70b-instruct:free",
+        default_base_url="https://openrouter.ai/api/v1",
+    ),
+    LLMProviderSpec(
         "anthropic",
         "Anthropic Claude",
         api_key_url="https://platform.claude.com/settings/keys",

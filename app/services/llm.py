@@ -139,7 +139,7 @@ def _extract_qwen_generation_text(response) -> str:
     return _normalize_text_response(text, "qwen")
 
 
-def _generate_response(prompt: str, app_config=None) -> str:
+def _generate_response_once(prompt: str, app_config=None) -> str:
     try:
         # WebUI 在视频生成期间允许用户准备下一条文案。调用方可以传入提交瞬间
         # 的配置快照，确保模型请求重试期间不会因为后台任务结束并应用新配置，
@@ -405,6 +405,55 @@ def _generate_response(prompt: str, app_config=None) -> str:
 
     except Exception as e:
         return f"Error: {_sanitize_error_message(e)}"
+
+
+DEFAULT_FALLBACK_PROVIDER = "openrouter"
+DEFAULT_FALLBACK_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+
+
+def _is_error_result(result: str | None) -> bool:
+    return not result or result.startswith("Error:")
+
+
+def _build_fallback_config(app_config=None) -> dict | None:
+    """Return a config switched to the free-fallback provider, or None."""
+    runtime = app_config if app_config is not None else config.app
+    fallback_provider = runtime.get("llm_fallback_provider")
+    if fallback_provider is None:
+        fallback_provider = DEFAULT_FALLBACK_PROVIDER
+    fallback_provider = str(fallback_provider).strip().lower()
+    if not fallback_provider:
+        return None
+    primary = str(runtime.get("llm_provider", "") or "").strip().lower()
+    if fallback_provider == primary:
+        return None
+
+    cfg = dict(runtime)
+    cfg["llm_provider"] = fallback_provider
+    fallback_model = runtime.get("llm_fallback_model")
+    if fallback_model is None:
+        fallback_model = DEFAULT_FALLBACK_MODEL
+    fallback_model = str(fallback_model).strip()
+    if fallback_model:
+        cfg[f"{fallback_provider}_model_name"] = fallback_model
+    return cfg
+
+
+def _generate_response(prompt: str, app_config=None) -> str:
+    """Generate a response, retrying with a free model if the primary fails."""
+    result = _generate_response_once(prompt, app_config)
+    if not _is_error_result(result):
+        return result
+
+    fallback_cfg = _build_fallback_config(app_config)
+    if fallback_cfg is None:
+        return result
+
+    logger.warning("primary LLM provider failed, retrying with free fallback")
+    fb_result = _generate_response_once(prompt, fallback_cfg)
+    if _is_error_result(fb_result):
+        return result
+    return fb_result
 
 
 def test_connection() -> tuple[bool, str, float]:

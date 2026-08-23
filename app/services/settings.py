@@ -22,6 +22,8 @@ from app.config import config
 from app.models.llm_provider import LLM_PROVIDERS, LLM_PROVIDER_REGISTRY
 
 _MASK_CHARS = 4
+DEFAULT_FALLBACK_PROVIDER = "openrouter"
+DEFAULT_FALLBACK_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
 
 
 def _supabase_url() -> str:
@@ -122,6 +124,12 @@ def get_settings() -> dict:
         except Exception as exc:  # noqa: BLE001
             logger.warning(f"supabase settings read failed: {exc}")
 
+    settings["llm_fallback_provider"] = (
+        config.app.get("llm_fallback_provider") or DEFAULT_FALLBACK_PROVIDER
+    )
+    settings["llm_fallback_model"] = (
+        config.app.get("llm_fallback_model") or DEFAULT_FALLBACK_MODEL
+    )
     settings["llm_api_key_masked"] = _mask_secret(settings["llm_api_key"])
     settings["providers"] = list_providers()
     settings["supabase_enabled"] = supabase_enabled()
@@ -157,12 +165,24 @@ def save_settings(settings: dict[str, Any]) -> dict:
         if "llm_base_url" in settings
         else (config.app.get(f"{provider}_base_url") or "")
     )
+    fallback_provider = (
+        (settings.get("llm_fallback_provider") or "").strip()
+        if "llm_fallback_provider" in settings
+        else (config.app.get("llm_fallback_provider") or "")
+    )
+    fallback_model = (
+        (settings.get("llm_fallback_model") or "").strip()
+        if "llm_fallback_model" in settings
+        else (config.app.get("llm_fallback_model") or "")
+    )
 
     # Apply to runtime config (config.app is the [app] TOML section).
     config.app["llm_provider"] = provider
     config.app[f"{provider}_api_key"] = api_key
     config.app[f"{provider}_model_name"] = model_name
     config.app[f"{provider}_base_url"] = base_url
+    config.app["llm_fallback_provider"] = fallback_provider
+    config.app["llm_fallback_model"] = fallback_model
 
     try:
         config.save_config()
@@ -177,6 +197,8 @@ def save_settings(settings: dict[str, Any]) -> dict:
                     "llm_api_key": api_key,
                     "llm_model_name": model_name,
                     "llm_base_url": base_url,
+                    "llm_fallback_provider": fallback_provider,
+                    "llm_fallback_model": fallback_model,
                 }
             )
         except Exception as exc:  # noqa: BLE001

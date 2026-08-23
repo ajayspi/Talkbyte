@@ -82,6 +82,8 @@ class SettingsRequest(BaseModel):
     llm_api_key: Optional[str] = None
     llm_model_name: Optional[str] = None
     llm_base_url: Optional[str] = None
+    llm_fallback_provider: Optional[str] = None
+    llm_fallback_model: Optional[str] = None
 
 
 class VideoParams(BaseModel):
