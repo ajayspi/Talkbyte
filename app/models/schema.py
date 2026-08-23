@@ -75,6 +75,15 @@ class Scene(BaseModel):
     media_type: str = "video"
 
 
+class SettingsRequest(BaseModel):
+    """User-editable app settings (ProstudioX settings panel)."""
+
+    llm_provider: Optional[str] = None
+    llm_api_key: Optional[str] = None
+    llm_model_name: Optional[str] = None
+    llm_base_url: Optional[str] = None
+
+
 class VideoParams(BaseModel):
     """
     {
