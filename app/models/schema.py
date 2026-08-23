@@ -63,6 +63,18 @@ class MaterialInfo:
     source_info: Optional[dict[str, Any]] = None
 
 
+class Scene(BaseModel):
+    """A single shot-length beat from the ProstudioX scene breakdown."""
+
+    index: int = Field(ge=1)
+    beat: str
+    duration: float = Field(default=5.0, ge=0.5)
+    keywords: str = ""
+    source: str = "pexels"
+    # "video" = stock clip, "image" = still photo (ken-burns zoom in the render).
+    media_type: str = "video"
+
+
 class VideoParams(BaseModel):
     """
     {
@@ -93,6 +105,10 @@ class VideoParams(BaseModel):
     video_materials: Optional[List[MaterialInfo]] = (
         None  # Materials used to generate the video
     )
+
+    # ProstudioX extension: optional scene breakdown (per-beat footage).
+    # Absent for classic tasks, so existing clients are unaffected.
+    scenes: Optional[List[Scene]] = None
 
     custom_audio_file: Optional[str] = (
         None  # Custom audio file path, will ignore TTS and can still use Whisper subtitles
@@ -531,3 +547,32 @@ class VideoMaterialUploadResponse(BaseResponse):
             },
         }
     )
+
+
+# ---------------------------
+# ----- PROSTUDIOX MODELS -----
+# ---------------------------
+class SceneRequest(BaseModel):
+    """
+    {
+      "video_script": "...",
+      "video_subject": "How AI is changing everyday life",
+      "target_duration": 30,
+      "video_language": "auto",
+      "media_style": "combined"
+    }
+    """
+
+    video_script: str
+    video_subject: Optional[str] = ""
+    target_duration: int = Field(default=30, ge=5, le=600)
+    video_language: Optional[str] = ""
+    media_style: str = "combined"  # "video" | "image" | "combined"
+
+
+class SceneData(BaseModel):
+    scenes: List[Scene]
+
+
+class SceneResponse(BaseResponse):
+    data: SceneData

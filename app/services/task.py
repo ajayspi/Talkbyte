@@ -20,6 +20,7 @@ from app.services import (
     llm,
     loomloom,
     material,
+    scene as scene_service,
     sonilo,
     subtitle,
     task_artifacts,
@@ -301,6 +302,16 @@ def generate_script(task_id, params):
 
 def generate_terms(task_id, params, video_script):
     logger.info("\n\n## generating video terms")
+    # ProstudioX: a scene breakdown already carries per-beat footage keywords in
+    # narration order. Prefer them over a flat generated term list so the shots
+    # align with the beats instead of a single global topic.
+    prostudiox_scenes = getattr(params, "scenes", None)
+    if prostudiox_scenes:
+        scene_terms = scene_service.scenes_to_terms(prostudiox_scenes)
+        if scene_terms:
+            logger.info(f"using {len(scene_terms)} scene-derived search terms")
+            return scene_terms
+
     video_terms = params.video_terms
     if not video_terms:
         # 开启素材按文案顺序匹配后，关键词本身也必须按脚本叙事顺序生成；
@@ -662,6 +673,11 @@ def get_video_materials(
         logger.info(f"\n\n## downloading videos from {params.video_source}")
         # 顺序匹配模式只在用户显式开启时生效。这里强制素材下载按关键词顺序
         # 轮询，避免某个早期关键词下载太多素材，把后续脚本主题挤出最终时间线。
+        # ProstudioX: per-scene media type (video/image) drives mixed sourcing.
+        scene_media_types = None
+        if getattr(params, "scenes", None):
+            scene_media_types = scene_service.scenes_to_media_types(params.scenes)
+
         downloaded_videos = material.download_videos(
             task_id=task_id,
             search_terms=video_terms,
@@ -675,6 +691,7 @@ def get_video_materials(
             audio_duration=audio_duration * params.video_count,
             max_clip_duration=params.video_clip_duration,
             match_script_order=params.match_materials_to_script,
+            media_types=scene_media_types,
         )
         if not downloaded_videos:
             _mark_task_failed(
@@ -742,13 +759,25 @@ def generate_final_videos(
     )
     # 多视频生成默认会打散素材以增加差异；但“按文案顺序匹配素材”追求的是
     # 时间线稳定性和可解释性，所以开启后所有输出都使用顺序拼接。
-    if params.match_materials_to_script:
+    # ProstudioX 场景拆解同样按叙事顺序指定了每个镜头的素材，因此同样强制
+    # 顺序拼接，避免后续镜头的画面提前出现。
+    prostudiox_scenes = getattr(params, "scenes", None)
+    if params.match_materials_to_script or prostudiox_scenes:
         video_concat_mode = VideoConcatMode.sequential
     elif params.video_count == 1:
         video_concat_mode = params.video_concat_mode
     else:
         video_concat_mode = VideoConcatMode.random
     video_transition_mode = params.video_transition_mode
+
+    # ProstudioX: per-scene durations cap each sequential clip so footage length
+    # matches the narration beat. Absent scenes, ``clip_durations`` stays None and
+    # the flat ``video_clip_duration`` behaviour is preserved.
+    scene_durations = (
+        [float(s.duration) for s in prostudiox_scenes]
+        if prostudiox_scenes
+        else None
+    )
 
     _progress = 50
     for i in range(params.video_count):
@@ -767,6 +796,7 @@ def generate_final_videos(
             max_clip_duration=params.video_clip_duration,
             threads=params.n_threads,
             clip_speed=params.video_clip_speed,
+            clip_durations=scene_durations,
         )
 
         _progress += 50 / params.video_count / 2

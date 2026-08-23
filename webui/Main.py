@@ -37,6 +37,7 @@ from app.models.llm_provider import (
 )
 from app.models.schema import (
     MaterialInfo,
+    Scene,
     VideoAspect,
     VideoConcatMode,
     VideoParams,
@@ -47,6 +48,7 @@ from app.services import (
     cache_manager,
     llm,
     loomloom,
+    scene as scene_service,
     video,
     voice,
     webui_task,
@@ -5759,6 +5761,91 @@ def _render_generation_controls(
     return start_button
 
 
+def _render_prostudiox_panel(params):
+    """ProstudioX 可选面板：场景拆解，回填 params.scenes。"""
+    with st.expander("ProstudioX — Scenes", expanded=False):
+        st.caption("Optional. Break the script into shots with per-beat footage keywords.")
+        enable = st.checkbox(
+            "Enable ProstudioX scenes",
+            key="prostudiox_enable",
+        )
+        if not enable:
+            params.scenes = None
+            return
+
+        # --- Scenes ---
+        target_duration = st.number_input(
+            "Target duration (s)",
+            min_value=5,
+            max_value=600,
+            value=30,
+            step=5,
+            key="prostudiox_target_duration",
+        )
+        media_style = st.selectbox(
+            "Sourcing style",
+            ["combined", "video", "image"],
+            index=0,
+            key="prostudiox_media_style",
+            help="combined = mix of ~3s video clips and still shots (speech-ad feel); "
+            "video = all stock clips; image = all still photos.",
+        )
+        if st.button(
+            "Generate scene breakdown",
+            key="prostudiox_generate_scenes",
+            use_container_width=True,
+        ):
+            script = (params.video_script or "").strip()
+            subject = (params.video_subject or "").strip()
+            if not script and not subject:
+                st.warning(tr("Video Script and Subject Cannot Both Be Empty"))
+            else:
+                with st.spinner("Breaking down scenes…"):
+                    try:
+                        st.session_state["prostudiox_scenes"] = (
+                            scene_service.generate_scenes(
+                                video_script=script,
+                                video_subject=subject,
+                                target_duration=int(target_duration),
+                                language=params.video_language or "",
+                                media_style=media_style,
+                            )
+                        )
+                    except Exception as exc:
+                        st.error(f"Scene generation failed: {exc}")
+
+        scenes_raw = st.session_state.get("prostudiox_scenes")
+        if scenes_raw:
+            st.write("Scenes (editable):")
+            edited = st.data_editor(
+                scenes_raw,
+                num_rows="dynamic",
+                key="prostudiox_scene_editor",
+                column_config={
+                    "index": st.column_config.NumberColumn("Idx", disabled=True),
+                    "beat": st.column_config.TextColumn("Beat"),
+                    "duration": st.column_config.NumberColumn(
+                        "Duration (s)", min_value=0.5, step=0.5
+                    ),
+                    "keywords": st.column_config.TextColumn("Footage keyword"),
+                    "media_type": st.column_config.SelectboxColumn(
+                        "Media", options=["video", "image"]
+                    ),
+                },
+            )
+            params.scenes = [
+                Scene(
+                    index=int(row.get("index", i + 1)),
+                    beat=str(row.get("beat", "")).strip(),
+                    duration=float(row.get("duration", 5.0)),
+                    keywords=str(row.get("keywords", "")).strip(),
+                    source=str(row.get("source", "pexels")),
+                    media_type=str(row.get("media_type", "video")),
+                )
+                for i, row in enumerate(edited)
+            ] or None
+
+
 def _render_application():
     """按固定顺序渲染顶部栏、弹窗、生成表单和任务结果。"""
     _render_top_bar()
@@ -5796,6 +5883,8 @@ def _render_application():
     )
 
     _render_subtitle_settings(right_panel, params)
+
+    _render_prostudiox_panel(params)
 
     generation_submitted = _render_generation_controls(
         params,

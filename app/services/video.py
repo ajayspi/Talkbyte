@@ -9,7 +9,7 @@ import tempfile
 import unicodedata
 from contextlib import ExitStack, redirect_stdout
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 from loguru import logger
 import numpy as np
 from moviepy import (
@@ -535,6 +535,33 @@ def get_bgm_file(bgm_type: str = "random", bgm_file: str = ""):
     return ""
 
 
+def _per_clip_duration(
+    index: int,
+    max_clip_duration,
+    clip_durations: Optional[List[float]],
+    concat_mode: VideoConcatMode,
+) -> float:
+    """
+    Resolve the playback cap for a clip at ``index`` in assembly order.
+
+    When a scene breakdown is present and we are concatenating sequentially,
+    clip ``index`` is capped at scene ``index``'s duration so each beat's footage
+    matches its narration length. Otherwise the flat ``max_clip_duration``
+    applies (classic behaviour).
+    """
+    if clip_durations and concat_mode.value == VideoConcatMode.sequential.value:
+        return float(clip_durations[index % len(clip_durations)])
+    return float(max_clip_duration)
+
+
+def _is_image_material(path: str) -> bool:
+    """Return True when a material path is a still image rather than video."""
+    try:
+        return utils.parse_extension(path) in const.FILE_TYPE_IMAGES
+    except Exception:
+        return False
+
+
 def combine_videos(
     combined_video_path: str,
     video_paths: List[str],
@@ -545,6 +572,7 @@ def combine_videos(
     max_clip_duration: int = 5,
     threads: int = 2,
     clip_speed: float = 1.0,
+    clip_durations: Optional[List[float]] = None,
 ) -> str:
     audio_clip = AudioFileClip(audio_file)
     try:
@@ -583,15 +611,55 @@ def combine_videos(
     subclipped_items = []
     video_duration = 0
     for video_path in video_paths:
+        if _is_image_material(video_path):
+            # Still image -> a single ken-burns clip of scene-length duration.
+            scene_cap = _per_clip_duration(
+                len(subclipped_items),
+                max_clip_duration,
+                clip_durations,
+                video_concat_mode,
+            )
+            try:
+                with Image.open(video_path) as im:
+                    clip_w, clip_h = im.size
+            except Exception:
+                clip_w, clip_h = video_width, video_height
+            subclipped_items.append(
+                SubClippedVideoClip(
+                    file_path=video_path,
+                    start_time=0,
+                    end_time=scene_cap,
+                    width=clip_w,
+                    height=clip_h,
+                    source_file_path=video_path,
+                )
+            )
+            continue
+
         clip = _open_video_clip_quietly(video_path)
         clip_duration = clip.duration
         clip_w, clip_h = clip.size
         close_clip(clip)
-        
+
         start_time = 0
 
+        # 顺序拼接且提供场景时长时，按当前素材对应的场景时长反推源读取时长，
+        # 让每个镜头的成片长度贴合该镜头的旁白时长，而不是统一使用全局上限。
+        per_source_duration = source_clip_duration
+        if (
+            video_concat_mode.value == VideoConcatMode.sequential.value
+            and clip_durations
+        ):
+            scene_cap = _per_clip_duration(
+                len(subclipped_items),
+                max_clip_duration,
+                clip_durations,
+                video_concat_mode,
+            )
+            per_source_duration = scene_cap * normalized_clip_speed
+
         while start_time < clip_duration:
-            end_time = min(start_time + source_clip_duration, clip_duration)
+            end_time = min(start_time + per_source_duration, clip_duration)
 
             # 保留所有有效分段。
             # 这样既不会丢掉“整段视频本身就短于 max_clip_duration”的素材，
@@ -632,17 +700,26 @@ def combine_videos(
         )
         
         try:
-            clip = _open_video_clip_quietly(subclipped_item.file_path).subclipped(
-                subclipped_item.start_time, subclipped_item.end_time
-            )
-            # 播放速度属于素材本身属性，应在转场前应用。这样 Fade/Slide 等一秒转场
-            # 不会跟随素材速度变成 0.5 秒或 2 秒；后续最大时长裁剪继续作为
-            # 浮点误差或异常素材时长的安全兜底，保证最终片段不突破配置上限。
-            if normalized_clip_speed != 1.0:
-                clip = clip.with_speed_scaled(normalized_clip_speed)
-            clip_duration = clip.duration
-            # Not all videos are same size, so we need to resize them
-            clip_w, clip_h = clip.size
+            is_image = _is_image_material(subclipped_item.file_path)
+            if is_image:
+                image_duration = float(
+                    subclipped_item.duration or max_clip_duration
+                )
+                clip, _ = _open_image_clip_with_fallback(subclipped_item.file_path)
+                clip = clip.with_duration(image_duration)
+                clip_duration = clip.duration
+                clip_w, clip_h = clip.size
+            else:
+                clip = _open_video_clip_quietly(subclipped_item.file_path).subclipped(
+                    subclipped_item.start_time, subclipped_item.end_time
+                )
+                # 播放速度属于素材本身属性，应在转场前应用。这样 Fade/Slide 等一秒转场
+                # 不会跟随素材速度变成 0.5 秒或 2 秒；后续最大时长裁剪继续作为
+                # 浮点误差或异常素材时长的安全兜底，保证最终片段不突破配置上限。
+                if normalized_clip_speed != 1.0:
+                    clip = clip.with_speed_scaled(normalized_clip_speed)
+                clip_duration = clip.duration
+                clip_w, clip_h = clip.size
             if clip_w != video_width or clip_h != video_height:
                 clip_ratio = clip.w / clip.h
                 video_ratio = video_width / video_height
@@ -662,7 +739,11 @@ def combine_videos(
                     background = ColorClip(size=(video_width, video_height), color=(0, 0, 0)).with_duration(clip_duration)
                     clip_resized = clip.resized(new_size=(new_width, new_height)).with_position("center")
                     clip = CompositeVideoClip([background, clip_resized])
-                    
+
+            # Ken Burns: still images get a slow zoom-in for a "speech ad" feel.
+            if is_image:
+                clip = video_effects.zoomin_transition(clip, 1)
+
             shuffle_side = random.choice(["left", "right", "top", "bottom"])
             if transition_value in (None, VideoTransitionMode.none.value):
                 clip = clip
@@ -690,8 +771,11 @@ def combine_videos(
                 shuffle_transition = random.choice(transition_funcs)
                 clip = shuffle_transition(clip)
 
-            if clip.duration > max_clip_duration:
-                clip = clip.subclipped(0, max_clip_duration)
+            scene_cap = _per_clip_duration(
+                i, max_clip_duration, clip_durations, video_concat_mode
+            )
+            if clip.duration > scene_cap:
+                clip = clip.subclipped(0, scene_cap)
                 
             # wirte clip to temp file
             clip_file = f"{output_dir}/temp-clip-{i+1}.mp4"

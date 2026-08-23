@@ -1,0 +1,29 @@
+[Unit]
+Description=ProstudioX queue scheduler (one render at a time)
+After=prostudiox-api.service
+Wants=prostudiox-api.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/prostudiox/MoneyPrinterTurbo
+Environment=PATH=/opt/prostudiox/venv/bin:/usr/local/bin:/usr/bin:/bin
+# Loop mode: watch the queue file and render pending jobs as they appear.
+# The scheduler itself is idle while waiting; the heavy lift is delegated to
+# the API worker process.
+ExecStart=/opt/prostudiox/venv/bin/python deploy/scheduler.py \
+    --base-url http://127.0.0.1:8080 \
+    --queue /opt/prostudiox/queue.json \
+    --output-dir /opt/prostudiox/videos \
+    --poll-interval 10 \
+    --max-concurrent 1 \
+    --loop
+Restart=on-failure
+RestartSec=15
+Nice=10
+
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
