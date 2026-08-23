@@ -18,7 +18,7 @@ from typing import Any
 
 from loguru import logger
 
-from app.config import config, save_config
+from app.config import config
 from app.models.llm_provider import LLM_PROVIDERS, LLM_PROVIDER_REGISTRY
 
 _MASK_CHARS = 4
@@ -165,7 +165,7 @@ def save_settings(settings: dict[str, Any]) -> dict:
         config.app[f"{provider}_base_url"] = base_url
 
     try:
-        save_config()
+        config.save_config()
     except Exception as exc:  # noqa: BLE001
         logger.warning(f"failed to save config.toml: {exc}")
 
