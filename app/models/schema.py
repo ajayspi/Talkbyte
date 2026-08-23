@@ -86,6 +86,13 @@ class SettingsRequest(BaseModel):
     llm_fallback_model: Optional[str] = None
 
 
+class ApiKeyRequest(BaseModel):
+    """Set a single API key (ProstudioX settings key table)."""
+
+    key: str
+    value: str = ""
+
+
 class VideoParams(BaseModel):
     """
     {

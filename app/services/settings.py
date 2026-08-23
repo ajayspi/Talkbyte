@@ -205,3 +205,77 @@ def save_settings(settings: dict[str, Any]) -> dict:
             logger.warning(f"supabase settings write failed: {exc}")
 
     return get_settings()
+
+
+def _canonical_keys() -> list[dict]:
+    """The API keys the app uses (LLM providers + stock media)."""
+    keys = [
+        {"key": p.config_key("api_key"), "label": p.default_label, "kind": "llm"}
+        for p in LLM_PROVIDER_REGISTRY
+        if p.requires_api_key
+    ]
+    keys.append({"key": "pexels_api_keys", "label": "Pexels (stock)", "kind": "stock"})
+    keys.append({"key": "pixabay_api_keys", "label": "Pixabay (stock)", "kind": "stock"})
+    return keys
+
+
+def _key_to_str(value: Any) -> str:
+    if isinstance(value, (list, tuple)):
+        return ",".join(str(x) for x in value)
+    return str(value or "")
+
+
+def _str_to_key_value(key: str, value: str):
+    value = (value or "").strip()
+    if key in ("pexels_api_keys", "pixabay_api_keys"):
+        return [x.strip() for x in value.split(",") if x.strip()]
+    return value
+
+
+def list_api_keys() -> dict:
+    """Return every API key (masked) for the settings table."""
+    sb = {}
+    if supabase_enabled():
+        try:
+            sb = _sb_get_settings()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"supabase settings read failed: {exc}")
+
+    keys = []
+    for item in _canonical_keys():
+        key = item["key"]
+        value = sb.get(key) if key in sb else config.app.get(key, "")
+        value_str = _key_to_str(value)
+        keys.append(
+            {
+                "key": key,
+                "label": item["label"],
+                "kind": item["kind"],
+                "masked": _mask_secret(value_str),
+                "has_value": bool(value_str),
+            }
+        )
+    return {"keys": keys, "supabase_enabled": supabase_enabled()}
+
+
+def save_api_key(key: str, value: str) -> dict:
+    """Save one API key (validated against the canonical key list)."""
+    valid = {item["key"] for item in _canonical_keys()}
+    if key not in valid:
+        raise ValueError(f"unknown api key: {key}")
+
+    new_value = _str_to_key_value(key, value)
+    config.app[key] = new_value
+
+    try:
+        config.save_config()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"failed to save config.toml: {exc}")
+
+    if supabase_enabled():
+        try:
+            _sb_upsert_settings({key: _key_to_str(new_value)})
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"supabase settings write failed: {exc}")
+
+    return list_api_keys()
