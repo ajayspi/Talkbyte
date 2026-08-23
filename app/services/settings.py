@@ -131,8 +131,10 @@ def get_settings() -> dict:
 def save_settings(settings: dict[str, Any]) -> dict:
     """Merge + persist a (possibly partial) settings update.
 
-    ``llm_api_key`` / ``llm_model_name`` / ``llm_base_url`` only change when the
-    key is present in ``settings``; an empty string clears the value.
+    For each field, an explicit value in ``settings`` wins; otherwise the NEW
+    provider's existing value from ``config.app`` is kept (so switching provider
+    picks up that provider's own key/model, never the previous provider's).
+    An empty string clears the value (empty = use provider default).
     """
     current = _read_local()
 
@@ -143,26 +145,24 @@ def save_settings(settings: dict[str, Any]) -> dict:
     api_key = (
         (settings.get("llm_api_key") or "").strip()
         if "llm_api_key" in settings
-        else current["llm_api_key"]
+        else (config.app.get(f"{provider}_api_key") or "")
     )
     model_name = (
         (settings.get("llm_model_name") or "").strip()
         if "llm_model_name" in settings
-        else current["llm_model_name"]
+        else (config.app.get(f"{provider}_model_name") or "")
     )
     base_url = (
         (settings.get("llm_base_url") or "").strip()
         if "llm_base_url" in settings
-        else current["llm_base_url"]
+        else (config.app.get(f"{provider}_base_url") or "")
     )
 
     # Apply to runtime config (config.app is the [app] TOML section).
     config.app["llm_provider"] = provider
     config.app[f"{provider}_api_key"] = api_key
-    if model_name:
-        config.app[f"{provider}_model_name"] = model_name
-    if base_url:
-        config.app[f"{provider}_base_url"] = base_url
+    config.app[f"{provider}_model_name"] = model_name
+    config.app[f"{provider}_base_url"] = base_url
 
     try:
         config.save_config()
