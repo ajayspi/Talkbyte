@@ -23,7 +23,7 @@ from app.models.llm_provider import LLM_PROVIDERS, LLM_PROVIDER_REGISTRY
 
 _MASK_CHARS = 4
 DEFAULT_FALLBACK_PROVIDER = "openrouter"
-DEFAULT_FALLBACK_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+DEFAULT_FALLBACK_MODEL = "openrouter/free"
 
 
 def _supabase_url() -> str:

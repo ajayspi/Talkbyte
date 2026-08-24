@@ -237,7 +237,7 @@ LLM_PROVIDER_REGISTRY = (
         "openrouter",
         "OpenRouter",
         api_key_url="https://openrouter.ai/keys",
-        default_model="meta-llama/llama-3.3-70b-instruct:free",
+        default_model="nvidia/nemotron-3-super-120b-a12b:free",
         default_base_url="https://openrouter.ai/api/v1",
     ),
     LLMProviderSpec(

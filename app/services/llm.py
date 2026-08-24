@@ -408,7 +408,7 @@ def _generate_response_once(prompt: str, app_config=None) -> str:
 
 
 DEFAULT_FALLBACK_PROVIDER = "openrouter"
-DEFAULT_FALLBACK_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+DEFAULT_FALLBACK_MODEL = "openrouter/free"
 
 
 def _is_error_result(result: str | None) -> bool:
@@ -425,15 +425,21 @@ def _build_fallback_config(app_config=None) -> dict | None:
     if not fallback_provider:
         return None
     primary = str(runtime.get("llm_provider", "") or "").strip().lower()
-    if fallback_provider == primary:
-        return None
 
-    cfg = dict(runtime)
-    cfg["llm_provider"] = fallback_provider
     fallback_model = runtime.get("llm_fallback_model")
     if fallback_model is None:
         fallback_model = DEFAULT_FALLBACK_MODEL
     fallback_model = str(fallback_model).strip()
+
+    if fallback_provider == primary:
+        # Same provider: only useful as a model-level fallback (e.g. a free
+        # model that rate-limits, retried on another free model).
+        primary_model = str(runtime.get(f"{primary}_model_name", "") or "").strip()
+        if not fallback_model or fallback_model.lower() == primary_model.lower():
+            return None
+
+    cfg = dict(runtime)
+    cfg["llm_provider"] = fallback_provider
     if fallback_model:
         cfg[f"{fallback_provider}_model_name"] = fallback_model
     return cfg
