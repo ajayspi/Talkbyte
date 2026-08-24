@@ -80,6 +80,84 @@ _VIDEO_MUSIC_PROVIDERS = {
 }
 
 
+# --- Task cancel / pause controls ---
+# 取消/暂停是协作式的：流水线在阶段边界调用 _checkpoint()。取消会立即抛出
+# _TaskCancelledError；暂停会阻塞直到恢复。FFmpeg 合成这类单个子进程无法在
+# 中途被打断，取消/暂停会在下一个检查点生效。
+_task_controls: dict[str, dict] = {}
+_controls_lock = threading.RLock()
+
+
+class _TaskCancelledError(Exception):
+    """Internal marker raised when a task is cancelled mid-pipeline."""
+
+
+def _task_control(task_id: str) -> dict:
+    with _controls_lock:
+        ctrl = _task_controls.get(task_id)
+        if ctrl is None:
+            ctrl = {
+                "cancel": threading.Event(),
+                "paused": False,
+                "resume": threading.Event(),
+            }
+            _task_controls[task_id] = ctrl
+        return ctrl
+
+
+def is_cancelled(task_id: str) -> bool:
+    return _task_control(task_id)["cancel"].is_set()
+
+
+def cancel_task(task_id: str) -> bool:
+    with _controls_lock:
+        ctrl = _task_controls.get(task_id)
+        if ctrl is None:
+            return False
+        ctrl["cancel"].set()
+        ctrl["resume"].set()  # wake a paused worker so it can exit
+        return True
+
+
+def pause_task(task_id: str) -> bool:
+    with _controls_lock:
+        ctrl = _task_controls.get(task_id)
+        if ctrl is None:
+            return False
+        if not ctrl["paused"]:
+            ctrl["paused"] = True
+            ctrl["resume"].clear()
+        return True
+
+
+def resume_task(task_id: str) -> bool:
+    with _controls_lock:
+        ctrl = _task_controls.get(task_id)
+        if ctrl is None:
+            return False
+        ctrl["paused"] = False
+        ctrl["resume"].set()
+        return True
+
+
+def is_paused(task_id: str) -> bool:
+    return _task_control(task_id)["paused"]
+
+
+def _clear_task_control(task_id: str) -> None:
+    with _controls_lock:
+        _task_controls.pop(task_id, None)
+
+
+def _checkpoint(task_id: str) -> None:
+    """Cooperative pause/cancel gate called between pipeline stages."""
+    ctrl = _task_control(task_id)
+    while ctrl["paused"] and not ctrl["cancel"].is_set():
+        ctrl["resume"].wait(timeout=1.0)
+    if ctrl["cancel"].is_set():
+        raise _TaskCancelledError()
+
+
 def _get_video_music_prompt(params: VideoParams) -> str:
     """
     读取当前视频配乐供应商实际使用的提示词。
@@ -1254,6 +1332,7 @@ def _run_pipeline(
         return _mark_task_failed(task_id, "script", error)
 
     sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=10)
+    _checkpoint(task_id)
 
     if stop_at == "script":
         sm.state.update_task(
@@ -1281,6 +1360,7 @@ def _run_pipeline(
         return {"script": video_script, "terms": video_terms}
 
     sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=20)
+    _checkpoint(task_id)
 
     # 3. Generate audio
     audio_file, audio_duration, sub_maker = generate_audio(
@@ -1297,6 +1377,7 @@ def _run_pipeline(
         )
 
     sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=30)
+    _checkpoint(task_id)
 
     if stop_at == "audio":
         sm.state.update_task(
@@ -1322,6 +1403,7 @@ def _run_pipeline(
         return {"subtitle_path": subtitle_path}
 
     sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=40)
+    _checkpoint(task_id)
 
     # 5. Get video materials
     downloaded_videos = get_video_materials(
@@ -1348,6 +1430,7 @@ def _run_pipeline(
         return {"materials": downloaded_videos}
 
     sm.state.update_task(task_id, state=const.TASK_STATE_PROCESSING, progress=50)
+    _checkpoint(task_id)
 
     # 仅完整视频生成流程才需要处理视频拼接模式；
     # 这样可以避免 /subtitle 和 /audio 这类请求访问不存在的字段。
@@ -1441,6 +1524,7 @@ def start(
     loomloom_video_request: loomloom.LoomLoomConfirmedVideoRequest | None = None,
 ):
     """执行任务流水线，并确保未预期异常也会转换成可查询的失败状态。"""
+    _task_control(task_id)
     try:
         return _run_pipeline(
             task_id,
@@ -1449,6 +1533,9 @@ def start(
             voice_preview=voice_preview,
             loomloom_video_request=loomloom_video_request,
         )
+    except _TaskCancelledError:
+        logger.info(f"task cancelled by user, task_id: {task_id}")
+        return _mark_task_failed(task_id, "pipeline", "cancelled by user")
     except Exception as exc:
         logger.exception(
             f"unexpected task pipeline failure, task_id: {task_id}, error: {exc}"
@@ -1458,6 +1545,8 @@ def start(
             "pipeline",
             f"{type(exc).__name__}: {exc}",
         )
+    finally:
+        _clear_task_control(task_id)
 
 
 if __name__ == "__main__":

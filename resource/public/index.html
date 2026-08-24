@@ -140,9 +140,12 @@
   .inline-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
   .inline-note code { font-family: var(--mono); background: var(--bg-2); padding: 1px 5px; border-radius: 4px; font-size: 11px; }
 
-  /* Right rail (queue + phone) */
-  .rail { display: flex; flex-direction: column; gap: 16px; }
-  .rail-sticky { position: sticky; top: 16px; }
+  /* Scenes + phone side-by-side */
+  .scenes-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .scenes-wrap { grid-template-columns: 1fr; } }
+  .phone-side { position: sticky; top: 16px; }
+  .phone-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .phone-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
 
   /* Scene thumbnail */
   .scene .thumb { width: 46px; height: 58px; flex: 0 0 auto; border-radius: 7px; overflow: hidden; background: var(--card-2); border: 1px solid var(--border); display: grid; place-items: center; }
@@ -272,7 +275,21 @@
         <div class="card" id="scenesCard" style="display:none">
           <h2><span class="stepnum">3</span>Scenes</h2>
           <p class="hint">Per-shot beats. Edit keywords/duration; the <b>V</b>/<b>IMG</b> tag sets clip vs still.</p>
-          <div id="scenesList"></div>
+          <div class="scenes-wrap">
+            <div id="scenesList"></div>
+            <div class="phone-side" id="phoneCard" style="display:none;">
+              <div class="phone-head">
+                <span class="phone-title" id="phoneTitle">Preview</span>
+                <button class="btn-ghost btn-sm" id="phoneRefresh">Refresh</button>
+              </div>
+              <div class="phone">
+                <div class="screen">
+                  <div class="notch"></div>
+                  <div class="feed" id="phoneFeed"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="card">
@@ -285,28 +302,12 @@
         </div>
       </div>
 
-      <div class="rail">
-        <div class="card rail-sticky">
-          <h2 style="display:flex;justify-content:space-between;align-items:center;">Queue
-            <button class="btn-ghost btn-sm" id="clearBtn">Clear done</button>
-          </h2>
-          <p class="hint">Jobs persist locally in this browser.</p>
-          <div id="queue"><div class="empty">No jobs yet. Generate a script, then a video.</div></div>
-        </div>
-
-        <div class="card" id="phoneCard" style="display:none;">
-          <h2 style="display:flex;justify-content:space-between;align-items:center;">Phone preview
-            <button class="btn-ghost btn-sm" id="phoneRefresh">Refresh</button>
-          </h2>
-          <p class="hint">What each scene will show, in order. Tap a video tile to play.</p>
-          <div class="phone">
-            <div class="screen">
-              <div class="notch"></div>
-              <div class="screen-head" id="phoneTitle">Preview</div>
-              <div class="feed" id="phoneFeed"></div>
-            </div>
-          </div>
-        </div>
+      <div class="card" style="position: sticky; top: 16px;">
+        <h2 style="display:flex;justify-content:space-between;align-items:center;">Queue
+          <button class="btn-ghost btn-sm" id="clearBtn">Clear done</button>
+        </h2>
+        <p class="hint">Jobs persist locally in this browser.</p>
+        <div id="queue"><div class="empty">No jobs yet. Generate a script, then a video.</div></div>
       </div>
     </div>
   </div>
@@ -646,7 +647,7 @@
       var status=document.createElement("div"); status.className="pstatus";
       if(job.status==="done"){ status.className+=" ok"; status.innerHTML="&#10003; Done"; }
       else if(job.status==="failed"){ status.className+=" err"; status.innerHTML="&#10007; Failed"; }
-      else { status.className+=" run"; status.innerHTML='<span class="spinner" style="border-color:rgba(251,191,36,.4);border-top-color:var(--amber)"></span>Rendering '+(job.progress||0)+"%"; }
+      else { status.className+=" run"; status.innerHTML = job.paused ? ('<span class="spinner" style="border-color:rgba(251,191,36,.4);border-top-color:var(--amber);animation-play-state:paused"></span>Paused '+(job.progress||0)+"%") : ('<span class="spinner" style="border-color:rgba(251,191,36,.4);border-top-color:var(--amber)"></span>Rendering '+(job.progress||0)+"%"); }
       top.appendChild(status); div.appendChild(top);
       if(job.status==="processing"){ var bar=document.createElement("div"); bar.className="bar"; var fill=document.createElement("i"); fill.style.width=(job.progress||0)+"%"; bar.appendChild(fill); div.appendChild(bar); }
       if(job.status==="failed" && job.error){ var eb=document.createElement("div"); eb.className="errbox"; eb.textContent=job.error; div.appendChild(eb); }
@@ -654,13 +655,34 @@
         appendVideoBlock(div, job.videos[0], job.subject);
       }
       var acts=document.createElement("div"); acts.className="acts";
-      var aDel=document.createElement("button"); aDel.className="btn-danger btn-sm"; aDel.textContent = job.status==="processing" ? "Cancel" : "Delete";
-      aDel.addEventListener("click", async function(){
-        if(job._timer){ clearInterval(job._timer); job._timer=null; }
-        try{ await call("/api/v1/tasks/"+job.taskId, null, "DELETE"); }catch(e){}
-        queue.splice(i,1); saveQueue(); renderQueue();
-      });
-      acts.appendChild(aDel); div.appendChild(acts);
+      if(job.status==="processing"){
+        var aPause=document.createElement("button"); aPause.className="btn-ghost btn-sm";
+        aPause.textContent = job.paused ? "Resume" : "Pause";
+        aPause.addEventListener("click", async function(){
+          try {
+            if(job.paused){ await call("/api/v1/tasks/"+job.taskId+"/resume", {}, "POST"); job.paused=false; }
+            else { await call("/api/v1/tasks/"+job.taskId+"/pause", {}, "POST"); job.paused=true; }
+            renderQueue();
+          } catch(e){ toast("Pause failed: "+e.message, true); }
+        });
+        acts.appendChild(aPause);
+        var aCancel=document.createElement("button"); aCancel.className="btn-danger btn-sm"; aCancel.textContent="Cancel";
+        aCancel.addEventListener("click", async function(){
+          try{ await call("/api/v1/tasks/"+job.taskId+"/cancel", {}, "POST"); }catch(e){}
+          if(job._timer){ clearInterval(job._timer); job._timer=null; }
+          queue.splice(i,1); saveQueue(); renderQueue();
+          toast("Render cancelled");
+        });
+        acts.appendChild(aCancel);
+      } else {
+        var aDel=document.createElement("button"); aDel.className="btn-danger btn-sm"; aDel.textContent="Delete";
+        aDel.addEventListener("click", async function(){
+          try{ await call("/api/v1/tasks/"+job.taskId, null, "DELETE"); }catch(e){}
+          queue.splice(i,1); saveQueue(); renderQueue();
+        });
+        acts.appendChild(aDel);
+      }
+      div.appendChild(acts);
       el.appendChild(div);
     });
   }

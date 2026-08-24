@@ -315,6 +315,51 @@ def delete_video(request: Request, task_id: str = Path(..., description="Task ID
     )
 
 
+@router.post(
+    "/tasks/{task_id}/cancel",
+    summary="Cancel a running short-video task",
+)
+def cancel_video(request: Request, task_id: str = Path(..., description="Task ID")):
+    request_id = base.get_task_id(request)
+    if not sm.state.get_task(task_id):
+        raise HttpException(
+            task_id=task_id, status_code=404, message=f"{request_id}: task not found"
+        )
+    tm.cancel_task(task_id)
+    logger.success(f"task cancel requested: {task_id}")
+    return utils.get_response(200, {"task_id": task_id, "cancelling": True})
+
+
+@router.post(
+    "/tasks/{task_id}/pause",
+    summary="Pause a running short-video task at the next checkpoint",
+)
+def pause_video(request: Request, task_id: str = Path(..., description="Task ID")):
+    request_id = base.get_task_id(request)
+    if not sm.state.get_task(task_id):
+        raise HttpException(
+            task_id=task_id, status_code=404, message=f"{request_id}: task not found"
+        )
+    tm.pause_task(task_id)
+    logger.success(f"task pause requested: {task_id}")
+    return utils.get_response(200, {"task_id": task_id, "paused": True})
+
+
+@router.post(
+    "/tasks/{task_id}/resume",
+    summary="Resume a paused short-video task",
+)
+def resume_video(request: Request, task_id: str = Path(..., description="Task ID")):
+    request_id = base.get_task_id(request)
+    if not sm.state.get_task(task_id):
+        raise HttpException(
+            task_id=task_id, status_code=404, message=f"{request_id}: task not found"
+        )
+    tm.resume_task(task_id)
+    logger.success(f"task resume requested: {task_id}")
+    return utils.get_response(200, {"task_id": task_id, "resumed": True})
+
+
 @router.get(
     "/musics", response_model=BgmRetrieveResponse, summary="Retrieve local BGM files"
 )
