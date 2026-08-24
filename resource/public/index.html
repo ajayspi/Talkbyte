@@ -62,7 +62,7 @@
   .tab.active { color: var(--text); border-bottom-color: var(--accent); }
   .tab .count { background: var(--card-2); color: var(--muted); font-size: 11px; border-radius: 20px; padding: 1px 7px; margin-left: 6px; }
 
-  .grid { display: grid; grid-template-columns: 1fr 400px; gap: 20px; align-items: start; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 20px; align-items: start; }
   @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
 
   .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
@@ -96,8 +96,8 @@
 
   .scene { display: flex; align-items: center; gap: 10px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; margin-top: 8px; }
   .scene .idx { width: 22px; height: 22px; flex: 0 0 auto; border-radius: 6px; background: var(--card-2); display: grid; place-items: center; font-size: 11px; color: var(--muted); font-weight: 700; }
-  .scene input[type=text] { padding: 6px 9px; font-size: 12.5px; }
-  .scene .kw { flex: 1.2; }
+  .scene input[type=text] { padding: 6px 9px; font-size: 12.5px; min-width: 0; }
+  .scene .kw { flex: 1.2; min-width: 0; }
   .scene .dur { width: 72px; flex: 0 0 auto; }
   .badge { font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: .03em; flex: 0 0 auto; }
   .badge.video { background: rgba(91,140,255,.16); color: #7cb0ff; }
@@ -109,7 +109,7 @@
   .job .id { font-family: var(--mono); font-size: 10.5px; color: var(--dim); }
   .job .meta { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
   .pstatus { font-size: 12px; font-weight: 600; margin-top: 6px; display: flex; align-items: center; gap: 7px; }
-  .pstatus.ok { color: var(--green); } .pstatus.err { color: var(--red); } .pstatus.run { color: var(--amber); }
+  .pstatus.ok { color: var(--green); } .pstatus.err { color: var(--red); } .pstatus.run { color: var(--amber); } .pstatus.warn { color: #fb923c; }
   .bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 8px; }
   .bar > i { display: block; height: 100%; background: var(--accent-grad); width: 0; transition: width .4s ease; }
   .errbox { font-size: 12px; color: var(--red); background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.2); border-radius: 6px; padding: 8px 10px; margin-top: 8px; }
@@ -164,7 +164,7 @@
   .phone .tile .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 9px 7px; background: linear-gradient(transparent, rgba(0,0,0,.78)); font-size: 10px; color: #fff; display: flex; align-items: center; gap: 6px; }
   .phone .tile .cap .n { background: var(--accent); border-radius: 5px; padding: 1px 5px; font-size: 9px; font-weight: 800; flex: 0 0 auto; }
   .phone .tile .cap .txt { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .phone .tile.video::before { content: "\25B6"; position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.55); color: #fff; width: 21px; height: 21px; border-radius: 50%; display: grid; place-items: center; font-size: 9px; z-index: 2; }
+  .phone .tile .tile-btn { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,.58); color: #fff; border: 1px solid rgba(255,255,255,.25); cursor: pointer; display: grid; place-items: center; font-size: 11px; z-index: 4; }
 </style>
 </head>
 <body>
@@ -457,6 +457,7 @@
   // ---- Step 2/3: scenes ----
   var scenes = [];
   var scenePreviews = [];
+  var scenePages = {}; // index -> search page offset (for per-scene "re-find")
   $("scenesBtn").addEventListener("click", async function(){
     var script = $("script").value.trim();
     if(!script){ toast("No script yet", true); return; }
@@ -486,7 +487,7 @@
       var idx=document.createElement("div"); idx.className="idx"; idx.textContent=s.index;
       var thumb=document.createElement("div"); thumb.className="thumb"; thumb.innerHTML='<span class="ph">…</span>';
       var kw=document.createElement("input"); kw.type="text"; kw.className="kw"; kw.value=s.keywords; kw.placeholder="keywords";
-      kw.addEventListener("input", function(){ s.keywords=kw.value; });
+      kw.addEventListener("input", function(){ s.keywords=kw.value; scenePages[s.index]=1; });
       var dur=document.createElement("input"); dur.type="text"; dur.className="dur"; dur.value=s.duration; dur.title="seconds";
       dur.addEventListener("input", function(){ s.duration=parseFloat(dur.value)||5; });
       var badge=document.createElement("span"); badge.className="badge "+(s.media_type==="image"?"image":"video"); badge.textContent = s.media_type==="image"?"IMG":"V";
@@ -495,9 +496,12 @@
         s.media_type = s.media_type==="image"?"video":"image";
         badge.className="badge "+(s.media_type==="image"?"image":"video");
         badge.textContent = s.media_type==="image"?"IMG":"V";
+        scenePages[s.index]=1;
         loadPreviews();
       });
-      el.appendChild(idx); el.appendChild(thumb); el.appendChild(kw); el.appendChild(dur); el.appendChild(badge);
+      var rf=document.createElement("button"); rf.type="button"; rf.className="btn-ghost btn-sm"; rf.textContent="\u21BB"; rf.title="Re-find media (different result)";
+      rf.addEventListener("click", function(){ scenePages[s.index]=(scenePages[s.index]||1)+1; loadPreviews(); });
+      el.appendChild(idx); el.appendChild(thumb); el.appendChild(kw); el.appendChild(dur); el.appendChild(badge); el.appendChild(rf);
       list.appendChild(el);
     });
   }
@@ -508,7 +512,7 @@
     $("phoneFeed").innerHTML='<div class="empty">Loading previews…</div>';
     try {
       var data = await call("/api/v1/scenes/preview", {
-        scenes: scenes.map(function(s){ return { index:s.index, beat:s.beat, duration:s.duration, keywords:s.keywords, source:s.source||"pexels", media_type:s.media_type }; }),
+        scenes: scenes.map(function(s){ return { index:s.index, beat:s.beat, duration:s.duration, keywords:s.keywords, source:s.source||"pexels", media_type:s.media_type, page: scenePages[s.index] || 1 }; }),
         source: $("source").value,
         video_aspect: $("aspect").value
       });
@@ -559,17 +563,27 @@
       var t=document.createElement("span"); t.className="txt"; t.textContent=p.keywords+" · "+(p.media_type==="image"?"IMG":"VID")+" · "+Math.round(p.duration)+"s";
       cap.appendChild(n); cap.appendChild(t); tile.appendChild(cap);
       if(p.media_type==="video" && p.video_url){
-        tile.addEventListener("click", function(){ playInTile(tile, p.video_url); });
+        var btn=document.createElement("button"); btn.type="button"; btn.className="tile-btn"; btn.textContent="\u25B6";
+        btn.addEventListener("click", function(e){ e.stopPropagation(); toggleTile(tile, p.video_url); });
+        tile.appendChild(btn);
+        tile.addEventListener("click", function(){ toggleTile(tile, p.video_url); });
       }
       feed.appendChild(tile);
     });
   }
 
-  function playInTile(tile, url){
-    var existing = tile.querySelector("video");
-    if(existing){ existing.pause(); existing.remove(); return; }
-    var v=document.createElement("video"); v.src=url; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true;
-    v.style.zIndex="3"; tile.insertBefore(v, tile.firstChild);
+  function toggleTile(tile, url){
+    var v = tile.querySelector("video");
+    var btn = tile.querySelector(".tile-btn");
+    if(!v){
+      v=document.createElement("video"); v.src=url; v.autoplay=true; v.loop=true; v.muted=true; v.playsInline=true;
+      v.style.zIndex="3"; tile.insertBefore(v, tile.firstChild);
+      if(btn) btn.textContent="\u23F8";
+    } else if(v.paused){
+      v.play(); if(btn) btn.textContent="\u23F8";
+    } else {
+      v.pause(); if(btn) btn.textContent="\u25B6";
+    }
   }
 
   $("phoneRefresh").addEventListener("click", loadPreviews);
@@ -596,7 +610,7 @@
       };
       if(scenes.length) body.scenes = scenes;
       var data = await call("/api/v1/videos", body);
-      var job = { taskId: data.task_id, subject: subject, status: "processing", progress: 0, videos: null, error: null, ts: Date.now() };
+      var job = { taskId: data.task_id, subject: subject, status: "processing", progress: 0, videos: null, error: null, ts: Date.now(), lastProgressAt: Date.now() };
       queue.unshift(job); saveQueue(); renderQueue();
       poll(job);
       toast("Render queued");
@@ -605,10 +619,13 @@
   });
 
   function poll(job){
+    if(!job.lastProgressAt) job.lastProgressAt = Date.now();
     var t = setInterval(async function(){
       try {
         var task = await call("/api/v1/tasks/" + job.taskId);
+        var prev = job.progress;
         job.progress = task.progress || 0;
+        if(job.progress !== prev) job.lastProgressAt = Date.now();
         if(task.state === 1){
           job.status="done"; job.videos = task.videos || task.combined_videos || null;
           clearInterval(t); saveQueue(); renderQueue();
@@ -633,6 +650,17 @@
   function videoUrl(uri){ return uri.indexOf("http")===0 ? uri : (API + uri); }
   function downloadPath(uri){ return uri.replace(/^\/tasks\//, ""); }
 
+  function stageLabel(p){
+    if(p >= 100) return "Finalizing";
+    if(p >= 50) return "Combining";
+    if(p >= 40) return "Fetching media";
+    if(p >= 30) return "Subtitles";
+    if(p >= 20) return "Voiceover";
+    if(p >= 10) return "Video terms";
+    if(p >= 5) return "Writing script";
+    return "Starting";
+  }
+
   function renderQueue(){
     var el=$("queue");
     if(!queue.length){ el.innerHTML='<div class="empty">No jobs yet. Generate a script, then a video.</div>'; return; }
@@ -647,7 +675,15 @@
       var status=document.createElement("div"); status.className="pstatus";
       if(job.status==="done"){ status.className+=" ok"; status.innerHTML="&#10003; Done"; }
       else if(job.status==="failed"){ status.className+=" err"; status.innerHTML="&#10007; Failed"; }
-      else { status.className+=" run"; status.innerHTML = job.paused ? ('<span class="spinner" style="border-color:rgba(251,191,36,.4);border-top-color:var(--amber);animation-play-state:paused"></span>Paused '+(job.progress||0)+"%") : ('<span class="spinner" style="border-color:rgba(251,191,36,.4);border-top-color:var(--amber)"></span>Rendering '+(job.progress||0)+"%"); }
+      else {
+        status.className+=" run";
+        var prog = job.progress || 0;
+        var since = job.lastProgressAt ? Math.round((Date.now()-job.lastProgressAt)/1000) : 0;
+        var sp = '<span class="spinner" style="border-color:rgba(251,191,36,.4);border-top-color:var(--amber)"></span>';
+        if(job.paused){ status.innerHTML = '<span class="spinner" style="border-color:rgba(251,191,36,.4);border-top-color:var(--amber);animation-play-state:paused"></span>Paused '+prog+'%'; }
+        else if(since > 90){ status.className+=" warn"; status.innerHTML = sp+stageLabel(prog)+' '+prog+'% <span style="opacity:.85">· stuck '+since+'s</span>'; }
+        else { status.innerHTML = sp+stageLabel(prog)+' '+prog+'%'; }
+      }
       top.appendChild(status); div.appendChild(top);
       if(job.status==="processing"){ var bar=document.createElement("div"); bar.className="bar"; var fill=document.createElement("i"); fill.style.width=(job.progress||0)+"%"; bar.appendChild(fill); div.appendChild(bar); }
       if(job.status==="failed" && job.error){ var eb=document.createElement("div"); eb.className="errbox"; eb.textContent=job.error; div.appendChild(eb); }

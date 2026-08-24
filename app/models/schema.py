@@ -73,6 +73,8 @@ class Scene(BaseModel):
     source: str = "pexels"
     # "video" = stock clip, "image" = still photo (ken-burns zoom in the render).
     media_type: str = "video"
+    # Preview search offset so the UI can "re-find" different media per beat.
+    page: int = 1
 
 
 class SettingsRequest(BaseModel):

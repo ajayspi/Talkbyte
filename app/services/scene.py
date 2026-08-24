@@ -294,10 +294,12 @@ def preview_scenes(
             keywords = str(scene_item.get("keywords") or "").strip()
             media_type = _normalize_media_type(scene_item.get("media_type"))
             index = scene_item.get("index", idx)
+            page = int(scene_item.get("page", 1) or 1)
         else:
             keywords = str(getattr(scene_item, "keywords", "") or "").strip()
             media_type = _normalize_media_type(getattr(scene_item, "media_type", "video"))
             index = getattr(scene_item, "index", idx)
+            page = int(getattr(scene_item, "page", 1) or 1)
         if not keywords:
             previews.append(
                 {
@@ -316,6 +318,7 @@ def preview_scenes(
             media_type=media_type,
             source=source,
             video_aspect=video_aspect,
+            page=page,
         )
         preview["index"] = index
         preview["keywords"] = keywords

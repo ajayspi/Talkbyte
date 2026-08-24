@@ -1101,20 +1101,24 @@ def search_preview(
     media_type: str = "video",
     source: str = "pexels",
     video_aspect: VideoAspect = VideoAspect.portrait,
+    page: int = 1,
 ) -> dict:
     """Return a lightweight media preview (thumbnail + optional low-res clip).
 
     Used by the ProstudioX UI so each scene beat can show a thumbnail before a
     full render is queued. Never downloads; returns public URLs only.
+
+    ``page`` offsets the search result so the UI can "re-find" a different
+    image/video for the same keywords (1 = first result, 2 = second, ...).
     """
     media_type = (media_type or "video").strip().lower()
     source = (source or "pexels").strip().lower()
     try:
         if source == "pixabay":
-            return _search_preview_pixabay(search_term, media_type)
+            return _search_preview_pixabay(search_term, media_type, page)
         if source == "coverr":
             return _search_preview_coverr()
-        return _search_preview_pexels(search_term, media_type, video_aspect)
+        return _search_preview_pexels(search_term, media_type, video_aspect, page)
     except Exception as e:
         logger.warning(
             f"preview search failed: source={source}, term={search_term!r}, "
@@ -1130,7 +1134,7 @@ def search_preview(
 
 
 def _search_preview_pexels(
-    search_term: str, media_type: str, video_aspect: VideoAspect
+    search_term: str, media_type: str, video_aspect: VideoAspect, page: int = 1
 ) -> dict:
     api_key = get_api_key("pexels_api_keys")
     headers = {
@@ -1148,7 +1152,7 @@ def _search_preview_pexels(
     }
 
     if media_type == "image":
-        params = {"query": search_term, "per_page": 5, "orientation": orientation}
+        params = {"query": search_term, "per_page": 5, "orientation": orientation, "page": max(1, int(page))}
         url = f"https://api.pexels.com/v1/search?{urlencode(params)}"
         r = requests.get(
             url, headers=headers, proxies=config.proxy,
@@ -1166,7 +1170,7 @@ def _search_preview_pexels(
         return result
 
     # video preview: poster image + lowest-res orientation-matching clip
-    params = {"query": search_term, "per_page": 5, "orientation": orientation}
+    params = {"query": search_term, "per_page": 5, "orientation": orientation, "page": max(1, int(page))}
     url = f"https://api.pexels.com/videos/search?{urlencode(params)}"
     r = requests.get(
         url, headers=headers, proxies=config.proxy,
@@ -1197,7 +1201,7 @@ def _search_preview_pexels(
     return result
 
 
-def _search_preview_pixabay(search_term: str, media_type: str) -> dict:
+def _search_preview_pixabay(search_term: str, media_type: str, page: int = 1) -> dict:
     api_key = get_api_key("pixabay_api_keys")
     result = {
         "provider": "pixabay",
@@ -1207,7 +1211,7 @@ def _search_preview_pixabay(search_term: str, media_type: str) -> dict:
         "source_page": None,
     }
     if media_type == "image":
-        params = {"q": search_term, "image_type": "photo", "per_page": 5, "key": api_key}
+        params = {"q": search_term, "image_type": "photo", "per_page": 5, "page": max(1, int(page)), "key": api_key}
         url = f"https://pixabay.com/api/?{urlencode(params)}"
         r = requests.get(
             url, proxies=config.proxy, verify=_get_tls_verify(), timeout=(30, 60)
@@ -1221,7 +1225,7 @@ def _search_preview_pixabay(search_term: str, media_type: str) -> dict:
             result["source_page"] = _safe_public_url(h.get("pageURL"))
         return result
 
-    params = {"q": search_term, "video_type": "all", "per_page": 5, "key": api_key}
+    params = {"q": search_term, "video_type": "all", "per_page": 5, "page": max(1, int(page)), "key": api_key}
     url = f"https://pixabay.com/api/videos/?{urlencode(params)}"
     r = requests.get(
         url, proxies=config.proxy, verify=_get_tls_verify(), timeout=(30, 60)
