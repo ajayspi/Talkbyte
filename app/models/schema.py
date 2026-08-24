@@ -594,3 +594,29 @@ class SceneData(BaseModel):
 
 class SceneResponse(BaseResponse):
     data: SceneData
+
+
+class ScenePreviewRequest(BaseModel):
+    """Batch preview lookup: resolve a thumbnail/low-res clip for each scene."""
+
+    scenes: List[Scene]
+    source: str = "pexels"
+    video_aspect: str = "9:16"
+
+
+class ScenePreview(BaseModel):
+    index: int = 0
+    keywords: str = ""
+    media_type: str = "video"
+    provider: str = ""
+    preview_url: Optional[str] = None
+    video_url: Optional[str] = None
+    source_page: Optional[str] = None
+
+
+class ScenePreviewData(BaseModel):
+    previews: List[ScenePreview]
+
+
+class ScenePreviewResponse(BaseResponse):
+    data: ScenePreviewData

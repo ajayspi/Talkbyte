@@ -1096,6 +1096,162 @@ def search_images_pixabay(
     return items
 
 
+def search_preview(
+    search_term: str,
+    media_type: str = "video",
+    source: str = "pexels",
+    video_aspect: VideoAspect = VideoAspect.portrait,
+) -> dict:
+    """Return a lightweight media preview (thumbnail + optional low-res clip).
+
+    Used by the ProstudioX UI so each scene beat can show a thumbnail before a
+    full render is queued. Never downloads; returns public URLs only.
+    """
+    media_type = (media_type or "video").strip().lower()
+    source = (source or "pexels").strip().lower()
+    try:
+        if source == "pixabay":
+            return _search_preview_pixabay(search_term, media_type)
+        if source == "coverr":
+            return _search_preview_coverr()
+        return _search_preview_pexels(search_term, media_type, video_aspect)
+    except Exception as e:
+        logger.warning(
+            f"preview search failed: source={source}, term={search_term!r}, "
+            f"error={type(e).__name__}: {_redact_request_error(e, '')}"
+        )
+    return {
+        "provider": source,
+        "media_type": media_type,
+        "preview_url": None,
+        "video_url": None,
+        "source_page": None,
+    }
+
+
+def _search_preview_pexels(
+    search_term: str, media_type: str, video_aspect: VideoAspect
+) -> dict:
+    api_key = get_api_key("pexels_api_keys")
+    headers = {
+        "Authorization": api_key,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+    }
+    aspect = VideoAspect(video_aspect)
+    orientation = aspect.name  # "portrait" | "landscape" | "square"
+    result = {
+        "provider": "pexels",
+        "media_type": media_type,
+        "preview_url": None,
+        "video_url": None,
+        "source_page": None,
+    }
+
+    if media_type == "image":
+        params = {"query": search_term, "per_page": 5, "orientation": orientation}
+        url = f"https://api.pexels.com/v1/search?{urlencode(params)}"
+        r = requests.get(
+            url, headers=headers, proxies=config.proxy,
+            verify=_get_tls_verify(), timeout=(30, 60),
+        )
+        photos = (r.json() or {}).get("photos") or []
+        if not photos:
+            return result
+        p = photos[0]
+        src = p.get("src") or {}
+        result["preview_url"] = (
+            src.get("medium") or src.get("large") or src.get("original")
+        )
+        result["source_page"] = _safe_public_url(p.get("url"))
+        return result
+
+    # video preview: poster image + lowest-res orientation-matching clip
+    params = {"query": search_term, "per_page": 5, "orientation": orientation}
+    url = f"https://api.pexels.com/videos/search?{urlencode(params)}"
+    r = requests.get(
+        url, headers=headers, proxies=config.proxy,
+        verify=_get_tls_verify(), timeout=(30, 60),
+    )
+    videos = (r.json() or {}).get("videos") or []
+    for v in videos:
+        poster = v.get("image")
+        files = v.get("video_files") or []
+        if not files:
+            continue
+        candidates = []
+        for f in files:
+            try:
+                w = int(f["width"])
+                h = int(f["height"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if _matches_video_aspect(w, h, aspect):
+                candidates.append(f)
+        if not candidates:
+            candidates = files
+        best = min(candidates, key=lambda f: int(f.get("width", 10 ** 9)) or 10 ** 9)
+        result["preview_url"] = poster or None
+        result["video_url"] = best.get("link")
+        result["source_page"] = _safe_public_url(v.get("url"))
+        return result
+    return result
+
+
+def _search_preview_pixabay(search_term: str, media_type: str) -> dict:
+    api_key = get_api_key("pixabay_api_keys")
+    result = {
+        "provider": "pixabay",
+        "media_type": media_type,
+        "preview_url": None,
+        "video_url": None,
+        "source_page": None,
+    }
+    if media_type == "image":
+        params = {"q": search_term, "image_type": "photo", "per_page": 5, "key": api_key}
+        url = f"https://pixabay.com/api/?{urlencode(params)}"
+        r = requests.get(
+            url, proxies=config.proxy, verify=_get_tls_verify(), timeout=(30, 60)
+        )
+        if _is_cloudflare_challenge(r) or int(getattr(r, "status_code", 200)) >= 400:
+            return result
+        hits = (r.json() or {}).get("hits") or []
+        if hits:
+            h = hits[0]
+            result["preview_url"] = h.get("webformatURL") or h.get("previewURL")
+            result["source_page"] = _safe_public_url(h.get("pageURL"))
+        return result
+
+    params = {"q": search_term, "video_type": "all", "per_page": 5, "key": api_key}
+    url = f"https://pixabay.com/api/videos/?{urlencode(params)}"
+    r = requests.get(
+        url, proxies=config.proxy, verify=_get_tls_verify(), timeout=(30, 60)
+    )
+    if _is_cloudflare_challenge(r) or int(getattr(r, "status_code", 200)) >= 400:
+        return result
+    hits = (r.json() or {}).get("hits") or []
+    if hits:
+        v = hits[0]
+        files = v.get("videos") or {}
+        for q in ("small", "medium", "large"):
+            if q in files and files[q].get("url"):
+                result["video_url"] = files[q]["url"]
+                break
+        result["preview_url"] = v.get("userImageURL") or None
+        result["source_page"] = _safe_public_url(v.get("pageURL"))
+    return result
+
+
+def _search_preview_coverr() -> dict:
+    # Coverr has no lightweight public thumbnail API; return an empty preview.
+    return {
+        "provider": "coverr",
+        "media_type": "video",
+        "preview_url": None,
+        "video_url": None,
+        "source_page": None,
+    }
+
+
 def save_image(image_url: str, save_dir: str = "") -> str:
     """Download and persist a stock image, returning its local path ("" on failure)."""
     if not save_dir:

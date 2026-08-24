@@ -272,3 +272,52 @@ def scenes_to_media_types(scenes) -> List[str]:
             media_type = getattr(scene_item, "media_type", None)
         media_types.append(_normalize_media_type(media_type))
     return media_types
+
+
+def preview_scenes(
+    scenes,
+    source: str = "pexels",
+    video_aspect: str = "9:16",
+) -> List[dict]:
+    """Resolve a thumbnail/low-res preview for each scene beat (batch).
+
+    Accepts ``Scene`` pydantic objects or plain dicts, matching the shape the
+    UI already holds after ``/api/v1/scenes``. Each returned item carries the
+    original ``index``/``keywords``/``media_type`` plus public ``preview_url``
+    (poster/thumbnail) and, for video beats, a low-res ``video_url`` loop.
+    """
+    from app.services import material
+
+    previews: List[dict] = []
+    for idx, scene_item in enumerate(scenes or [], 1):
+        if isinstance(scene_item, dict):
+            keywords = str(scene_item.get("keywords") or "").strip()
+            media_type = _normalize_media_type(scene_item.get("media_type"))
+            index = scene_item.get("index", idx)
+        else:
+            keywords = str(getattr(scene_item, "keywords", "") or "").strip()
+            media_type = _normalize_media_type(getattr(scene_item, "media_type", "video"))
+            index = getattr(scene_item, "index", idx)
+        if not keywords:
+            previews.append(
+                {
+                    "index": index,
+                    "keywords": keywords,
+                    "media_type": media_type,
+                    "provider": source,
+                    "preview_url": None,
+                    "video_url": None,
+                    "source_page": None,
+                }
+            )
+            continue
+        preview = material.search_preview(
+            search_term=keywords,
+            media_type=media_type,
+            source=source,
+            video_aspect=video_aspect,
+        )
+        preview["index"] = index
+        preview["keywords"] = keywords
+        previews.append(preview)
+    return previews

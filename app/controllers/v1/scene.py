@@ -1,7 +1,12 @@
 from fastapi import Request
 
 from app.controllers.v1.base import new_router
-from app.models.schema import SceneRequest, SceneResponse
+from app.models.schema import (
+    ScenePreviewRequest,
+    ScenePreviewResponse,
+    SceneRequest,
+    SceneResponse,
+)
 from app.services import scene
 from app.utils import utils
 
@@ -23,3 +28,17 @@ def generate_video_scenes(request: Request, body: SceneRequest):
     )
     response = {"scenes": scenes}
     return utils.get_response(200, response)
+
+
+@router.post(
+    "/scenes/preview",
+    response_model=ScenePreviewResponse,
+    summary="Resolve a thumbnail/low-res preview for each scene beat",
+)
+def preview_video_scenes(request: Request, body: ScenePreviewRequest):
+    previews = scene.preview_scenes(
+        body.scenes,
+        source=body.source,
+        video_aspect=body.video_aspect,
+    )
+    return utils.get_response(200, {"previews": previews})
