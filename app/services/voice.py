@@ -260,6 +260,14 @@ def parse_voice_name(name: str):
     return name
 
 
+def default_voice_name(language: str = "") -> str:
+    """Return a sensible Edge TTS voice when none is provided."""
+    lang = (language or "").strip().lower()
+    if lang.startswith("zh"):
+        return "zh-CN-XiaoxiaoNeural"
+    return "en-US-AndrewNeural"
+
+
 def is_azure_v2_voice(voice_name: str):
     voice_name = parse_voice_name(voice_name)
     if voice_name.endswith("-V2"):

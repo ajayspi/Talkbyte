@@ -501,7 +501,9 @@ def generate_audio(task_id, params, video_script, voice_preview=None):
         audio_file = path.join(utils.task_dir(task_id), "audio.mp3")
         sub_maker = voice.tts(
             text=video_script,
-            voice_name=voice.parse_voice_name(params.voice_name),
+            voice_name=voice.parse_voice_name(
+                params.voice_name or voice.default_voice_name(params.video_language)
+            ),
             voice_rate=params.voice_rate,
             voice_file=audio_file,
         )
