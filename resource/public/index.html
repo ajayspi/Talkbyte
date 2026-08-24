@@ -617,7 +617,14 @@
           clearInterval(t); saveQueue(); renderQueue(); toast("Render failed", true);
         } else { job.status="processing"; }
         renderQueue();
-      } catch(e){ /* transient */ }
+      } catch(e){
+        var msg = (e && e.message) || "";
+        if(/not found|404/i.test(msg)){
+          job.status="failed"; job.error="Task lost (backend restarted) — re-submit to render again";
+          clearInterval(t); saveQueue(); renderQueue();
+        }
+        /* else: transient network error, ignore and keep polling */
+      }
     }, 2500);
     job._timer = t;
   }
@@ -645,11 +652,15 @@
       if(job.status==="failed" && job.error){ var eb=document.createElement("div"); eb.className="errbox"; eb.textContent=job.error; div.appendChild(eb); }
       if(job.status==="done" && job.videos && job.videos.length){
         appendVideoBlock(div, job.videos[0], job.subject);
-        var acts=document.createElement("div"); acts.className="acts";
-        var aDel=document.createElement("button"); aDel.className="btn-danger btn-sm"; aDel.textContent="Delete";
-        aDel.addEventListener("click", async function(){ try{ await call("/api/v1/tasks/"+job.taskId, null, "DELETE"); }catch(e){} queue.splice(i,1); saveQueue(); renderQueue(); });
-        acts.appendChild(aDel); div.appendChild(acts);
       }
+      var acts=document.createElement("div"); acts.className="acts";
+      var aDel=document.createElement("button"); aDel.className="btn-danger btn-sm"; aDel.textContent = job.status==="processing" ? "Cancel" : "Delete";
+      aDel.addEventListener("click", async function(){
+        if(job._timer){ clearInterval(job._timer); job._timer=null; }
+        try{ await call("/api/v1/tasks/"+job.taskId, null, "DELETE"); }catch(e){}
+        queue.splice(i,1); saveQueue(); renderQueue();
+      });
+      acts.appendChild(aDel); div.appendChild(acts);
       el.appendChild(div);
     });
   }
@@ -835,6 +846,7 @@
   }
 
   renderQueue();
+  queue.forEach(function(job){ if(job.status==="processing"){ poll(job); } });
 })();
 </script>
 </body>
