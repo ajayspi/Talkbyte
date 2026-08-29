@@ -306,68 +306,124 @@ git clone https://github.com/acme-restaurants/talkbyte.git
 
 ### 5b. Create Production Environment File
 
-Create `.env.prod` in the repo root:
+Create `.env.prod` in the repo root with **all required and optional variables**:
 
 ```bash
 cat > .env.prod << 'EOF'
-# ── Supabase Cloud (from Step 1c) ────────────────────────────
+# ── Supabase Cloud (REQUIRED - from Step 1c) ────────────────────────
 SUPABASE_URL=https://xxxx.supabase.co
 SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
-# ── Upstash Redis (from Step 2c) ─────────────────────────────
+# ── Upstash Redis (REQUIRED - from Step 2c) ─────────────────────────
 UPSTASH_REDIS_REST_URL=https://xxxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=...
 CELERY_BROKER_URL=redis://default:PASSWORD@ENDPOINT:6379
 
-# ── Telnyx (voice provider) ──────────────────────────────────
+# ── Frontend (REQUIRED - Next.js 16) ───────────────────────────────
+NEXT_PUBLIC_BACKEND_URL=http://YOUR_PUBLIC_IP:8000
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+NEXT_PUBLIC_ENVIRONMENT=production
+NEXT_PUBLIC_DEBUG=false
+
+# ── Telnyx (REQUIRED for voice) ──────────────────────────────────────
 TELNYX_API_KEY=KEY...
 TELNYX_PUBLIC_KEY=...
 TELNYX_SIP_CONNECTION_ID=...
 TELNYX_MESSAGING_PROFILE_ID=...
 
-# ── LiveKit (voice orchestration) ────────────────────────────
+# ── Telnyx (OPTIONAL - fallback phone number) ───────────────────────
+TELNYX_PHONE_NUMBER=+61[YOUR_TELNYX_NUMBER]
+
+# ── LiveKit (REQUIRED for voice orchestration) ───────────────────────
 LIVEKIT_URL=wss://your-app.livekit.cloud
 LIVEKIT_API_KEY=API...
 LIVEKIT_API_SECRET=...
 
-# ── Deepgram (STT) ───────────────────────────────────────────
+# ── Deepgram (REQUIRED for STT) ──────────────────────────────────────
 DEEPGRAM_API_KEY=...
 
-# ── OpenAI (LLM) ─────────────────────────────────────────────
+# ── OpenAI (REQUIRED for LLM) ───────────────────────────────────────
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4.1
 
-# ── ElevenLabs (TTS) ─────────────────────────────────────────
+# ── ElevenLabs (REQUIRED for TTS) ───────────────────────────────────
 ELEVENLABS_API_KEY=...
 ELEVENLABS_VOICE_ID=...
 
-# ── Stripe (payments, optional for MVP) ──────────────────────
+# ── Stripe Payments (OPTIONAL for MVP) ──────────────────────────────
+# Enable restaurant payment authorization flow
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_CONNECT_CLIENT_ID=ca_...
 
-# ── Square POS (optional for MVP) ───────────────────────────
+# ── Square POS (OPTIONAL for MVP) ──────────────────────────────────
+# For pushing orders to restaurant POS
 SQUARE_APPLICATION_ID=sq0idp-...
 SQUARE_APPLICATION_SECRET=...
 SQUARE_ENVIRONMENT=sandbox
 
-# ── App Settings ─────────────────────────────────────────────
+# ── Error Monitoring (OPTIONAL) ─────────────────────────────────────
+# Enable production error tracking
+SENTRY_DSN=https://[OPTIONAL_SENTRY_KEY]@sentry.io/[PROJECT_ID]
+
+# ── App Settings (REQUIRED) ─────────────────────────────────────────
 ENVIRONMENT=production
 SECRET_KEY=your-secret-key-change-me
 FRONTEND_URL=http://YOUR_PUBLIC_IP:3000
 CALL_SESSION_TTL_SECONDS=1800
 PAYMENT_LINK_TTL_SECONDS=1800
+DEBUG=false
+LOG_LEVEL=info
 EOF
 ```
 
-Replace placeholders:
-- `https://xxxx.supabase.co` → Your Supabase URL from Step 1c
-- `eyJ...` → Your Supabase keys from Step 1c
-- `https://xxxx.upstash.io` → Your Upstash REST URL from Step 2c
-- `UPSTASH_REDIS_REST_TOKEN` → Your Upstash token from Step 2c
-- `redis://default:PASSWORD@ENDPOINT:6379` → Your Upstash Redis URL from Step 2c
-- `YOUR_PUBLIC_IP` → The IP from Step 3d (e.g., `203.0.113.45`)
-- All API keys from Telnyx, LiveKit, Deepgram, OpenAI, ElevenLabs (obtain from their respective dashboards if you haven't already)
+**Important:** Before deploying, replace all placeholders:
+
+**From Supabase (Step 1c):**
+- `SUPABASE_URL=https://xxxx.supabase.co` → Your Supabase project URL
+- `SUPABASE_ANON_KEY=eyJ...` → Your Anon Key (public, safe for frontend)
+- `SUPABASE_SERVICE_ROLE_KEY=eyJ...` → Your Service Role Key (secret, backend only)
+- `NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co` → **Same as SUPABASE_URL** (frontend needs it)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...` → **Same as SUPABASE_ANON_KEY** (frontend needs it)
+
+**From Upstash (Step 2c):**
+- `UPSTASH_REDIS_REST_URL=https://xxxx.upstash.io` → Your Upstash REST API URL
+- `UPSTASH_REDIS_REST_TOKEN=...` → Your Upstash REST Token
+- `CELERY_BROKER_URL=redis://default:PASSWORD@ENDPOINT:6379` → Your Upstash native Redis URL
+
+**Frontend URLs:**
+- `NEXT_PUBLIC_BACKEND_URL=http://YOUR_PUBLIC_IP:8000` → Replace `YOUR_PUBLIC_IP` with the IP from Step 3d (e.g., `203.0.113.45`)
+- `FRONTEND_URL=http://YOUR_PUBLIC_IP:3000` → Same public IP + port 3000
+
+**API Keys (obtain from respective dashboards):**
+- Telnyx: `TELNYX_API_KEY`, `TELNYX_PUBLIC_KEY`, `TELNYX_SIP_CONNECTION_ID`, `TELNYX_MESSAGING_PROFILE_ID`
+- LiveKit: `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`
+- Deepgram: `DEEPGRAM_API_KEY`
+- OpenAI: `OPENAI_API_KEY`
+- ElevenLabs: `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`
+
+**Optional for MVP (skip if not implemented yet):**
+- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_CONNECT_CLIENT_ID` — Enable if doing payments in Phase 1
+- `SQUARE_APPLICATION_ID`, `SQUARE_APPLICATION_SECRET` — Enable if doing POS integration in Phase 1
+- `SENTRY_DSN` — Enable if you want error monitoring (leave blank for MVP)
+- `TELNYX_PHONE_NUMBER` — Fallback number if Telnyx SIP trunk not configured
+
+**Secret Key Generation:**
+If you don't have a `SECRET_KEY`, generate one:
+```bash
+openssl rand -hex 32
+```
+
+**Pre-Deployment Verification:**
+Before running `docker-compose up`, verify your `.env.prod` has:
+- [ ] All `SUPABASE_*` variables filled in (from Step 1c)
+- [ ] All `UPSTASH_*` variables filled in (from Step 2c)
+- [ ] All `NEXT_PUBLIC_*` variables filled in (especially `NEXT_PUBLIC_BACKEND_URL`)
+- [ ] All voice provider keys filled in (Telnyx, LiveKit, Deepgram, OpenAI, ElevenLabs)
+- [ ] `YOUR_PUBLIC_IP` replaced with your actual Oracle VM IP
+- [ ] `SECRET_KEY` changed from placeholder to random string (use `openssl rand -hex 32`)
 
 ### 5c. Create Docker Compose Production File
 
@@ -605,10 +661,14 @@ docker-compose -f docker-compose.prod.yml logs --tail=50 backend
 **Error:** Browser shows white screen, no console errors
 
 **Solution:**
-1. Check `NEXT_PUBLIC_BACKEND_URL` in `.env.prod` (should be `http://YOUR_PUBLIC_IP:8000`)
+1. Verify all `NEXT_PUBLIC_*` variables in `.env.prod`:
+   - `NEXT_PUBLIC_BACKEND_URL=http://YOUR_PUBLIC_IP:8000` (replace YOUR_PUBLIC_IP)
+   - `NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co` (from Step 1c)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...` (from Step 1c, same as SUPABASE_ANON_KEY)
 2. Verify backend is running: `curl http://YOUR_PUBLIC_IP:8000/docs`
 3. Check frontend logs: `docker-compose -f docker-compose.prod.yml logs frontend`
-4. Clear browser cache (Ctrl+Shift+Delete)
+4. Rebuild frontend container: `docker-compose -f docker-compose.prod.yml build --no-cache frontend`
+5. Clear browser cache (Ctrl+Shift+Delete) and do hard refresh (Ctrl+Shift+R)
 
 ### Monitoring Supabase Cloud
 
@@ -688,59 +748,101 @@ where created_at >= now() - interval '1 day';
 
 ---
 
-## Appendix A: Full .env.prod Template
+## Appendix A: Environment Variables Reference
 
-Save this as a reference:
+Use this table to understand each variable and where to find it:
 
-```bash
-# Supabase Cloud
-SUPABASE_URL=https://xxxx.supabase.co
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
+### Supabase Cloud (REQUIRED)
 
-# Upstash Redis
-UPSTASH_REDIS_REST_URL=https://xxxx.upstash.io
-UPSTASH_REDIS_REST_TOKEN=...
-CELERY_BROKER_URL=redis://default:PASSWORD@ENDPOINT:6379
+| Variable | Source | Example | Notes |
+|----------|--------|---------|-------|
+| `SUPABASE_URL` | Supabase Dashboard → Settings → API | `https://abc123.supabase.co` | Your database URL |
+| `SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API | `eyJ0eXA...` | Public key for frontend, safe to expose |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Settings → API | `eyJ0eXA...` | Secret key for backend, **keep private** |
 
-# Telnyx
-TELNYX_API_KEY=KEY...
-TELNYX_PUBLIC_KEY=...
-TELNYX_SIP_CONNECTION_ID=...
-TELNYX_MESSAGING_PROFILE_ID=...
+### Frontend (REQUIRED for Next.js 16)
 
-# LiveKit
-LIVEKIT_URL=wss://your-app.livekit.cloud
-LIVEKIT_API_KEY=API...
-LIVEKIT_API_SECRET=...
+| Variable | Source | Example | Notes |
+|----------|--------|---------|-------|
+| `NEXT_PUBLIC_BACKEND_URL` | Your Oracle VM public IP | `http://203.0.113.45:8000` | Must be reachable from browser |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → Settings → API | `https://abc123.supabase.co` | **Copy from SUPABASE_URL** |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API | `eyJ0eXA...` | **Copy from SUPABASE_ANON_KEY** |
+| `NEXT_PUBLIC_ENVIRONMENT` | Hardcoded | `production` | Leave as `production` |
+| `NEXT_PUBLIC_DEBUG` | Hardcoded | `false` | Set to `false` for production |
 
-# Deepgram
-DEEPGRAM_API_KEY=...
+### Upstash Redis (REQUIRED)
 
-# OpenAI
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4.1
+| Variable | Source | Example | Notes |
+|----------|--------|---------|-------|
+| `UPSTASH_REDIS_REST_URL` | Upstash Console → Database → Details | `https://example.upstash.io` | REST API endpoint |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Console → Database → Details | `ABC...XYZ` | Token for REST API |
+| `CELERY_BROKER_URL` | Upstash Console → Database → Details | `redis://default:pwd@host:6379` | Native Redis protocol URL |
 
-# ElevenLabs
-ELEVENLABS_API_KEY=...
-ELEVENLABS_VOICE_ID=...
+### Voice Pipeline (REQUIRED for calls)
 
-# Stripe (optional)
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+| Variable | Source | Example | Notes |
+|----------|--------|---------|-------|
+| `TELNYX_API_KEY` | Telnyx Portal → API Credentials | `KEY...` | Telephony provider API key |
+| `TELNYX_PUBLIC_KEY` | Telnyx Portal → API Credentials | `...` | For webhook signature verification |
+| `TELNYX_SIP_CONNECTION_ID` | Telnyx Portal → SIP Trunk Setup | `...` | SIP connection ID for LiveKit |
+| `TELNYX_MESSAGING_PROFILE_ID` | Telnyx Portal → SMS → Profiles | `...` | For outbound SMS payment links |
+| `LIVEKIT_URL` | LiveKit Cloud → Your Instance | `wss://your-app.livekit.cloud` | WebRTC server URL |
+| `LIVEKIT_API_KEY` | LiveKit Cloud → API Keys | `API...` | API authentication key |
+| `LIVEKIT_API_SECRET` | LiveKit Cloud → API Keys | `...` | API secret, **keep private** |
+| `DEEPGRAM_API_KEY` | Deepgram Console → API Keys | `...` | Speech-to-text provider API key |
+| `OPENAI_API_KEY` | OpenAI Platform → API Keys | `sk-...` | LLM provider API key |
+| `ELEVENLABS_API_KEY` | ElevenLabs Dashboard → API | `...` | Text-to-speech provider API key |
+| `ELEVENLABS_VOICE_ID` | ElevenLabs Dashboard → Voices | `21m00Tcm4TlvDq8ikWAM` | Pre-selected AU English voice |
 
-# Square (optional)
-SQUARE_APPLICATION_ID=sq0idp-...
-SQUARE_APPLICATION_SECRET=...
-SQUARE_ENVIRONMENT=sandbox
+### Payments (OPTIONAL for MVP)
 
-# App
-ENVIRONMENT=production
-SECRET_KEY=change-me-to-random-string
-FRONTEND_URL=http://YOUR_PUBLIC_IP:3000
-CALL_SESSION_TTL_SECONDS=1800
-PAYMENT_LINK_TTL_SECONDS=1800
-```
+| Variable | Source | Example | Notes |
+|----------|--------|---------|-------|
+| `STRIPE_SECRET_KEY` | Stripe Dashboard → Developers → API Keys | `sk_test_...` | Use `sk_test_` for testing, `sk_live_` for production |
+| `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard → Webhooks | `whsec_...` | For payment status updates |
+| `STRIPE_CONNECT_CLIENT_ID` | Stripe Dashboard → Connect → Settings | `ca_...` | For restaurant onboarding (optional) |
+
+### POS Integration (OPTIONAL for MVP)
+
+| Variable | Source | Example | Notes |
+|----------|--------|---------|-------|
+| `SQUARE_APPLICATION_ID` | Square Developer → Applications | `sq0idp-...` | POS integration (optional) |
+| `SQUARE_APPLICATION_SECRET` | Square Developer → Applications | `...` | POS integration secret (optional) |
+| `SQUARE_ENVIRONMENT` | Hardcoded | `sandbox` | Use `sandbox` for testing, `production` for live |
+
+### Error Monitoring (OPTIONAL for MVP)
+
+| Variable | Source | Example | Notes |
+|----------|--------|---------|-------|
+| `SENTRY_DSN` | Sentry → Project Settings | `https://key@sentry.io/project` | Error tracking (optional, leave blank for MVP) |
+
+### Telephony Fallback (OPTIONAL)
+
+| Variable | Source | Example | Notes |
+|----------|--------|---------|-------|
+| `TELNYX_PHONE_NUMBER` | Telnyx Portal → Phone Numbers | `+61412345678` | Fallback AU phone number (optional) |
+
+### App Settings (REQUIRED)
+
+| Variable | Source | Example | Notes |
+|----------|--------|---------|-------|
+| `ENVIRONMENT` | Hardcoded | `production` | Leave as `production` |
+| `SECRET_KEY` | Generate locally | `abc123def456...` | Run `openssl rand -hex 32` to generate |
+| `FRONTEND_URL` | Your Oracle VM public IP | `http://203.0.113.45:3000` | URL reachable from restaurant browsers |
+| `CALL_SESSION_TTL_SECONDS` | Hardcoded | `1800` | 30 minutes (don't change) |
+| `PAYMENT_LINK_TTL_SECONDS` | Hardcoded | `1800` | 30 minutes (don't change) |
+| `DEBUG` | Hardcoded | `false` | Leave as `false` for production |
+| `LOG_LEVEL` | Hardcoded | `info` | Set to `debug` if troubleshooting |
+
+### Checklist Before Deployment
+
+- [ ] All `SUPABASE_*` variables filled from Step 1c
+- [ ] All `UPSTASH_*` variables filled from Step 2c
+- [ ] All `NEXT_PUBLIC_*` variables filled with your Oracle VM IP (from Step 3d)
+- [ ] All voice provider keys (`TELNYX_*`, `LIVEKIT_*`, `DEEPGRAM_*`, `OPENAI_*`, `ELEVENLABS_*`) obtained
+- [ ] `SECRET_KEY` generated with `openssl rand -hex 32`
+- [ ] Optional variables (Stripe, Square, Sentry) filled if implementing those features
+- [ ] No placeholder values like `xxxx`, `eyJ...`, `KEY...` left unfilled (except optional sections)
 
 ---
 
