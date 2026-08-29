@@ -4,8 +4,10 @@ import os
 
 # Set test environment
 os.environ['ENVIRONMENT'] = 'test'
-os.environ['SUPABASE_URL'] = 'http://localhost:5432'
-os.environ['UPSTASH_REDIS_REST_URL'] = 'http://localhost:6379'
+os.environ['SUPABASE_URL'] = 'http://localhost:54321'
+os.environ['SUPABASE_ANON_KEY'] = 'test-anon-key'
+os.environ['SUPABASE_SERVICE_ROLE_KEY'] = 'test-service-role-key'
+os.environ['UPSTASH_REDIS_REST_URL'] = 'https://test.upstash.io'
 os.environ['UPSTASH_REDIS_REST_TOKEN'] = 'test-token'
 
 @pytest.fixture

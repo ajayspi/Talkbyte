@@ -8,6 +8,9 @@ RUN npm run build
 
 # Production stage
 FROM node:20-alpine
+# Build-arg controlled environment (production runs the built app)
+ARG ENV=development
+ENV ENV=${ENV}
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --only=production
@@ -19,4 +22,8 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --quiet --tries=1 --spider http://localhost:3000 || exit 1
 
-CMD ["npm", "run", "dev"]
+CMD if [ "$ENV" = "production" ]; then \
+      npm run start; \
+    else \
+      npm run dev; \
+    fi
