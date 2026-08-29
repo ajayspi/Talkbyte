@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalkByte AI — Operator Admin Panel</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --purple: #7c3aed;
+    --purple-dark: #4A0E4E;
+    --purple-mid: #6d28d9;
+    --purple-light: #ede9fe;
+    --teal: #14b8a6;
+    --teal-light: #ccfbf1;
+    --orange: #FF6B35;
+    --orange-light: #fff0eb;
+    --blue: #3b82f6;
+    --blue-light: #eff6ff;
+    --green: #22c55e;
+    --green-light: #f0fdf4;
+    --red: #ef4444;
+    --red-light: #fef2f2;
+    --yellow: #eab308;
+    --yellow-light: #fefce8;
+    --gray: #6b7280;
+    --border: #e5e7eb;
+    --text: #111827;
+    --text-muted: #6b7280;
+    --bg: #f8f7ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+
+  /* Layout */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 220px; min-height: 100vh; background: var(--purple-dark);
+    color: white; position: fixed; top: 0; left: 0; overflow-y: auto; z-index: 100; display: flex; flex-direction: column;
+  }
+  .sidebar-logo { padding: 20px 16px 14px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-logo .brand { font-size: 20px; font-weight: 800; }
+  .sidebar-logo .brand span { color: var(--teal); }
+  .sidebar-logo .role { font-size: 10px; opacity: 0.55; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
+  .nav-group { padding: 14px 10px 4px; font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.45; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 10px; margin: 1px 6px; border-radius: 7px; cursor: pointer; font-size: 13px; opacity: 0.75; transition: all 0.15s; color: white; }
+  .nav-item:hover { background: rgba(255,255,255,0.1); opacity: 1; }
+  .nav-item.active { background: rgba(255,255,255,0.15); opacity: 1; font-weight: 600; }
+  .nav-item .ico { font-size: 15px; width: 18px; text-align: center; }
+  .sidebar-bottom { margin-top: auto; padding: 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 6px; box-shadow: 0 0 6px var(--green); }
+
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+  .topbar {
+    background: white; border-bottom: 1px solid var(--border); padding: 0 24px;
+    height: 56px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar-title { font-size: 17px; font-weight: 700; color: var(--purple-dark); }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .live-badge { background: var(--red); color: white; font-size: 11px; padding: 3px 10px; border-radius: 99px; font-weight: 700; display: flex; align-items: center; gap: 5px; animation: pulse-red 2s infinite; }
+  @keyframes pulse-red { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+
+  .page { display: none; padding: 24px; animation: fadeIn 0.2s; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* KPI Cards */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .kpi { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 20px; }
+  .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 8px; }
+  .kpi-value { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+  .kpi-delta { font-size: 12px; color: var(--text-muted); }
+  .kpi-delta .up { color: var(--green); font-weight: 600; }
+  .kpi-delta .down { color: var(--red); font-weight: 600; }
+  .kpi-icon { float: right; font-size: 28px; opacity: 0.15; }
+
+  /* Charts */
+  .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .chart-card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 20px; }
+  .chart-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+  .chart-wrap { height: 200px; }
+
+  /* Cards */
+  .card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; }
+  .card-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+  .card-title .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; }
+  .badge-live { background: var(--red-light); color: var(--red); }
+  .badge-green { background: var(--green-light); color: #16a34a; }
+  .badge-yellow { background: var(--yellow-light); color: #854d0e; }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-purple { background: var(--purple-light); color: var(--purple); }
+  .badge-gray { background: #f3f4f6; color: var(--gray); }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f9fafb; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaf9; }
+  .chip { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .chip-green { background: var(--green-light); color: #16a34a; }
+  .chip-red { background: var(--red-light); color: var(--red); }
+  .chip-yellow { background: var(--yellow-light); color: #854d0e; }
+  .chip-blue { background: var(--blue-light); color: var(--blue); }
+  .chip-purple { background: var(--purple-light); color: var(--purple); }
+  .chip-gray { background: #f3f4f6; color: var(--gray); }
+  .chip-teal { background: var(--teal-light); color: #0f766e; }
+  .chip-orange { background: var(--orange-light); color: var(--orange); }
+
+  /* Health bar */
+  .health-bar { height: 6px; border-radius: 3px; background: #e5e7eb; overflow: hidden; width: 80px; display: inline-block; }
+  .health-fill { height: 100%; border-radius: 3px; }
+  .fill-green { background: var(--green); }
+  .fill-yellow { background: var(--yellow); }
+  .fill-red { background: var(--red); }
+
+  /* Live call cards */
+  .live-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .live-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px; border-left: 3px solid; }
+  .live-card.active { border-left-color: var(--green); }
+  .live-card.escalating { border-left-color: var(--yellow); animation: pulse-border 1.5s infinite; }
+  .live-card.transferring { border-left-color: var(--blue); }
+  @keyframes pulse-border { 0%,100% { border-left-color: var(--yellow); } 50% { border-left-color: #fde047; } }
+  .live-restaurant { font-weight: 700; font-size: 13px; }
+  .live-meta { font-size: 11px; color: var(--text-muted); margin: 3px 0 8px; }
+  .live-state { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .live-dot.green { background: var(--green); animation: blink 1.2s infinite; }
+  .live-dot.yellow { background: var(--yellow); }
+  .live-dot.blue { background: var(--blue); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .live-items { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+  .live-timer { font-size: 18px; font-weight: 800; color: var(--purple); }
+
+  /* Infra grid */
+  .infra-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .infra-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .infra-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .infra-status { font-size: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .infra-metrics { display: flex; flex-direction: column; gap: 6px; }
+  .metric-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+  .metric-val { font-weight: 600; color: var(--text); }
+  .infra-chart-bar { height: 4px; border-radius: 2px; background: #e5e7eb; margin-top: 4px; overflow:hidden; }
+  .infra-fill { height: 100%; border-radius: 2px; }
+
+  /* Plan distribution */
+  .plan-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .plan-name { font-size: 13px; font-weight: 600; width: 80px; flex-shrink: 0; }
+  .plan-bar-wrap { flex: 1; height: 10px; background: #e5e7eb; border-radius: 5px; overflow:hidden; }
+  .plan-bar-fill { height: 100%; border-radius: 5px; }
+  .plan-count { font-size: 12px; color: var(--text-muted); width: 60px; text-align: right; flex-shrink: 0; }
+  .plan-mrr { font-size: 12px; font-weight: 700; width: 70px; text-align: right; flex-shrink: 0; }
+
+  /* Alert strip */
+  .alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 10px; }
+  .alert-red { background: var(--red-light); color: #991b1b; border: 1px solid #fca5a5; }
+  .alert-yellow { background: var(--yellow-light); color: #713f12; border: 1px solid #fde047; }
+
+  /* Revenue layout */
+  .rev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* Audit table */
+  .audit-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ts { font-size: 11px; color: var(--text-muted); font-family: monospace; }
+
+  /* Btn */
+  .btn { padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-primary { background: var(--purple); color: white; }
+  .btn-ghost { background: transparent; color: var(--purple); border: 1px solid var(--border); }
+  .btn:hover { opacity: 0.85; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-header h2 { font-size: 16px; font-weight: 700; }
+  .filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  select, input { padding: 7px 12px; border-radius: 7px; border: 1px solid var(--border); font-size: 13px; font-family: inherit; }
+
+  .search-box { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; width: 220px; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">Talk<span>Byte</span></div>
+    <div class="role">Operator Admin Panel</div>
+  </div>
+
+  <div class="nav-group">Platform</div>
+  <div class="nav-item active" onclick="showPage('overview')"><span class="ico">📊</span> Overview</div>
+  <div class="nav-item" onclick="showPage('live')"><span class="ico">🔴</span> Live Monitor</div>
+
+  <div class="nav-group">Management</div>
+  <div class="nav-item" onclick="showPage('restaurants')"><span class="ico">🏪</span> Restaurants</div>
+  <div class="nav-item" onclick="showPage('users')"><span class="ico">👥</span> Users</div>
+
+  <div class="nav-group">Finance</div>
+  <div class="nav-item" onclick="showPage('revenue')"><span class="ico">💰</span> Revenue</div>
+  <div class="nav-item" onclick="showPage('billing')"><span class="ico">🧾</span> Billing</div>
+
+  <div class="nav-group">System</div>
+  <div class="nav-item" onclick="showPage('infra')"><span class="ico">⚙️</span> Infrastructure</div>
+  <div class="nav-item" onclick="showPage('audit')"><span class="ico">📋</span> Audit Log</div>
+  <div class="nav-item" onclick="showPage('analytics')"><span class="ico">📈</span> Analytics</div>
+
+  <div class="sidebar-bottom">
+    <div style="font-size:12px;color:rgba(255,255,255,0.6);display:flex;align-items:center">
+      <span class="status-dot"></span>All systems operational
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px">v2.2 · AU-EAST-1</div>
+  </div>
+</nav>
+
+<div class="main">
+<div class="topbar">
+  <div class="topbar-title" id="page-title">Platform Overview</div>
+  <div class="topbar-right">
+    <div class="live-badge"><span>●</span> 23 Live Calls</div>
+    <div style="font-size:12px;color:var(--text-muted)">Sat 29 Aug 2026 · 7:42 PM AEST</div>
+    <div class="avatar">AJ</div>
+  </div>
+</div>
+
+<!-- ═══════════════ OVERVIEW ═══════════════ -->
+<div class="page active" id="page-overview">
+  <div class="alert alert-yellow">⚠️ <strong>3 restaurants</strong> have payment links expiring unredeemed — check Revenue → Expired Links tab.</div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-icon">🏪</div>
+      <div class="kpi-label">Active Restaurants</div>
+      <div class="kpi-value" style="color:var(--purple)">487</div>
+      <div class="kpi-delta"><span class="up">↑ 12</span> this week · 94% plan active</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-label">MRR</div>
+      <div class="kpi-value" style="color:var(--green)">$125.4K</div>
+      <div class="kpi-delta"><span class="up">↑ 5.5%</span> vs last month · $1.51M ARR</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">📞</div>
+      <div class="kpi-label">Calls Today</div>
+      <div class="kpi-value" style="color:var(--teal)">2,847</div>
+      <div class="kpi-delta"><span class="up">↑ 18%</span> vs yesterday · 23 live now</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">📉</div>
+      <div class="kpi-label">Churn Rate</div>
+      <div class="kpi-value" style="color:var(--orange)">2.1%</div>
+      <div class="kpi-delta"><span class="down">↑ 0.3%</span> vs last month · 10 at risk</div>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-label">Order Completion Rate</div>
+      <div class="kpi-value" style="color:var(--green)">74.2%</div>
+      <div class="kpi-delta"><span class="up">↑ 2.1%</span> last 7 days · target ≥70%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">💳</div>
+      <div class="kpi-label">Payment Conversion</div>
+      <div class="kpi-value" style="color:var(--purple)">82.7%</div>
+      <div class="kpi-delta"><span class="up">↑ 1.4%</span> last 7 days · target ≥80%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">⚡</div>
+      <div class="kpi-label">Avg E2E Latency</div>
+      <div class="kpi-value" style="color:var(--teal)">387ms</div>
+      <div class="kpi-delta"><span class="up">↓ 23ms</span> vs yesterday · target &lt;500ms</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon">🚨</div>
+      <div class="kpi-label">Escalation Rate</div>
+      <div class="kpi-value" style="color:var(--yellow)">11.4%</div>
+      <div class="kpi-delta"><span class="up">↓ 0.8%</span> vs last week · target ≤15%</div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Calls Per Hour — Today</div>
+      <div class="chart-wrap"><canvas id="callsChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">MRR Growth — 6 Months</div>
+      <div class="chart-wrap"><canvas id="mrrChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Top Restaurants by Orders Today <span class="badge badge-blue">Today</span></div>
+      <table><thead><tr><th>#</th><th>Restaurant</th><th>Calls</th><th>Orders</th><th>Revenue</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700;color:var(--purple)">1</td><td><strong>Mama's Pizzeria</strong><br><small style="color:var(--text-muted)">Carlton, VIC</small></td><td>84</td><td>61</td><td style="font-weight:700;color:var(--green)">$1,842</td></tr>
+        <tr><td style="font-weight:700;color:var(--purple)">2</td><td><strong>Thai Express</strong><br><small style="color:var(--text-muted)">Newtown, NSW</small></td><td>71</td><td>58</td><td style="font-weight:700;color:var(--green)">$1,650</td></tr>
+        <tr><td style="font-weight:700;color:var(--purple)">3</td><td><strong>Burger Palace</strong><br><small style="color:var(--text-muted)">South Bank, QLD</small></td><td>67</td><td>51</td><td style="font-weight:700;color:var(--green)">$1,427</td></tr>
+        <tr><td style="font-weight:700;color:var(--purple)">4</td><td><strong>Noodle House</strong><br><small style="color:var(--text-muted)">Chinatown, NSW</small></td><td>55</td><td>44</td><td style="font-weight:700;color:var(--green)">$1,188</td></tr>
+        <tr><td style="font-weight:700;color:var(--purple)">5</td><td><strong>The Curry Leaf</strong><br><small style="color:var(--text-muted)">Fitzroy, VIC</small></td><td>49</td><td>39</td><td style="font-weight:700;color:var(--green)">$972</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">At-Risk Restaurants <span class="badge badge-yellow">10 flagged</span></div>
+      <table><thead><tr><th>Restaurant</th><th>Risk Signal</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Sakura Sushi</strong><br><small style="color:var(--text-muted)">St Kilda, VIC</small></td>
+          <td><span class="chip chip-red">Low usage</span> <span class="chip chip-yellow">3 wks</span></td>
+          <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px">Contact</button></td>
+        </tr>
+        <tr>
+          <td><strong>The Greek Place</strong><br><small style="color:var(--text-muted)">Oakleigh, VIC</small></td>
+          <td><span class="chip chip-yellow">POS errors</span></td>
+          <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px">Debug</button></td>
+        </tr>
+        <tr>
+          <td><strong>Taco Loco</strong><br><small style="color:var(--text-muted)">Surry Hills, NSW</small></td>
+          <td><span class="chip chip-red">Overdue invoice</span></td>
+          <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px">Invoice</button></td>
+        </tr>
+        <tr>
+          <td><strong>Spaghetti Junction</strong><br><small style="color:var(--text-muted)">Richmond, VIC</small></td>
+          <td><span class="chip chip-yellow">High escalation</span> 34%</td>
+          <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px">Review AI</button></td>
+        </tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ LIVE MONITOR ═══════════════ -->
+<div class="page" id="page-live">
+  <div class="section-header">
+    <div>
+      <h2>🔴 Live Call Monitor</h2>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:3px">23 active calls across 487 restaurants · Updated every 3s</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <select><option>All Restaurants</option><option>VIC</option><option>NSW</option><option>QLD</option></select>
+      <select><option>All States</option><option>TAKING_ORDER</option><option>CONFIRMING</option><option>ESCALATED</option></select>
+    </div>
+  </div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr)">
+    <div class="kpi"><div class="kpi-label">Active Calls</div><div class="kpi-value" style="color:var(--green)">23</div><div class="kpi-delta">Platform-wide now</div></div>
+    <div class="kpi"><div class="kpi-label">In Ordering</div><div class="kpi-value" style="color:var(--purple)">18</div><div class="kpi-delta">TAKING_ORDER state</div></div>
+    <div class="kpi"><div class="kpi-label">Confirming</div><div class="kpi-value" style="color:var(--teal)">3</div><div class="kpi-delta">CONFIRMING state</div></div>
+    <div class="kpi"><div class="kpi-label">Escalating</div><div class="kpi-value" style="color:var(--yellow)">2</div><div class="kpi-delta">⚠️ Needs attention</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Call Duration</div><div class="kpi-value" style="color:var(--blue)">2m 41s</div><div class="kpi-delta">target ≤3 min</div></div>
+  </div>
+
+  <div class="card-title" style="margin-bottom:12px">Active Call Cards <span class="badge badge-live">LIVE</span></div>
+  <div class="live-grid">
+    <div class="live-card active">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="live-restaurant">Mama's Pizzeria</div>
+        <div class="live-timer">2:14</div>
+      </div>
+      <div class="live-meta">+61 412 *** 847 · Carlton VIC · STT: 97% conf.</div>
+      <div class="live-state"><div class="live-dot green"></div> TAKING ORDER</div>
+      <div class="live-items">🛒 2× Margherita · 1× Garlic Bread</div>
+    </div>
+    <div class="live-card active">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="live-restaurant">Thai Express</div>
+        <div class="live-timer">1:32</div>
+      </div>
+      <div class="live-meta">+61 438 *** 221 · Newtown NSW · STT: 95% conf.</div>
+      <div class="live-state"><div class="live-dot green"></div> TAKING ORDER</div>
+      <div class="live-items">🛒 Pad Thai large · Green curry</div>
+    </div>
+    <div class="live-card active" style="border-left-color:var(--teal)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="live-restaurant">Burger Palace</div>
+        <div class="live-timer">3:47</div>
+      </div>
+      <div class="live-meta">+61 404 *** 119 · South Bank QLD · STT: 98% conf.</div>
+      <div class="live-state"><div class="live-dot" style="background:var(--teal)"></div> CONFIRMING ORDER</div>
+      <div class="live-items">🛒 3× Beef Burger · 3× Chips · 2× Vanilla Shake</div>
+    </div>
+    <div class="live-card escalating">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="live-restaurant">⚠️ Spaghetti Junction</div>
+        <div class="live-timer" style="color:var(--yellow)">5:12</div>
+      </div>
+      <div class="live-meta">+61 421 *** 034 · Richmond VIC · STT: 71% conf.</div>
+      <div class="live-state"><div class="live-dot yellow"></div> ESCALATING — 3rd misunderstanding</div>
+      <div class="live-items">⚠️ Transferring to staff in 10s if no resolution</div>
+    </div>
+    <div class="live-card active">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="live-restaurant">Noodle House</div>
+        <div class="live-timer">0:58</div>
+      </div>
+      <div class="live-meta">+61 455 *** 662 · Chinatown NSW · STT: 96% conf.</div>
+      <div class="live-state"><div class="live-dot green"></div> TAKING ORDER</div>
+      <div class="live-items">🛒 Ramen large · Spring rolls ×2</div>
+    </div>
+    <div class="live-card active" style="border-left-color:var(--blue)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="live-restaurant">The Curry Leaf</div>
+        <div class="live-timer">4:01</div>
+      </div>
+      <div class="live-meta">+61 448 *** 777 · Fitzroy VIC · STT: 94% conf.</div>
+      <div class="live-state"><div class="live-dot blue"></div> PAYMENT SMS SENT</div>
+      <div class="live-items">✅ Butter chicken · Biryani · Naan ×3 — awaiting payment</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Recent Completed Calls <span class="badge badge-gray">Last 30 min</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Time</th><th>Restaurant</th><th>Duration</th><th>Outcome</th><th>Order Value</th><th>Payment</th><th>POS</th></tr></thead>
+        <tbody>
+          <tr><td class="ts">19:38:22</td><td>Mama's Pizzeria</td><td>2m 14s</td><td><span class="chip chip-green">Ordered</span></td><td>$47.50</td><td><span class="chip chip-green">Paid</span></td><td><span class="chip chip-green">Synced</span></td></tr>
+          <tr><td class="ts">19:36:11</td><td>Thai Express</td><td>1m 58s</td><td><span class="chip chip-green">Ordered</span></td><td>$38.00</td><td><span class="chip chip-yellow">Pending</span></td><td><span class="chip chip-gray">Waiting</span></td></tr>
+          <tr><td class="ts">19:34:05</td><td>Sakura Sushi</td><td>0m 45s</td><td><span class="chip chip-gray">Abandoned</span></td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td class="ts">19:31:44</td><td>Burger Palace</td><td>3m 22s</td><td><span class="chip chip-green">Ordered</span></td><td>$82.00</td><td><span class="chip chip-green">Paid</span></td><td><span class="chip chip-green">Synced</span></td></tr>
+          <tr><td class="ts">19:28:17</td><td>The Greek Place</td><td>4m 01s</td><td><span class="chip chip-blue">Escalated</span></td><td>—</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ RESTAURANTS ═══════════════ -->
+<div class="page" id="page-restaurants">
+  <div class="section-header">
+    <h2>Restaurant Fleet (487)</h2>
+    <div style="display:flex;gap:8px">
+      <input class="search-box" type="text" placeholder="Search restaurants…">
+      <select><option>All Plans</option><option>Starter</option><option>Pro</option><option>Enterprise</option></select>
+      <select><option>All Status</option><option>Active</option><option>Trial</option><option>Suspended</option></select>
+      <button class="btn btn-primary">+ Add Restaurant</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Restaurant</th><th>Plan</th><th>State</th><th>Calls/mo</th><th>Orders/mo</th>
+          <th>Completion%</th><th>Health</th><th>POS</th><th>Status</th><th>MRR</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Mama's Pizzeria</strong><br><small style="color:var(--text-muted)">Carlton VIC · Since Mar 2026</small></td>
+          <td><span class="chip chip-purple">Enterprise</span></td>
+          <td>VIC</td><td>2,847</td><td>2,115</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">74%
+              <div class="health-bar"><div class="health-fill fill-green" style="width:74%"></div></div>
+            </div>
+          </td>
+          <td><span class="chip chip-green">● 98</span></td>
+          <td><span class="chip chip-teal">Square ✓</span></td>
+          <td><span class="chip chip-green">Active</span></td>
+          <td style="font-weight:700">$3,500</td>
+          <td><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">View</button></td>
+        </tr>
+        <tr>
+          <td><strong>Thai Express</strong><br><small style="color:var(--text-muted)">Newtown NSW · Since Jan 2026</small></td>
+          <td><span class="chip chip-blue">Pro</span></td>
+          <td>NSW</td><td>1,543</td><td>1,189</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">77%
+              <div class="health-bar"><div class="health-fill fill-green" style="width:77%"></div></div>
+            </div>
+          </td>
+          <td><span class="chip chip-green">● 95</span></td>
+          <td><span class="chip chip-teal">Square ✓</span></td>
+          <td><span class="chip chip-green">Active</span></td>
+          <td style="font-weight:700">$1,500</td>
+          <td><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">View</button></td>
+        </tr>
+        <tr>
+          <td><strong>Burger Palace</strong><br><small style="color:var(--text-muted)">South Bank QLD · Since Feb 2026</small></td>
+          <td><span class="chip chip-blue">Pro</span></td>
+          <td>QLD</td><td>1,287</td><td>951</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">74%
+              <div class="health-bar"><div class="health-fill fill-green" style="width:74%"></div></div>
+            </div>
+          </td>
+          <td><span class="chip chip-green">● 92</span></td>
+          <td><span class="chip chip-teal">Lightspeed ✓</span></td>
+          <td><span class="chip chip-green">Active</span></td>
+          <td style="font-weight:700">$1,500</td>
+          <td><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">View</button></td>
+        </tr>
+        <tr>
+          <td><strong>Spaghetti Junction</strong><br><small style="color:var(--text-muted)">Richmond VIC · Since Apr 2026</small></td>
+          <td><span class="chip chip-gray">Starter</span></td>
+          <td>VIC</td><td>512</td><td>287</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">56%
+              <div class="health-bar"><div class="health-fill fill-yellow" style="width:56%"></div></div>
+            </div>
+          </td>
+          <td><span class="chip chip-yellow">● 61</span></td>
+          <td><span class="chip chip-gray">Email only</span></td>
+          <td><span class="chip chip-yellow">At Risk</span></td>
+          <td style="font-weight:700">$500</td>
+          <td><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">View</button></td>
+        </tr>
+        <tr>
+          <td><strong>Sakura Sushi</strong><br><small style="color:var(--text-muted)">St Kilda VIC · Since May 2026</small></td>
+          <td><span class="chip chip-gray">Starter</span></td>
+          <td>VIC</td><td>89</td><td>41</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">46%
+              <div class="health-bar"><div class="health-fill fill-red" style="width:46%"></div></div>
+            </div>
+          </td>
+          <td><span class="chip chip-red">● 34</span></td>
+          <td><span class="chip chip-gray">None</span></td>
+          <td><span class="chip chip-red">Churning</span></td>
+          <td style="font-weight:700">$500</td>
+          <td><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">View</button></td>
+        </tr>
+        <tr>
+          <td><strong>The Greek Place</strong><br><small style="color:var(--text-muted)">Oakleigh VIC · Since Jun 2026</small></td>
+          <td><span class="chip chip-gray">Starter</span></td>
+          <td>VIC</td><td>341</td><td>214</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">63%
+              <div class="health-bar"><div class="health-fill fill-yellow" style="width:63%"></div></div>
+            </div>
+          </td>
+          <td><span class="chip chip-yellow">● 58</span></td>
+          <td><span class="chip chip-red">Square ✗ errors</span></td>
+          <td><span class="chip chip-yellow">At Risk</span></td>
+          <td style="font-weight:700">$500</td>
+          <td><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">Debug</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════ REVENUE ═══════════════ -->
+<div class="page" id="page-revenue">
+  <div class="section-header"><h2>Revenue & Financials</h2></div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">MRR</div><div class="kpi-value" style="color:var(--green)">$125.4K</div><div class="kpi-delta"><span class="up">↑ 5.5%</span> MoM</div></div>
+    <div class="kpi"><div class="kpi-label">ARR</div><div class="kpi-value" style="color:var(--green)">$1.51M</div><div class="kpi-delta">Annualised run rate</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Revenue / Restaurant</div><div class="kpi-value" style="color:var(--purple)">$257</div><div class="kpi-delta"><span class="up">↑ $12</span> MoM</div></div>
+    <div class="kpi"><div class="kpi-label">LTV / Restaurant</div><div class="kpi-value" style="color:var(--blue)">$5,940</div><div class="kpi-delta">Avg 23mo lifetime</div></div>
+  </div>
+
+  <div class="rev-grid">
+    <div class="card">
+      <div class="card-title">Plan Distribution</div>
+      <div class="plan-row">
+        <div class="plan-name"><span class="chip chip-purple" style="font-size:11px">Enterprise</span></div>
+        <div class="plan-bar-wrap"><div class="plan-bar-fill" style="width:9%;background:var(--purple);height:100%;border-radius:5px"></div></div>
+        <div class="plan-count">43 rest.</div>
+        <div class="plan-mrr" style="color:var(--green)">$150.5K</div>
+      </div>
+      <div class="plan-row">
+        <div class="plan-name"><span class="chip chip-blue" style="font-size:11px">Pro</span></div>
+        <div class="plan-bar-wrap"><div class="plan-bar-fill" style="width:38%;background:var(--blue);height:100%;border-radius:5px"></div></div>
+        <div class="plan-count">184 rest.</div>
+        <div class="plan-mrr" style="color:var(--green)">$276K</div>
+      </div>
+      <div class="plan-row">
+        <div class="plan-name"><span class="chip chip-gray" style="font-size:11px">Starter</span></div>
+        <div class="plan-bar-wrap"><div class="plan-bar-fill" style="width:53%;background:var(--gray);height:100%;border-radius:5px"></div></div>
+        <div class="plan-count">260 rest.</div>
+        <div class="plan-mrr" style="color:var(--green)">$130K</div>
+      </div>
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--text-muted)">Total MRR</span>
+          <span style="font-weight:700;color:var(--green)">$556.5K</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Enterprise = 27% of restaurants, 27% of MRR — upsell opportunity in Pro tier</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cost Breakdown (per minute)</div>
+      <table>
+        <thead><tr><th>Component</th><th>Cost/Min</th><th>% of Total</th></tr></thead>
+        <tbody>
+          <tr><td>Telnyx SIP (blended)</td><td>$0.018</td><td><span class="chip chip-orange">23%</span></td></tr>
+          <tr><td>Deepgram Flux STT</td><td>$0.007</td><td><span class="chip chip-yellow">9%</span></td></tr>
+          <tr><td>GPT-4.1 LLM</td><td>$0.012</td><td><span class="chip chip-blue">15%</span></td></tr>
+          <tr><td>ElevenLabs TTS</td><td>$0.012</td><td><span class="chip chip-blue">15%</span></td></tr>
+          <tr><td>SMS + Payment Links</td><td>$0.005</td><td><span class="chip chip-gray">6%</span></td></tr>
+          <tr><td>Infrastructure (Railway)</td><td>$0.008</td><td><span class="chip chip-gray">10%</span></td></tr>
+          <tr style="background:var(--green-light)"><td><strong>TOTAL COST</strong></td><td><strong>$0.062/min</strong></td><td><strong style="color:var(--green)">100%</strong></td></tr>
+          <tr style="background:var(--purple-light)"><td><strong>Revenue</strong> (avg 3min call)</td><td><strong>$0.30/call</strong></td><td><strong style="color:var(--purple)">Margin: 31%</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="chart-title">Monthly Revenue & Call Volume Trend</div>
+    <div style="height:220px"><canvas id="revenueChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ═══════════════ INFRASTRUCTURE ═══════════════ -->
+<div class="page" id="page-infra">
+  <div class="section-header"><h2>Infrastructure Health</h2></div>
+
+  <div class="alert alert-red">🔴 <strong>Deepgram Flux</strong> — elevated latency detected (avg 94ms vs baseline 70ms). Auto-scaled to backup region. Monitoring.</div>
+
+  <div class="infra-grid">
+    <div class="infra-card">
+      <div class="infra-name">📡 Telnyx SIP</div>
+      <div class="infra-status"><span style="color:var(--green);font-weight:700">● Operational</span></div>
+      <div class="infra-metrics">
+        <div class="metric-row"><span>Active calls</span><span class="metric-val">23</span></div>
+        <div class="metric-row"><span>Call setup time</span><span class="metric-val">180ms</span></div>
+        <div class="metric-row"><span>AU PoP latency</span><span class="metric-val">12ms</span></div>
+        <div class="metric-row"><span>Packet loss</span><span class="metric-val">0.01%</span></div>
+      </div>
+      <div class="infra-chart-bar"><div class="infra-fill" style="width:100%;background:var(--green)"></div></div>
+    </div>
+    <div class="infra-card">
+      <div class="infra-name">🔊 Deepgram Flux (STT)</div>
+      <div class="infra-status"><span style="color:var(--yellow);font-weight:700">⚠️ Elevated Latency</span></div>
+      <div class="infra-metrics">
+        <div class="metric-row"><span>Avg TTFT</span><span class="metric-val" style="color:var(--yellow)">94ms</span></div>
+        <div class="metric-row"><span>Baseline</span><span class="metric-val">70ms</span></div>
+        <div class="metric-row"><span>Accuracy</span><span class="metric-val">97.2%</span></div>
+        <div class="metric-row"><span>Error rate</span><span class="metric-val">0.4%</span></div>
+      </div>
+      <div class="infra-chart-bar"><div class="infra-fill" style="width:74%;background:var(--yellow)"></div></div>
+    </div>
+    <div class="infra-card">
+      <div class="infra-name">🧠 OpenAI GPT-4.1</div>
+      <div class="infra-status"><span style="color:var(--green);font-weight:700">● Operational</span></div>
+      <div class="infra-metrics">
+        <div class="metric-row"><span>Avg response time</span><span class="metric-val">312ms</span></div>
+        <div class="metric-row"><span>Token throughput</span><span class="metric-val">4.2K tok/s</span></div>
+        <div class="metric-row"><span>Error rate</span><span class="metric-val">0.1%</span></div>
+        <div class="metric-row"><span>Spend today</span><span class="metric-val">$187</span></div>
+      </div>
+      <div class="infra-chart-bar"><div class="infra-fill" style="width:95%;background:var(--green)"></div></div>
+    </div>
+    <div class="infra-card">
+      <div class="infra-name">🗣️ ElevenLabs TTS</div>
+      <div class="infra-status"><span style="color:var(--green);font-weight:700">● Operational</span></div>
+      <div class="infra-metrics">
+        <div class="metric-row"><span>Avg TTFA</span><span class="metric-val">180ms</span></div>
+        <div class="metric-row"><span>Chars today</span><span class="metric-val">1.24M</span></div>
+        <div class="metric-row"><span>Error rate</span><span class="metric-val">0.0%</span></div>
+        <div class="metric-row"><span>Spend today</span><span class="metric-val">$223</span></div>
+      </div>
+      <div class="infra-chart-bar"><div class="infra-fill" style="width:100%;background:var(--green)"></div></div>
+    </div>
+    <div class="infra-card">
+      <div class="infra-name">💳 Stripe</div>
+      <div class="infra-status"><span style="color:var(--green);font-weight:700">● Operational</span></div>
+      <div class="infra-metrics">
+        <div class="metric-row"><span>Payment links sent</span><span class="metric-val">1,841</span></div>
+        <div class="metric-row"><span>Conversion rate</span><span class="metric-val">82.7%</span></div>
+        <div class="metric-row"><span>Webhook lag</span><span class="metric-val">220ms</span></div>
+        <div class="metric-row"><span>GMV today</span><span class="metric-val">$68,440</span></div>
+      </div>
+      <div class="infra-chart-bar"><div class="infra-fill" style="width:100%;background:var(--green)"></div></div>
+    </div>
+    <div class="infra-card">
+      <div class="infra-name">🗄️ Supabase (Postgres)</div>
+      <div class="infra-status"><span style="color:var(--green);font-weight:700">● Operational</span></div>
+      <div class="infra-metrics">
+        <div class="metric-row"><span>Query P95</span><span class="metric-val">8ms</span></div>
+        <div class="metric-row"><span>Active connections</span><span class="metric-val">127/500</span></div>
+        <div class="metric-row"><span>Storage used</span><span class="metric-val">14.2 GB</span></div>
+        <div class="metric-row"><span>pgvector queries/s</span><span class="metric-val">84/s</span></div>
+      </div>
+      <div class="infra-chart-bar"><div class="infra-fill" style="width:98%;background:var(--green)"></div></div>
+    </div>
+    <div class="infra-card">
+      <div class="infra-name">⚡ Upstash Redis</div>
+      <div class="infra-status"><span style="color:var(--green);font-weight:700">● Operational</span></div>
+      <div class="infra-metrics">
+        <div class="metric-row"><span>Active sessions</span><span class="metric-val">23</span></div>
+        <div class="metric-row"><span>Hit rate</span><span class="metric-val">99.4%</span></div>
+        <div class="metric-row"><span>Avg latency</span><span class="metric-val">2ms</span></div>
+        <div class="metric-row"><span>Memory used</span><span class="metric-val">284MB</span></div>
+      </div>
+      <div class="infra-chart-bar"><div class="infra-fill" style="width:99%;background:var(--green)"></div></div>
+    </div>
+    <div class="infra-card">
+      <div class="infra-name">📦 Square POS API</div>
+      <div class="infra-status"><span style="color:var(--green);font-weight:700">● Operational</span></div>
+      <div class="infra-metrics">
+        <div class="metric-row"><span>Orders synced today</span><span class="metric-val">1,842</span></div>
+        <div class="metric-row"><span>Sync success rate</span><span class="metric-val">98.1%</span></div>
+        <div class="metric-row"><span>Avg sync time</span><span class="metric-val">340ms</span></div>
+        <div class="metric-row"><span>Failed (retrying)</span><span class="metric-val">3</span></div>
+      </div>
+      <div class="infra-chart-bar"><div class="infra-fill" style="width:98%;background:var(--green)"></div></div>
+    </div>
+    <div class="infra-card">
+      <div class="infra-name">🎙️ LiveKit Voice Agent</div>
+      <div class="infra-status"><span style="color:var(--green);font-weight:700">● Operational</span></div>
+      <div class="infra-metrics">
+        <div class="metric-row"><span>Active rooms</span><span class="metric-val">23</span></div>
+        <div class="metric-row"><span>Agent pool</span><span class="metric-val">50/50</span></div>
+        <div class="metric-row"><span>E2E latency P95</span><span class="metric-val">387ms</span></div>
+        <div class="metric-row"><span>Railway replicas</span><span class="metric-val">4 up</span></div>
+      </div>
+      <div class="infra-chart-bar"><div class="infra-fill" style="width:100%;background:var(--green)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ AUDIT LOG ═══════════════ -->
+<div class="page" id="page-audit">
+  <div class="section-header">
+    <h2>Audit Log</h2>
+    <div style="display:flex;gap:8px">
+      <input class="search-box" type="text" placeholder="Filter events…">
+      <select><option>All Events</option><option>Restaurant</option><option>Billing</option><option>System</option><option>Auth</option></select>
+      <select><option>Last 24h</option><option>Last 7d</option><option>Last 30d</option></select>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Timestamp</th><th>Event Type</th><th>Actor</th><th>Resource</th><th>Detail</th><th>IP</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="ts">2026-08-29 19:38:22</td>
+          <td><span class="chip chip-green audit-type">ORDER</span></td>
+          <td>AI Agent</td><td>Mama's Pizzeria</td>
+          <td>Order #4821 confirmed · $47.50 · Paid · POS synced</td>
+          <td style="font-family:monospace;font-size:11px">system</td>
+        </tr>
+        <tr>
+          <td class="ts">2026-08-29 19:35:11</td>
+          <td><span class="chip chip-yellow audit-type">ESCALATION</span></td>
+          <td>AI Agent</td><td>Spaghetti Junction</td>
+          <td>Call escalated to human after 3 failed STT attempts · Transferred to +61 411 *** 234</td>
+          <td style="font-family:monospace;font-size:11px">system</td>
+        </tr>
+        <tr>
+          <td class="ts">2026-08-29 19:30:04</td>
+          <td><span class="chip chip-blue audit-type">BILLING</span></td>
+          <td>aj@designjoom.in</td><td>Thai Express</td>
+          <td>Plan upgraded: Starter → Pro · Stripe Invoice #INV-2847 · $1,500/mo</td>
+          <td style="font-family:monospace;font-size:11px">203.x.x.x</td>
+        </tr>
+        <tr>
+          <td class="ts">2026-08-29 19:22:18</td>
+          <td><span class="chip chip-purple audit-type">RESTAURANT</span></td>
+          <td>aj@designjoom.in</td><td>Noodle House</td>
+          <td>Menu updated: 3 items added, 1 item deactivated · pgvector re-indexed</td>
+          <td style="font-family:monospace;font-size:11px">203.x.x.x</td>
+        </tr>
+        <tr>
+          <td class="ts">2026-08-29 19:15:33</td>
+          <td><span class="chip chip-red audit-type">SYSTEM</span></td>
+          <td>Monitoring</td><td>Deepgram Flux</td>
+          <td>Latency alert fired: avg TTFT 94ms (threshold: 90ms) · Pagerduty alert #P-4721</td>
+          <td style="font-family:monospace;font-size:11px">system</td>
+        </tr>
+        <tr>
+          <td class="ts">2026-08-29 19:08:41</td>
+          <td><span class="chip chip-teal audit-type">POS</span></td>
+          <td>System</td><td>The Greek Place</td>
+          <td>Square POS sync failed (3 retries) · Fallback email sent to greek.place@gmail.com</td>
+          <td style="font-family:monospace;font-size:11px">system</td>
+        </tr>
+        <tr>
+          <td class="ts">2026-08-29 18:55:22</td>
+          <td><span class="chip chip-gray audit-type">AUTH</span></td>
+          <td>owner@mamaspizza.com</td><td>Restaurant Dashboard</td>
+          <td>Login · Supabase Auth · Session started</td>
+          <td style="font-family:monospace;font-size:11px">101.x.x.x</td>
+        </tr>
+        <tr>
+          <td class="ts">2026-08-29 18:40:07</td>
+          <td><span class="chip chip-purple audit-type">ONBOARD</span></td>
+          <td>aj@designjoom.in</td><td>Sakura Sushi</td>
+          <td>New restaurant provisioned · Telnyx +61 3 7017 XXXX assigned · Sandbox mode</td>
+          <td style="font-family:monospace;font-size:11px">203.x.x.x</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════ ANALYTICS ═══════════════ -->
+<div class="page" id="page-analytics">
+  <div class="section-header"><h2>Platform Analytics</h2>
+    <select><option>Last 7 days</option><option>Last 30 days</option><option>Last 90 days</option></select>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total Calls (7d)</div><div class="kpi-value" style="color:var(--purple)">19,847</div><div class="kpi-delta"><span class="up">↑ 18%</span> vs prior week</div></div>
+    <div class="kpi"><div class="kpi-label">Orders Completed</div><div class="kpi-value" style="color:var(--green)">14,731</div><div class="kpi-delta">74.2% completion rate</div></div>
+    <div class="kpi"><div class="kpi-label">GMV (7d)</div><div class="kpi-value" style="color:var(--green)">$441K</div><div class="kpi-delta"><span class="up">↑ 22%</span> vs prior week</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Order Value</div><div class="kpi-value" style="color:var(--blue)">$43.20</div><div class="kpi-delta"><span class="up">↑ $2.10</span> vs prior week</div></div>
+  </div>
+  <div class="chart-grid" style="grid-template-columns:1fr 1fr">
+    <div class="chart-card">
+      <div class="chart-title">Daily Orders vs Calls — 7 days</div>
+      <div class="chart-wrap"><canvas id="analyticsChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Completion Rate by Cuisine Type</div>
+      <div class="chart-wrap"><canvas id="cuisineChart"></canvas></div>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Top Abandonment Reasons</div>
+      <table><thead><tr><th>Reason</th><th>Count</th><th>% of Abandoned</th></tr></thead>
+      <tbody>
+        <tr><td>Call dropped (network)</td><td>847</td><td>34%</td></tr>
+        <tr><td>Customer hung up voluntarily</td><td>621</td><td>25%</td></tr>
+        <tr><td>STT misunderstanding ×3</td><td>498</td><td>20%</td></tr>
+        <tr><td>Item not available</td><td>312</td><td>13%</td></tr>
+        <tr><td>Restaurant closed / outside hours</td><td>199</td><td>8%</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-title">Payment Conversion Funnel</div>
+      <table><thead><tr><th>Stage</th><th>Count</th><th>Conv%</th></tr></thead>
+      <tbody>
+        <tr><td>Calls received</td><td>19,847</td><td>100%</td></tr>
+        <tr><td>Orders confirmed</td><td>14,731</td><td>74.2%</td></tr>
+        <tr><td>SMS payment link sent</td><td>14,731</td><td>100%</td></tr>
+        <tr><td>Payment link opened</td><td>13,404</td><td>91.0%</td></tr>
+        <tr><td><strong>Payment completed</strong></td><td><strong>12,182</strong></td><td><strong style="color:var(--green)">82.7%</strong></td></tr>
+        <tr><td>POS synced successfully</td><td>11,939</td><td>98.0%</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- Placeholder pages -->
+<div class="page" id="page-users"><div class="card"><div class="card-title">User Management</div><p style="color:var(--text-muted)">1,243 total users across 487 restaurants. Role-based access: Owner, Staff, Readonly. Managed via Supabase Auth with RLS enforcement.</p></div></div>
+<div class="page" id="page-billing"><div class="card"><div class="card-title">Billing Management</div><p style="color:var(--text-muted)">Stripe subscriptions managed here. 487 active subscriptions. $0 outstanding invoices. Next billing cycle: 1 Sep 2026.</p></div></div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+const pages = {
+  overview: 'Platform Overview',
+  live: 'Live Call Monitor',
+  restaurants: 'Restaurant Fleet',
+  revenue: 'Revenue & Financials',
+  infra: 'Infrastructure Health',
+  audit: 'Audit Log',
+  analytics: 'Platform Analytics',
+  users: 'User Management',
+  billing: 'Billing Management'
+};
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id)?.classList.add('active');
+  document.getElementById('page-title').textContent = pages[id] || id;
+  const items = document.querySelectorAll('.nav-item');
+  items.forEach(item => {
+    if (item.getAttribute('onclick')?.includes(id)) item.classList.add('active');
+  });
+}
+
+// Charts
+const purple = '#7c3aed', teal = '#14b8a6', orange = '#FF6B35', green = '#22c55e', blue = '#3b82f6';
+
+// Calls by hour
+new Chart(document.getElementById('callsChart'), {
+  type: 'bar',
+  data: {
+    labels: ['6am','7','8','9','10','11','12pm','1','2','3','4','5','6','7','8','9','10','11'],
+    datasets: [{
+      label: 'Calls',
+      data: [12,24,48,87,120,145,198,211,187,164,142,168,224,287,312,264,198,142],
+      backgroundColor: purple + '80',
+      borderColor: purple,
+      borderWidth: 2,
+      borderRadius: 4
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } } }
+});
+
+// MRR growth
+new Chart(document.getElementById('mrrChart'), {
+  type: 'line',
+  data: {
+    labels: ['Mar','Apr','May','Jun','Jul','Aug'],
+    datasets: [{
+      label: 'MRR ($K)',
+      data: [78, 91, 103, 112, 119, 125],
+      borderColor: green,
+      backgroundColor: green + '15',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointBackgroundColor: green
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } } }
+});
+
+// Revenue chart
+new Chart(document.getElementById('revenueChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Mar','Apr','May','Jun','Jul','Aug'],
+    datasets: [
+      { label: 'MRR ($K)', data: [78,91,103,112,119,125], backgroundColor: purple + '80', borderColor: purple, borderWidth: 2, borderRadius: 4 },
+      { label: 'Calls (K)', data: [58,72,84,94,102,112], backgroundColor: teal + '60', borderColor: teal, borderWidth: 2, borderRadius: 4 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } } }
+});
+
+// Analytics daily
+new Chart(document.getElementById('analyticsChart'), {
+  type: 'line',
+  data: {
+    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    datasets: [
+      { label: 'Calls', data: [2400,2621,2518,2734,3012,3284,2847], borderColor: purple, backgroundColor: purple+'20', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: purple },
+      { label: 'Orders', data: [1782,1944,1868,2028,2235,2438,2112], borderColor: green, backgroundColor: green+'15', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: green }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } } }
+});
+
+// Cuisine completion rate
+new Chart(document.getElementById('cuisineChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Pizza', 'Thai', 'Burgers', 'Sushi', 'Indian', 'Italian', 'Chinese'],
+    datasets: [{
+      label: 'Completion %',
+      data: [82, 79, 76, 71, 68, 65, 74],
+      backgroundColor: [purple, teal, orange, blue, green, '#8b5cf6', '#06b6d4'].map(c => c + 'cc'),
+      borderRadius: 6
+    }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, max: 100, grid: { color: '#f3f4f6' } }, y: { grid: { display: false } } } }
+});
+
+// Live call timer update
+setInterval(() => {
+  document.querySelectorAll('.live-timer').forEach(timer => {
+    const [m, s] = timer.textContent.split(':').map(Number);
+    let ns = s + 1, nm = m;
+    if (ns >= 60) { ns = 0; nm++; }
+    timer.textContent = `${nm}:${ns.toString().padStart(2,'0')}`;
+  });
+}, 1000);
+</script>
+</body>
+</html>

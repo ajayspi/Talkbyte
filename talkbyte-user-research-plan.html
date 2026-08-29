@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalkByte AI — User Research Plan</title>
+<style>
+  :root {
+    --purple: #7c3aed; --purple-dark: #4A0E4E; --purple-light: #ede9fe;
+    --teal: #14b8a6; --teal-light: #ccfbf1;
+    --orange: #FF6B35; --orange-light: #fff0eb;
+    --blue: #3b82f6; --blue-light: #eff6ff;
+    --green: #22c55e; --green-light: #f0fdf4;
+    --red: #ef4444; --red-light: #fef2f2;
+    --yellow: #eab308; --yellow-light: #fefce8;
+    --gray: #6b7280; --border: #e5e7eb; --text: #111827; --muted: #6b7280; --bg: #f8f7ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar { width: 220px; background: var(--purple-dark); color: white; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; }
+  .logo { padding: 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .logo .brand { font-size: 19px; font-weight: 800; }
+  .logo .brand span { color: var(--teal); }
+  .logo .sub { font-size: 10px; opacity: 0.55; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
+  .logo .doc-type { background: var(--orange); color: white; font-size: 10px; padding: 2px 8px; border-radius: 99px; display: inline-block; margin-top: 6px; font-weight: 700; }
+  .nav-sec { padding: 14px 10px 4px; font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.45; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; margin: 1px 6px; border-radius: 7px; cursor: pointer; font-size: 13px; opacity: 0.75; transition: all 0.15s; color: white; text-decoration: none; }
+  .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.12); opacity: 1; }
+  .nav-item .ico { font-size: 14px; width: 16px; text-align: center; }
+
+  .main { margin-left: 220px; flex: 1; }
+  .topbar { background: white; border-bottom: 1px solid var(--border); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .topbar h1 { font-size: 16px; font-weight: 700; color: var(--purple-dark); }
+  .topbar .meta { font-size: 12px; color: var(--muted); }
+  .content { padding: 28px; max-width: 1100px; }
+
+  /* Section */
+  .section { margin-bottom: 44px; scroll-margin-top: 70px; }
+  .section-title { font-size: 20px; font-weight: 800; color: var(--purple-dark); margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+  .section-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 22px; margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+
+  /* Chips */
+  .chip { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .chip-purple { background: var(--purple-light); color: var(--purple); }
+  .chip-teal { background: var(--teal-light); color: #0f766e; }
+  .chip-orange { background: var(--orange-light); color: var(--orange); }
+  .chip-green { background: var(--green-light); color: #16a34a; }
+  .chip-red { background: var(--red-light); color: var(--red); }
+  .chip-yellow { background: var(--yellow-light); color: #854d0e; }
+  .chip-blue { background: var(--blue-light); color: var(--blue); }
+  .chip-gray { background: #f3f4f6; color: var(--gray); }
+
+  /* Timeline */
+  .timeline { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 20px; }
+  .day { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px 10px; text-align: center; }
+  .day.highlight { border-color: var(--purple); background: var(--purple-light); }
+  .day.done { border-color: var(--green); background: var(--green-light); }
+  .day-num { font-size: 22px; font-weight: 800; color: var(--purple); }
+  .day.done .day-num { color: #16a34a; }
+  .day-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; }
+  .day-tasks { font-size: 11px; color: var(--text); line-height: 1.6; text-align: left; }
+
+  /* Interview questions */
+  .q-block { margin-bottom: 12px; }
+  .q-phase { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--purple); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--purple-light); }
+  .q-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+  .q-item:last-child { border-bottom: none; }
+  .q-num { font-weight: 700; color: var(--purple); font-size: 13px; flex-shrink: 0; width: 24px; }
+  .q-text { font-size: 14px; line-height: 1.5; }
+  .q-probe { font-size: 12px; color: var(--muted); margin-top: 4px; padding-left: 10px; border-left: 2px solid var(--border); }
+  .q-probe em { color: var(--teal); font-style: normal; font-weight: 600; }
+  .q-flag { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px; margin-left: 8px; }
+  .flag-critical { background: var(--red-light); color: var(--red); }
+  .flag-wpay { background: var(--teal-light); color: #0f766e; }
+
+  /* Survey */
+  .survey-q { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px; }
+  .survey-q .sq-num { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  .survey-q .sq-text { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .survey-q .sq-options { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sq-opt { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--muted); }
+  .sq-type { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* Assumption table */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f9fafb; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* Two col */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* Assumption risk */
+  .risk-h { font-weight: 700; color: var(--red); }
+  .risk-m { font-weight: 700; color: var(--yellow); }
+  .risk-l { font-weight: 700; color: var(--green); }
+
+  /* Synthesis */
+  .jtbd { background: var(--purple-light); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
+  .jtbd-title { font-weight: 700; font-size: 14px; color: var(--purple-dark); margin-bottom: 4px; }
+  .jtbd-body { font-size: 13px; color: var(--purple-dark); opacity: 0.85; }
+
+  /* Screener */
+  .screener-q { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .screener-q:last-child { border-bottom: none; }
+  .pass-crit { font-size: 12px; color: #16a34a; font-weight: 600; margin-top: 3px; }
+  .fail-crit { font-size: 12px; color: var(--red); font-weight: 600; margin-top: 3px; }
+
+  /* Whatsapp highlight */
+  .wa-card { background: #dcfce7; border: 1px solid #86efac; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .wa-title { font-weight: 700; font-size: 15px; color: #14532d; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .wa-body { font-size: 13px; color: #166534; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="brand">Talk<span>Byte</span></div>
+    <div class="sub">User Research Plan</div>
+    <div class="doc-type">Pre-Build · Aug 2026</div>
+  </div>
+  <div class="nav-sec">Overview</div>
+  <a class="nav-item active" href="#plan"><span class="ico">🎯</span> Research Plan</a>
+  <a class="nav-item" href="#assumptions"><span class="ico">🧪</span> Assumptions</a>
+  <a class="nav-item" href="#timeline"><span class="ico">📅</span> 7-Day Timeline</a>
+  <div class="nav-sec">Restaurant Owners</div>
+  <a class="nav-item" href="#screener-b2b"><span class="ico">📋</span> Screener</a>
+  <a class="nav-item" href="#guide-b2b"><span class="ico">🏪</span> Interview Guide</a>
+  <div class="nav-sec">End Customers</div>
+  <a class="nav-item" href="#screener-b2c"><span class="ico">📋</span> Screener</a>
+  <a class="nav-item" href="#guide-b2c"><span class="ico">📞</span> Interview Guide</a>
+  <div class="nav-sec">Quantitative</div>
+  <a class="nav-item" href="#survey"><span class="ico">📊</span> Survey Questions</a>
+  <a class="nav-item" href="#whatsapp"><span class="ico">💬</span> WhatsApp Test</a>
+  <div class="nav-sec">Analysis</div>
+  <a class="nav-item" href="#synthesis"><span class="ico">🔬</span> Synthesis Framework</a>
+  <a class="nav-item" href="#jtbd"><span class="ico">💡</span> Jobs to Be Done</a>
+</nav>
+
+<div class="main">
+<div class="topbar">
+  <h1>TalkByte AI — User Research Plan</h1>
+  <div class="meta">Both segments · Interviews + Survey · 1-week sprint · Aug 2026</div>
+</div>
+
+<div class="content">
+
+<!-- PLAN OVERVIEW -->
+<div class="section" id="plan">
+  <div class="section-title">🎯 Research Plan</div>
+  <div class="section-sub">What we're trying to learn before writing a line of code</div>
+
+  <div class="three-col">
+    <div class="card" style="border-top:4px solid var(--purple)">
+      <div class="card-title">Objective</div>
+      <p style="font-size:13px;line-height:1.7;color:var(--muted)">Validate the 6 critical assumptions behind TalkByte — particularly willingness to pay, AI acceptance, and whether WhatsApp beats SMS for payment flows in the AU market — before committing to Sprint 1 architecture.</p>
+    </div>
+    <div class="card" style="border-top:4px solid var(--teal)">
+      <div class="card-title">Participants</div>
+      <p style="font-size:13px;line-height:1.7;color:var(--muted)"><strong>5–6 Restaurant owners</strong> (you have contacts — prioritise these). They are your paying customer; their willingness to pay is the most critical assumption.<br><br><strong>5 End customers</strong> who regularly order by phone. Recruit via restaurant owner referrals.</p>
+    </div>
+    <div class="card" style="border-top:4px solid var(--orange)">
+      <div class="card-title">Methods</div>
+      <p style="font-size:13px;line-height:1.7;color:var(--muted)"><strong>Interviews (qual):</strong> 30-min Zoom/in-person, 5–6 owners + 5 customers. Use guides below.<br><br><strong>Survey (quant):</strong> 15 questions distributed via your restaurant contacts. Ask each owner to forward to their regulars. Target 50+ responses in 5 days.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Research Questions (what we must answer)</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Research Question</th><th>Segment</th><th>Method</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:700;color:var(--purple)">RQ1</td><td>How painful is phone ordering really? Do owners miss calls regularly?</td><td><span class="chip chip-purple">Owners</span></td><td>Interview</td><td><span class="chip chip-red">Critical</span></td></tr>
+          <tr><td style="font-weight:700;color:var(--purple)">RQ2</td><td>What would an owner pay per month to eliminate phone order management?</td><td><span class="chip chip-purple">Owners</span></td><td>Interview + Survey</td><td><span class="chip chip-red">Critical</span></td></tr>
+          <tr><td style="font-weight:700;color:var(--purple)">RQ3</td><td>Will customers accept talking to an AI to place a food order?</td><td><span class="chip chip-teal">Customers</span></td><td>Interview + Survey</td><td><span class="chip chip-red">Critical</span></td></tr>
+          <tr><td style="font-weight:700;color:var(--purple)">RQ4</td><td>Does the SMS payment link flow work — or does it add friction that kills conversion?</td><td><span class="chip chip-teal">Customers</span></td><td>Interview</td><td><span class="chip chip-red">Critical</span></td></tr>
+          <tr><td style="font-weight:700;color:var(--purple)">RQ5</td><td>Is WhatsApp a better payment channel than SMS for AU restaurant customers?</td><td><span class="chip chip-teal">Customers</span></td><td>Interview + Survey</td><td><span class="chip chip-orange">High</span></td></tr>
+          <tr><td style="font-weight:700;color:var(--purple)">RQ6</td><td>Can a non-technical restaurant owner onboard themselves in under 30 minutes?</td><td><span class="chip chip-purple">Owners</span></td><td>Interview (concept test)</td><td><span class="chip chip-orange">High</span></td></tr>
+          <tr><td style="font-weight:700;color:var(--purple)">RQ7</td><td>Which cuisine types and restaurant sizes have the most phone ordering pain?</td><td><span class="chip chip-purple">Owners</span></td><td>Survey</td><td><span class="chip chip-yellow">Medium</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ASSUMPTIONS -->
+<div class="section" id="assumptions">
+  <div class="section-title">🧪 Assumption Risk Map</div>
+  <div class="section-sub">The beliefs TalkByte is built on — ranked by risk if wrong</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Assumption</th><th>If wrong, impact</th><th>How to test</th><th>Kill signal</th><th>Risk</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Restaurants will pay $500/mo for AI phone ordering</strong></td>
+          <td>The entire business model collapses — no revenue</td>
+          <td>Direct WTP question in interviews. "What would this be worth?"</td>
+          <td>Most owners say &lt;$200/mo or "only if commission-based"</td>
+          <td><span class="risk-h">🔴 Critical</span></td>
+        </tr>
+        <tr>
+          <td><strong>Phone ordering is a genuine daily pain point</strong></td>
+          <td>No urgency to buy — long sales cycles, low activation</td>
+          <td>Ask about missed calls, staff disruption, peak hour pain</td>
+          <td>Owners say "it's fine, we manage it"</td>
+          <td><span class="risk-h">🔴 Critical</span></td>
+        </tr>
+        <tr>
+          <td><strong>Customers will accept talking to an AI to order food</strong></td>
+          <td>High abandonment rate on calls — owners see no value</td>
+          <td>Show concept, ask directly. Measure discomfort level.</td>
+          <td>"I'd hang up immediately" from majority of customers</td>
+          <td><span class="risk-h">🔴 Critical</span></td>
+        </tr>
+        <tr>
+          <td><strong>SMS payment link converts (customers click and pay)</strong></td>
+          <td>Order completion rate collapses — restaurants don't trust the system</td>
+          <td>Probe current phone payment habits. Map to SMS link friction.</td>
+          <td>Customers say they'd ignore unknown SMS links</td>
+          <td><span class="risk-m">🟡 High</span></td>
+        </tr>
+        <tr>
+          <td><strong>WhatsApp works better than SMS for payment flows</strong></td>
+          <td>Wrong channel choice in Phase 1 — lower conversion, higher churn</td>
+          <td>Dedicated WhatsApp question set (see below)</td>
+          <td>AU customers don't use WhatsApp regularly for commerce</td>
+          <td><span class="risk-m">🟡 High</span></td>
+        </tr>
+        <tr>
+          <td><strong>Owners can self-onboard without technical help</strong></td>
+          <td>High CS cost per restaurant — unsustainable at scale</td>
+          <td>Walk owner through onboarding wireframe — observe where they get stuck</td>
+          <td>Owners say "I'd need someone to set this up for me"</td>
+          <td><span class="risk-m">🟡 Medium</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="section" id="timeline">
+  <div class="section-title">📅 7-Day Research Sprint</div>
+  <div class="section-sub">Optimised for 1 week — you have existing restaurant contacts, so recruitment is fast</div>
+
+  <div class="timeline">
+    <div class="day highlight">
+      <div class="day-label">Mon</div>
+      <div class="day-num">1</div>
+      <div class="day-tasks">Reach out to 8 restaurant contacts<br>Send screener<br>Set up survey (Typeform/Google Forms)<br>Book 5 interview slots</div>
+    </div>
+    <div class="day highlight">
+      <div class="day-label">Tue</div>
+      <div class="day-num">2</div>
+      <div class="day-tasks">Confirm 5–6 interview bookings<br>Ask each owner to forward survey to regulars<br>Prep interview guide printout<br>Launch survey publicly</div>
+    </div>
+    <div class="day highlight">
+      <div class="day-label">Wed</div>
+      <div class="day-num">3</div>
+      <div class="day-tasks">Interview: 2× restaurant owners<br>Take notes using synthesis template<br>Survey responses accumulating</div>
+    </div>
+    <div class="day highlight">
+      <div class="day-label">Thu</div>
+      <div class="day-num">4</div>
+      <div class="day-tasks">Interview: 2× restaurant owners<br>Interview: 2× end customers<br>Adjust questions if patterns emerging</div>
+    </div>
+    <div class="day highlight">
+      <div class="day-label">Fri</div>
+      <div class="day-num">5</div>
+      <div class="day-tasks">Interview: 1–2× owners<br>Interview: 2–3× customers<br>Close survey (target 50+ responses)</div>
+    </div>
+    <div class="day">
+      <div class="day-label">Sat</div>
+      <div class="day-num">6</div>
+      <div class="day-tasks">Affinity mapping — group all findings<br>Identify top 3 insights<br>Survey data analysis<br>Kill/pivot/proceed verdict per assumption</div>
+    </div>
+    <div class="day">
+      <div class="day-label">Sun</div>
+      <div class="day-num">7</div>
+      <div class="day-tasks">Write 1-page synthesis<br>Confirm or adjust architecture<br>Document revised assumptions for SRS v2.3<br>Ready to start Sprint 1</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Recruitment Message (send to your restaurant contacts)</div>
+    <div style="background:#f8f7ff;border-radius:8px;padding:16px;font-size:13px;line-height:1.8;border-left:3px solid var(--purple);color:var(--text)">
+      Hi [Name], I'm building an AI system that handles restaurant phone orders so your staff can focus on the kitchen. Before I build anything, I want to make sure it actually solves real problems for restaurant owners like you.<br><br>
+      Would you be up for a 30-minute chat this week? No sales pitch — I genuinely want to understand how you currently manage phone orders and what frustrates you about it.<br><br>
+      <strong>Also:</strong> if you have regular customers who order by phone, could you forward them this short 3-minute survey? [survey link]<br><br>
+      Happy to meet at your restaurant if that's easier. What works for you this week?
+    </div>
+  </div>
+</div>
+
+<!-- SCREENER B2B -->
+<div class="section" id="screener-b2b">
+  <div class="section-title">📋 Restaurant Owner Screener</div>
+  <div class="section-sub">Use this to qualify owners before booking an interview — 5 quick questions</div>
+
+  <div class="card">
+    <div class="screener-q">
+      <strong>1. What type of restaurant do you run?</strong> (cuisine, format — dine-in / takeaway / delivery)
+      <div class="pass-crit">✅ Pass: Any format that takes phone orders (most will)</div>
+    </div>
+    <div class="screener-q">
+      <strong>2. Roughly how many phone orders do you receive on a typical weekday? And on a Friday or Saturday?</strong>
+      <div class="pass-crit">✅ Pass: 5+ calls/day on weekdays, 15+ on weekends</div>
+      <div class="fail-crit">❌ Disqualify: "We don't really do phone orders" — they have no pain</div>
+    </div>
+    <div class="screener-q">
+      <strong>3. Do you have staff dedicated to answering the phone, or does the kitchen handle it?</strong>
+      <div class="pass-crit">✅ Pass: Kitchen staff or owner personally answers — high pain</div>
+    </div>
+    <div class="screener-q">
+      <strong>4. Are you the owner or do you make decisions about the tools the restaurant uses?</strong>
+      <div class="pass-crit">✅ Pass: Owner or manager with budget authority</div>
+      <div class="fail-crit">❌ Disqualify: "I just work here" — not the buyer</div>
+    </div>
+    <div class="screener-q">
+      <strong>5. Would you be comfortable spending 30 minutes on a Zoom or in person this week?</strong>
+      <div class="pass-crit">✅ Pass: Yes</div>
+    </div>
+  </div>
+</div>
+
+<!-- GUIDE B2B -->
+<div class="section" id="guide-b2b">
+  <div class="section-title">🏪 Restaurant Owner Interview Guide</div>
+  <div class="section-sub">30 minutes · Record with permission · Prioritise listening over following the script exactly</div>
+
+  <div class="card">
+    <div class="q-block">
+      <div class="q-phase">⏱ Warm-up (5 min) — Build rapport, set context</div>
+      <div class="q-item"><div class="q-num">W1</div><div class="q-text">Tell me about your restaurant — how long have you been open, what type of food, roughly how many covers a night?<div class="q-probe">Just context-setting. Don't rush past this — it informs everything else.</div></div></div>
+      <div class="q-item"><div class="q-num">W2</div><div class="q-text">How do orders currently come in? Walk me through the different channels — in-person, phone, apps like Uber Eats, your own website.<div class="q-probe">Listen for the <em>mix</em>. Phone orders as a % matters a lot.</div></div></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-phase">🔥 Phone Ordering Pain (10 min) — Current workflow deep dive</div>
+      <div class="q-item"><div class="q-num">P1</div><div class="q-text">Walk me through exactly what happens when the phone rings during a busy service. Who picks up? What do they have to stop doing?<span class="q-flag flag-critical">Critical</span><div class="q-probe">Listen for: kitchen staff interrupted, orders written on paper, miscommunication, waiting on hold.</div></div></div>
+      <div class="q-item"><div class="q-num">P2</div><div class="q-text">Has your phone ever rung and no one was able to answer it? What happened?<div class="q-probe">If yes: <em>How often does that happen?</em> / <em>Do you know how many orders you've lost?</em></div></div></div>
+      <div class="q-item"><div class="q-num">P3</div><div class="q-text">What's the most frustrating thing about managing phone orders right now?<div class="q-probe">Let them vent. The language they use will become your marketing copy.</div></div></div>
+      <div class="q-item"><div class="q-num">P4</div><div class="q-text">Have you ever had an order come in wrong because of a miscommunication on the phone? What happened?<div class="q-probe">Probe for frequency. This is your "cost of the problem" signal.</div></div></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-phase">💰 Willingness to Pay (10 min) — Most critical section</div>
+      <div class="q-item"><div class="q-num">$1</div><div class="q-text">If a tool could handle every phone order automatically — the customer calls, AI takes the order, sends them a payment link, and pushes the order straight to your kitchen — what would that be worth to you per month?<span class="q-flag flag-critical">Critical</span><div class="q-probe">Do NOT anchor with a price first. Let them name a number. Then: <em>"What if it cost $X/month — would that still make sense?"</em></div></div></div>
+      <div class="q-item"><div class="q-num">$2</div><div class="q-text">Would you prefer to pay a flat monthly fee, or a small fee per order handled?<div class="q-probe">Per-order models can feel safer for owners but hurt our margins. Understand the instinct.</div></div></div>
+      <div class="q-item"><div class="q-num">$3</div><div class="q-text">What would need to be true for you to sign up without a second thought?<div class="q-probe">Listen for: free trial, no contract, proof it works, demo call.</div></div></div>
+      <div class="q-item"><div class="q-num">$4</div><div class="q-text">What would make you never try it?<div class="q-probe">Capture exact objections — these become your onboarding risk mitigations.</div></div></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-phase">🖥️ Concept Reaction (8 min) — Show the prototype / flow diagram</div>
+      <div class="q-item"><div class="q-num">C1</div><div class="q-text">Here's how TalkByte works: [show the restaurant dashboard + call flow diagram]. What's your first reaction?<div class="q-probe">Don't explain too much before they react. Silence is data.</div></div></div>
+      <div class="q-item"><div class="q-num">C2</div><div class="q-text">Walk me through this onboarding process — what steps feel straightforward? Where would you get stuck?<span class="q-flag flag-critical">Critical</span><div class="q-probe">Watch for hesitation on: menu upload, Stripe Connect, phone number forwarding.</div></div></div>
+      <div class="q-item"><div class="q-num">C3</div><div class="q-text">What's your biggest concern about an AI talking to your customers?<div class="q-probe">Common: "What if it messes up the order?" / "Customers will think it's rude." / "My regulars like talking to us."</div></div></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-phase">💬 Payment Flow (5 min) — SMS vs WhatsApp</div>
+      <div class="q-item"><div class="q-num">PY1</div><div class="q-text">How do your customers currently pay for phone orders? Cash on pickup? Card at the door? Credit card over the phone?<span class="q-flag flag-wpay">WhatsApp test</span><div class="q-probe">This tells us the current baseline we're changing.</div></div></div>
+      <div class="q-item"><div class="q-num">PY2</div><div class="q-text">If after ordering by phone, the customer got a payment link via SMS — do you think most of your customers would use it?<div class="q-probe"><em>What types of customers might not?</em> (older, less smartphone-savvy?)</div></div></div>
+      <div class="q-item"><div class="q-num">PY3</div><div class="q-text">Do many of your regular customers use WhatsApp? Would you say most of them prefer WhatsApp over regular texts?<span class="q-flag flag-wpay">WhatsApp test</span><div class="q-probe">If yes: <em>"Would a WhatsApp payment link feel more trustworthy to them than an SMS?"</em></div></div></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-phase">🎁 Wrap-up (2 min)</div>
+      <div class="q-item"><div class="q-num">Z1</div><div class="q-text">Is there anything about managing phone orders that I didn't ask about that you think I should know?</div></div>
+      <div class="q-item"><div class="q-num">Z2</div><div class="q-text">Do you know any other restaurant owners who deal with this problem? Would you be comfortable introducing me?</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREENER B2C -->
+<div class="section" id="screener-b2c">
+  <div class="section-title">📋 End Customer Screener</div>
+  <div class="section-sub">Recruit via restaurant owner referrals — ask each owner to introduce 2–3 of their regulars</div>
+
+  <div class="card">
+    <div class="screener-q">
+      <strong>1. How often do you order food from a local restaurant — not Uber Eats/Menulog, but calling directly?</strong>
+      <div class="pass-crit">✅ Pass: At least 2–3 times per month</div>
+      <div class="fail-crit">❌ Disqualify: "I only use apps" — they're not the pain point we're solving</div>
+    </div>
+    <div class="screener-q">
+      <strong>2. How do you usually pay when you pick up a phone order?</strong>
+      <div class="pass-crit">✅ Pass: Cash or card at pickup — helps us understand the payment baseline</div>
+    </div>
+    <div class="screener-q">
+      <strong>3. Have you ever called a restaurant and been put on hold, or the line was busy?</strong>
+      <div class="pass-crit">✅ Pass: Yes — they've experienced the problem firsthand</div>
+    </div>
+    <div class="screener-q">
+      <strong>4. Are you comfortable doing a 20-minute Zoom call this week?</strong>
+      <div class="pass-crit">✅ Pass: Yes</div>
+    </div>
+  </div>
+</div>
+
+<!-- GUIDE B2C -->
+<div class="section" id="guide-b2c">
+  <div class="section-title">📞 End Customer Interview Guide</div>
+  <div class="section-sub">20 minutes · Focus on their existing habits and AI acceptance · Don't pitch the product</div>
+
+  <div class="card">
+    <div class="q-block">
+      <div class="q-phase">⏱ Warm-up (3 min)</div>
+      <div class="q-item"><div class="q-num">W1</div><div class="q-text">Tell me about how you order food — do you go out, order delivery apps, or call restaurants directly? What's your typical week look like?</div></div>
+      <div class="q-item"><div class="q-num">W2</div><div class="q-text">When do you actually pick up the phone and call a restaurant instead of using an app?<div class="q-probe">Listen for: knowing the restaurant personally, menu questions, wanting to customise an order, trust issues with apps.</div></div></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-phase">🔍 Current Phone Ordering Experience (8 min)</div>
+      <div class="q-item"><div class="q-num">E1</div><div class="q-text">Tell me about the last time you called a restaurant to order food. Walk me through exactly what happened.<div class="q-probe">Don't summarise for them — let them narrate. The details matter.</div></div></div>
+      <div class="q-item"><div class="q-num">E2</div><div class="q-text">Have you ever been put on hold when calling to order? Or the line was busy? What did you do?<div class="q-probe">Did they: hang up and try again? Order somewhere else? Use an app instead?</div></div></div>
+      <div class="q-item"><div class="q-num">E3</div><div class="q-text">Has an order ever been wrong because of a misunderstanding on the phone? What happened?<div class="q-probe"><em>How did that affect your trust in that restaurant?</em></div></div></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-phase">🤖 AI Acceptance (7 min) — Most critical section</div>
+      <div class="q-item"><div class="q-num">AI1</div><div class="q-text">I'm going to describe a scenario. You call your favourite local restaurant, and an AI system answers — it sounds natural, understands your order perfectly, and confirms everything correctly. How do you feel about that?<span class="q-flag flag-critical">Critical</span><div class="q-probe">Do NOT show any reaction to their answer. Just listen. Follow up: <em>"Tell me more about that."</em></div></div></div>
+      <div class="q-item"><div class="q-num">AI2</div><div class="q-text">What would make you trust that AI? What would make you hang up immediately?<div class="q-probe">Listen for: natural-sounding voice, speed of response, ability to handle modifications, knowing if it's AI vs human.</div></div></div>
+      <div class="q-item"><div class="q-num">AI3</div><div class="q-text">If the AI got your order perfectly right — the right items, the right modifications — would you care that it wasn't a real person?<div class="q-probe">This is the key acceptance question. Watch for nuance — some will say yes but mean "only if it's good."</div></div></div>
+      <div class="q-item"><div class="q-num">AI4</div><div class="q-text">The restaurant lets you know upfront: "Hi, you've reached [restaurant name]. Our AI ordering system will take your order." Does being told upfront it's AI change anything?<div class="q-probe">Disclosure preference matters for our greeting script design.</div></div></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-phase">💬 Payment Flow (5 min) — SMS & WhatsApp</div>
+      <div class="q-item"><div class="q-num">PY1</div><div class="q-text">After you phone in an order, how do you usually pay? Card at the counter? Cash? Do you ever pay in advance?</div></div>
+      <div class="q-item"><div class="q-num">PY2</div><div class="q-text">After you place your order, you get a text message with a secure payment link — like the ones you'd get from a parking app. You tap it, enter your card, and you're done. How does that sound?<span class="q-flag flag-critical">Critical</span><div class="q-probe"><em>What concerns you about this?</em> / <em>Would you be worried it's a scam?</em></div></div></div>
+      <div class="q-item"><div class="q-num">PY3</div><div class="q-text">Do you use WhatsApp? Is it something you check regularly throughout the day?<span class="q-flag flag-wpay">WhatsApp test</span></div></div>
+      <div class="q-item"><div class="q-num">PY4</div><div class="q-text">If the payment link came through WhatsApp instead of SMS — from the restaurant's WhatsApp — would that feel more or less trustworthy to you? Why?<span class="q-flag flag-wpay">WhatsApp test</span><div class="q-probe">Key insight: WhatsApp has a verified business profile + green tick — does that help trust?</div></div></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-phase">🎁 Wrap-up (2 min)</div>
+      <div class="q-item"><div class="q-num">Z1</div><div class="q-text">Is there anything about calling to order food that I didn't ask about that matters to you?</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SURVEY -->
+<div class="section" id="survey">
+  <div class="section-title">📊 Survey Questions</div>
+  <div class="section-sub">Two versions — one for restaurant owners, one for customers. Keep each under 15 questions. Distribute via Typeform or Google Forms. Link both from a single page.</div>
+
+  <div class="two-col">
+    <div>
+      <div class="card-title" style="margin-bottom:12px">🏪 Restaurant Owner Survey (12 questions)</div>
+      <div class="survey-q">
+        <div class="sq-num">Q1 — Screener</div>
+        <div class="sq-text">How many phone orders do you receive on a busy Friday/Saturday night?</div>
+        <div class="sq-options"><span class="sq-opt">0–5</span><span class="sq-opt">5–15</span><span class="sq-opt">15–30</span><span class="sq-opt">30–50</span><span class="sq-opt">50+</span></div>
+        <div class="sq-type">Single choice · If 0–5, show "Thanks, this may not be relevant for you"</div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q2 — Pain</div>
+        <div class="sq-text">How often does your phone ring and no one is available to answer it?</div>
+        <div class="sq-options"><span class="sq-opt">Never</span><span class="sq-opt">Occasionally</span><span class="sq-opt">Weekly</span><span class="sq-opt">Daily</span><span class="sq-opt">Multiple times/day</span></div>
+        <div class="sq-type">Single choice · Key pain signal</div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q3 — Pain</div>
+        <div class="sq-text">What best describes how phone orders currently affect your service?</div>
+        <div class="sq-options"><span class="sq-opt">Serious disruption</span><span class="sq-opt">Minor annoyance</span><span class="sq-opt">No issue</span><span class="sq-opt">It's how we prefer to take orders</span></div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q4 — POS</div>
+        <div class="sq-text">Which POS system do you use? (Select all that apply)</div>
+        <div class="sq-options"><span class="sq-opt">Square</span><span class="sq-opt">Lightspeed</span><span class="sq-opt">Kounta</span><span class="sq-opt">None</span><span class="sq-opt">Other</span></div>
+        <div class="sq-type">Multi select · Informs integration priority</div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q5 — WTP</div>
+        <div class="sq-text">If an AI system handled all your phone orders reliably, what would you pay per month?</div>
+        <div class="sq-options"><span class="sq-opt">Nothing</span><span class="sq-opt">Under $100</span><span class="sq-opt">$100–$300</span><span class="sq-opt">$300–$600</span><span class="sq-opt">$600–$1,000</span><span class="sq-opt">Over $1,000</span></div>
+        <div class="sq-type">Single choice · Most critical data point</div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q6 — WTP model</div>
+        <div class="sq-text">Would you prefer a flat monthly fee or a per-order fee?</div>
+        <div class="sq-options"><span class="sq-opt">Flat monthly (predictable)</span><span class="sq-opt">Per-order (pay for what I use)</span><span class="sq-opt">Either is fine</span></div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q7 — Customer payment</div>
+        <div class="sq-text">How do your phone order customers currently pay?</div>
+        <div class="sq-options"><span class="sq-opt">Cash on pickup</span><span class="sq-opt">Card at pickup</span><span class="sq-opt">Card over the phone</span><span class="sq-opt">Mix</span></div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q8 — WhatsApp</div>
+        <div class="sq-text">Does your restaurant use WhatsApp to communicate with customers?</div>
+        <div class="sq-options"><span class="sq-opt">Yes, regularly</span><span class="sq-opt">Sometimes</span><span class="sq-opt">No, but customers ask about it</span><span class="sq-opt">No, never</span></div>
+        <div class="sq-type">WhatsApp signal</div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q9 — Trial</div>
+        <div class="sq-text">If you could try this free for 30 days with no contract, how likely would you be to give it a shot?</div>
+        <div class="sq-options"><span class="sq-opt">Definitely would</span><span class="sq-opt">Probably would</span><span class="sq-opt">Unsure</span><span class="sq-opt">Unlikely</span><span class="sq-opt">Definitely not</span></div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q10 — Open</div>
+        <div class="sq-text">What's the single biggest thing that would stop you from using an AI phone ordering system?</div>
+        <div class="sq-type">Free text · Surfaces objections you haven't thought of</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card-title" style="margin-bottom:12px">📞 Customer Survey (10 questions)</div>
+      <div class="survey-q">
+        <div class="sq-num">Q1 — Habits</div>
+        <div class="sq-text">How often do you call a restaurant directly to place an order (not via Uber Eats/Menulog)?</div>
+        <div class="sq-options"><span class="sq-opt">Weekly</span><span class="sq-opt">A few times/mo</span><span class="sq-opt">Rarely</span><span class="sq-opt">Never</span></div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q2 — Pain</div>
+        <div class="sq-text">Have you ever called a restaurant and couldn't get through (busy / no answer)?</div>
+        <div class="sq-options"><span class="sq-opt">Yes, frequently</span><span class="sq-opt">Yes, occasionally</span><span class="sq-opt">Rarely</span><span class="sq-opt">Never</span></div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q3 — AI acceptance</div>
+        <div class="sq-text">If an AI system answered your call, understood your order perfectly and confirmed it accurately — how would you feel?</div>
+        <div class="sq-options"><span class="sq-opt">Totally fine</span><span class="sq-opt">Slight preference for human</span><span class="sq-opt">Strong preference for human</span><span class="sq-opt">Would hang up</span></div>
+        <div class="sq-type">Critical acceptance signal</div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q4 — AI disclosure</div>
+        <div class="sq-text">Would you want the restaurant to tell you upfront it's an AI?</div>
+        <div class="sq-options"><span class="sq-opt">Yes, always disclose</span><span class="sq-opt">Don't mind either way</span><span class="sq-opt">I'd rather not know</span></div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q5 — SMS payment</div>
+        <div class="sq-text">After placing a phone order, you receive a secure SMS payment link (like a parking meter or Council payment). Would you use it?</div>
+        <div class="sq-options"><span class="sq-opt">Yes, easy</span><span class="sq-opt">Yes, but I'd verify it's genuine</span><span class="sq-opt">Probably not</span><span class="sq-opt">No, I prefer paying at pickup</span></div>
+        <div class="sq-type">Critical payment flow signal</div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q6 — WhatsApp</div>
+        <div class="sq-text">Do you use WhatsApp regularly?</div>
+        <div class="sq-options"><span class="sq-opt">Yes, daily</span><span class="sq-opt">Yes, sometimes</span><span class="sq-opt">Rarely</span><span class="sq-opt">Never</span></div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q7 — WhatsApp payment</div>
+        <div class="sq-text">If the payment link came via WhatsApp from the restaurant's verified business account — would that feel more trustworthy than an SMS?</div>
+        <div class="sq-options"><span class="sq-opt">Yes, much more</span><span class="sq-opt">Slightly more</span><span class="sq-opt">Same</span><span class="sq-opt">Less</span><span class="sq-opt">I don't use WhatsApp</span></div>
+        <div class="sq-type">WhatsApp key signal</div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q8 — Trust</div>
+        <div class="sq-text">What would most increase your trust in an AI phone ordering system? (choose top 2)</div>
+        <div class="sq-options"><span class="sq-opt">Natural-sounding voice</span><span class="sq-opt">Fast response</span><span class="sq-opt">Easy to correct mistakes</span><span class="sq-opt">Option to reach a human</span><span class="sq-opt">Order confirmation SMS</span></div>
+        <div class="sq-type">Multi select · max 2</div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q9 — Age bracket</div>
+        <div class="sq-text">How old are you?</div>
+        <div class="sq-options"><span class="sq-opt">18–25</span><span class="sq-opt">26–35</span><span class="sq-opt">36–45</span><span class="sq-opt">46–55</span><span class="sq-opt">55+</span></div>
+        <div class="sq-type">Demographics — AI acceptance varies significantly by age</div>
+      </div>
+      <div class="survey-q">
+        <div class="sq-num">Q10 — Open</div>
+        <div class="sq-text">What would make you hang up if an AI answered a restaurant's phone?</div>
+        <div class="sq-type">Free text · Golden for UX copy and AI persona design</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WHATSAPP -->
+<div class="section" id="whatsapp">
+  <div class="section-title">💬 WhatsApp Payment Flow — Deep Test</div>
+  <div class="section-sub">Australia-specific assumption: WhatsApp penetration is growing fast in multicultural communities (Vietnamese, Indian, Chinese, Lebanese, Greek) — who also run and frequent many AU independent restaurants</div>
+
+  <div class="wa-card">
+    <div class="wa-title">🟢 Why this matters for TalkByte</div>
+    <div class="wa-body">If WhatsApp converts better than SMS for payment links in AU — and the data suggests it might in multicultural communities — the Phase 1 architecture should support WhatsApp Business API as the primary payment channel, not SMS. This is a cheap assumption to test now but expensive to change after you've built SMS-first. <strong>One question in every interview will tell you which channel to build first.</strong></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">🔑 What to learn from owners</div>
+      <ul style="font-size:13px;line-height:2;color:var(--muted);list-style:none">
+        <li>→ Do their customers already contact them via WhatsApp?</li>
+        <li>→ Do they have a WhatsApp Business account already?</li>
+        <li>→ Would they trust a payment sent via WhatsApp more than SMS?</li>
+        <li>→ Do they serve a predominantly multicultural customer base?</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">🔑 What to learn from customers</div>
+      <ul style="font-size:13px;line-height:2;color:var(--muted);list-style:none">
+        <li>→ Is WhatsApp a daily app or occasional app for them?</li>
+        <li>→ Have they ever transacted money via WhatsApp?</li>
+        <li>→ Does the green verified business tick increase trust?</li>
+        <li>→ Would they prefer WhatsApp or SMS for a payment link?</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Decision Framework — What the research tells you to do</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Finding</th><th>Architecture decision</th></tr></thead>
+        <tbody>
+          <tr><td>70%+ of customers prefer WhatsApp over SMS for payment</td><td>Build WhatsApp Business API integration in Sprint 2 before SMS. Use Twilio WhatsApp or 360dialog.</td></tr>
+          <tr><td>50–70% prefer WhatsApp</td><td>Build SMS in Sprint 2, WhatsApp as add-on in Sprint 3. Make channel configurable per restaurant.</td></tr>
+          <tr><td>Under 50% prefer WhatsApp</td><td>SMS is correct for Phase 1. WhatsApp can wait for Phase 2 enterprise features.</td></tr>
+          <tr><td>Owners already have WhatsApp Business</td><td>Strong signal — add WhatsApp as a first-class integration, not an afterthought.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- SYNTHESIS FRAMEWORK -->
+<div class="section" id="synthesis">
+  <div class="section-title">🔬 Synthesis Framework</div>
+  <div class="section-sub">Use this template after each interview — takes 10 minutes. The patterns will emerge by interview 4.</div>
+
+  <div class="card">
+    <div class="card-title">Interview Notes Template (copy per interview)</div>
+    <div style="background:#f8f7ff;border-radius:8px;padding:18px;font-family:monospace;font-size:12px;line-height:2;color:var(--text)">
+      <div style="color:var(--purple);font-weight:700">## [Restaurant Name / Customer] — [Date]</div>
+      Segment: Owner / Customer | Duration: ___min | Recorder: Y/N<br>
+      <br>
+      <div style="color:var(--teal);font-weight:700">### Top 3 Quotes (verbatim)</div>
+      1. "<br>2. "<br>3. "<br>
+      <br>
+      <div style="color:var(--orange);font-weight:700">### Pain Level (1–5): ___</div>
+      Evidence for this score:<br>
+      <br>
+      <div style="color:var(--purple);font-weight:700">### WTP Signal (owners only)</div>
+      Unprompted WTP: $___/mo | Reaction to $500: Accept / Negotiate / Reject<br>
+      Preferred model: Flat / Per-order<br>
+      <br>
+      <div style="color:var(--purple);font-weight:700">### AI Acceptance (customers only)</div>
+      Reaction: Positive / Neutral / Resistant / Reject | Condition if any:<br>
+      Disclosure preference: Must disclose / Don't mind / Prefer not to know<br>
+      <br>
+      <div style="color:var(--teal);font-weight:700">### Payment Flow</div>
+      SMS link: Would use / Hesitant / Would not use<br>
+      WhatsApp: Uses daily / Sometimes / Never | Prefers WA over SMS: Yes / No / Same<br>
+      <br>
+      <div style="color:var(--orange);font-weight:700">### Onboarding (owners only)</div>
+      Steps that caused hesitation:<br>
+      <br>
+      <div style="color:var(--red);font-weight:700">### Assumption verdicts from this interview</div>
+      A1 (WTP): Confirmed / Challenged / Rejected<br>
+      A3 (AI acceptance): Confirmed / Challenged / Rejected<br>
+      A4 (SMS payment): Confirmed / Challenged / Rejected<br>
+      A5 (WhatsApp): Confirmed / Challenged / Rejected<br>
+      <br>
+      <div style="color:var(--gray);font-weight:700">### Surprises / things I didn't expect</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Go / Pivot / Kill Decision Matrix</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Assumption</th><th>GO signal</th><th>PIVOT signal</th><th>KILL signal</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Restaurants will pay $500/mo</strong></td>
+            <td style="color:#16a34a">5+ owners name $300–$600 unprompted</td>
+            <td style="color:#854d0e">Most say $100–$200 → adjust pricing, not product</td>
+            <td style="color:var(--red)">Everyone says "only if per-order, under $50" → BRD re-scope</td>
+          </tr>
+          <tr>
+            <td><strong>Phone ordering is painful</strong></td>
+            <td style="color:#16a34a">4+ owners report missed calls weekly; staff disruption is real</td>
+            <td style="color:#854d0e">Pain exists but is low — target busier restaurants only</td>
+            <td style="color:var(--red)">"It's fine, we manage" from majority → wrong target segment</td>
+          </tr>
+          <tr>
+            <td><strong>Customers accept AI</strong></td>
+            <td style="color:#16a34a">6+ customers say "totally fine" or "only if it's good"</td>
+            <td style="color:#854d0e">Conditional acceptance — must disclose AI, must have escape hatch</td>
+            <td style="color:var(--red)">"I'd hang up immediately" from majority → product-market fit failure</td>
+          </tr>
+          <tr>
+            <td><strong>SMS payment link works</strong></td>
+            <td style="color:#16a34a">6+ customers say they'd click and pay</td>
+            <td style="color:#854d0e">Trust concerns → add restaurant name in SMS sender, branded link</td>
+            <td style="color:var(--red)">"I'd ignore unknown SMS links" majority → must use WhatsApp first</td>
+          </tr>
+          <tr>
+            <td><strong>WhatsApp beats SMS</strong></td>
+            <td style="color:#16a34a">60%+ prefer WhatsApp, owners already have WA Business</td>
+            <td style="color:#854d0e">Mixed → build both, let restaurant choose channel in settings</td>
+            <td style="color:var(--red)">"I don't use WhatsApp" majority → SMS is correct, skip WA</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- JTBD -->
+<div class="section" id="jtbd">
+  <div class="section-title">💡 Jobs to Be Done Framework</div>
+  <div class="section-sub">Before the interviews, write down your hypotheses. After, update them with what you actually heard.</div>
+
+  <div class="card-title" style="margin-bottom:12px">Hypothesised Jobs (validate or rewrite after interviews)</div>
+
+  <div class="jtbd">
+    <div class="jtbd-title">Restaurant Owner Job #1</div>
+    <div class="jtbd-body">When <em>my phone rings during Friday dinner service and my chef has to stop what they're doing to answer it</em>, I want to <em>never miss a phone order without disrupting my kitchen</em>, so I can <em>increase revenue without adding staff or stress</em>.</div>
+  </div>
+  <div class="jtbd">
+    <div class="jtbd-title">Restaurant Owner Job #2</div>
+    <div class="jtbd-body">When <em>I'm trying to run a tight ship with 3 staff on a Saturday night</em>, I want to <em>have phone orders flow into my POS automatically like Uber Eats does</em>, so I can <em>stop writing orders on paper and re-entering them</em>.</div>
+  </div>
+  <div class="jtbd">
+    <div class="jtbd-title">Customer Job #1</div>
+    <div class="jtbd-body">When <em>I call my favourite local restaurant and no one picks up or I'm put on hold</em>, I want to <em>place my order quickly without waiting or calling back</em>, so I can <em>pick up dinner without the hassle</em>.</div>
+  </div>
+  <div class="jtbd">
+    <div class="jtbd-title">Customer Job #2</div>
+    <div class="jtbd-body">When <em>I want to customise an order more than an app allows</em>, I want to <em>explain it to someone (or something) that actually understands</em>, so I can <em>get exactly what I want without settling</em>.</div>
+  </div>
+
+  <div class="card" style="margin-top:20px;background:linear-gradient(135deg,var(--purple-dark),#1a0a2e);border:none">
+    <div style="color:white;font-size:14px;font-weight:700;margin-bottom:10px">After the research, answer these 5 questions before writing code:</div>
+    <ol style="color:rgba(255,255,255,0.8);font-size:13px;line-height:2.2;padding-left:20px">
+      <li>What is the <strong style="color:var(--teal)">single biggest pain</strong> restaurant owners described in their own words?</li>
+      <li>What is the <strong style="color:var(--teal)">WTP range</strong> you're confident in — and does it support our pricing model?</li>
+      <li>What is the <strong style="color:var(--teal)">primary AI acceptance condition</strong> from customers? (What has to be true for them to accept it?)</li>
+      <li>Should the Phase 1 payment channel be <strong style="color:var(--teal)">SMS or WhatsApp</strong>?</li>
+      <li>What is the <strong style="color:var(--teal)">one thing you didn't know</strong> before starting — that changes something in the architecture?</li>
+    </ol>
+  </div>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+document.querySelectorAll('.nav-item').forEach(link => {
+  link.addEventListener('click', e => {
+    const href = link.getAttribute('href');
+    if (href?.startsWith('#')) {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      link.classList.add('active');
+      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+});
+const sections = document.querySelectorAll('.section');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) cur = s.id; });
+  document.querySelectorAll('.nav-item').forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + cur);
+  });
+}, { passive: true });
+</script>
+</body>
+</html>
