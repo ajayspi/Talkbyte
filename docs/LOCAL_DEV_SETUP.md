@@ -70,9 +70,11 @@ These are not required to run the local stack, but you'll need them for voice fe
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/talkbyte.git
+git clone https://github.com/[REPLACE_WITH_ORG]/talkbyte.git
 cd talkbyte
 ```
+
+> **Note:** Replace `[REPLACE_WITH_ORG]` with your actual GitHub organization name. For example, if your organization is `acme-restaurants`, use: `https://github.com/acme-restaurants/talkbyte.git`
 
 ### Step 2: Create Environment File
 
@@ -122,13 +124,50 @@ Open your browser and check each service:
 
 ### Step 5: (Optional) Load Sample Data
 
-To populate the database with test data:
+Create test data for development. Choose one method:
+
+**Method A: Using Supabase Studio (Recommended for first-time setup)**
+
+1. Open Supabase Studio: http://localhost:54321
+2. Navigate to the **SQL Editor**
+3. Run the schema file to initialize tables:
+   ```sql
+   -- This is already done automatically, but you can verify tables exist:
+   SELECT table_name FROM information_schema.tables WHERE table_schema='public';
+   ```
+4. Insert test restaurant:
+   ```sql
+   INSERT INTO restaurants (name, phone_number, ai_instructions, active)
+   VALUES ('Test Cafe', '+61412345678', 'Be friendly and professional', true);
+   ```
+
+**Method B: Using curl commands (for automation)**
 
 ```bash
-docker-compose exec backend python scripts/seed_data.py
+# Get the restaurant creation endpoint
+curl -X POST http://localhost:8000/api/v1/restaurants \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Cafe",
+    "phone_number": "+61412345678",
+    "ai_instructions": "Be friendly and professional"
+  }'
 ```
 
-If the script doesn't exist yet, you can manually insert test data via Supabase Studio at http://localhost:54321.
+**Method C: Using Swagger UI (Visual approach)**
+
+1. Open http://localhost:8000/docs
+2. Click on **POST /api/v1/restaurants**
+3. Click **Try it out**
+4. Enter example data:
+   ```json
+   {
+     "name": "Test Cafe",
+     "phone_number": "+61412345678",
+     "ai_instructions": "Be friendly and professional"
+   }
+   ```
+5. Click **Execute**
 
 ---
 
@@ -596,6 +635,10 @@ docker-compose exec supabase psql -U postgres -d postgres -f /docker-entrypoint-
 
 ## Next Steps
 
+### 0. Before Moving to Production
+
+> **Important:** Before deploying to a production server, ensure your local stack runs smoothly and all tests pass. This guide covers local development only. When ready for production, see **[`DEPLOYMENT.md`](DEPLOYMENT.md)** for complete Oracle Cloud deployment steps including infrastructure setup, SSL/HTTPS, and monitoring.
+
 ### 1. Understand the Architecture
 
 Read `CLAUDE.md` in the repository root for technical decisions and sprint roadmap.
@@ -609,7 +652,10 @@ Visit http://localhost:8000/docs and try out endpoints like:
 
 ### 3. Deploy to Production
 
-When you're ready to deploy to a server, see `DEPLOYMENT.md` for Oracle Cloud setup.
+When you're ready to deploy to a server, see **[`DEPLOYMENT.md`](DEPLOYMENT.md)** for Oracle Cloud setup including:
+- Infrastructure provisioning with Terraform
+- SSL/HTTPS configuration
+- Domain setup and monitoring
 
 ### 4. Run Tests
 

@@ -2,6 +2,8 @@
 
 This guide walks you through deploying TalkByte AI to Oracle Cloud using Terraform and Docker Compose.
 
+> **Before deploying to production:** Ensure your local development environment works properly first. See **[`LOCAL_DEV_SETUP.md`](LOCAL_DEV_SETUP.md)** to get the full stack running locally, test functionality, and run tests before proceeding with production deployment.
+
 ---
 
 ## Table of Contents
@@ -160,7 +162,22 @@ compartment_id      = "ocid1.compartment.oc1..YOUR_COMPARTMENT_ID"
 ssh_public_key_path = "~/.ssh/id_rsa.pub"
 ```
 
-Replace `YOUR_COMPARTMENT_ID` with your actual compartment ID from Step 4 above.
+**How to populate these values:**
+
+1. **oci_region:** Use `ap-sydney-1` for Australia (closest to target market). Other options: `ap-singapore-1`, `us-phoenix-1`. See https://docs.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm
+
+2. **compartment_id:** Get this from Oracle Cloud Console:
+   - Go to https://cloud.oracle.com
+   - Click ☰ (hamburger menu) → **Identity & Security** → **Compartments**
+   - Find your compartment (usually "root" or your personal compartment)
+   - Click it and copy the OCID (starts with `ocid1.compartment.oc1..`)
+   - Paste it into `terraform.tfvars`
+   - Example: `compartment_id = "ocid1.compartment.oc1..abcdef123456789"`
+
+3. **ssh_public_key_path:** Path to your public SSH key
+   - Default is usually `~/.ssh/id_rsa.pub`
+   - Verify it exists: `ls -la ~/.ssh/id_rsa.pub`
+   - If not, generate one: `ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""`
 
 ### Step 4: Plan the Infrastructure
 
@@ -241,9 +258,11 @@ Look for output from `init-backend.sh`. If you see errors, review the log to deb
 
 ```bash
 cd /home/ubuntu
-git clone https://github.com/your-org/talkbyte.git
+git clone https://github.com/[REPLACE_WITH_ORG]/talkbyte.git
 cd talkbyte
 ```
+
+> **Note:** Replace `[REPLACE_WITH_ORG]` with your actual GitHub organization name. For example: `https://github.com/acme-restaurants/talkbyte.git`
 
 ### Step 2: Create Production Environment File
 
@@ -351,17 +370,21 @@ If both respond, the application is running.
 
 ### Step 1: Point Domain to Instance
 
+**Important:** Replace `[REPLACE_WITH_YOUR_DOMAIN]` with your actual domain throughout this section. Example: `talkbyte.example.com`
+
 1. Go to your domain registrar (e.g., GoDaddy, Namecheap, etc.)
 2. Update the **A record** to point to your instance's public IP:
-   - Name: `api.your-domain.com` (for backend)
+   - Name: `api.[REPLACE_WITH_YOUR_DOMAIN]` (for backend)
+     - Example: `api.talkbyte.example.com`
    - Type: `A`
    - Value: `YOUR_INSTANCE_PUBLIC_IP`
 3. Also add an A record for your frontend domain:
-   - Name: `your-domain.com` (or `app.your-domain.com`)
+   - Name: `[REPLACE_WITH_YOUR_DOMAIN]` (for frontend)
+     - Example: `talkbyte.example.com` or `app.talkbyte.example.com`
    - Type: `A`
    - Value: `YOUR_INSTANCE_PUBLIC_IP`
 
-DNS propagation takes 5–30 minutes.
+DNS propagation takes 5–30 minutes. Verify with: `nslookup api.[REPLACE_WITH_YOUR_DOMAIN]`
 
 ### Step 2: Install Nginx as Reverse Proxy
 
@@ -373,6 +396,8 @@ sudo apt-get install -y nginx certbot python3-certbot-nginx
 ```
 
 ### Step 3: Configure Nginx
+
+Replace `[REPLACE_WITH_YOUR_DOMAIN]` with your actual domain (e.g., `talkbyte.example.com`).
 
 Create `/etc/nginx/sites-available/talkbyte`:
 
@@ -388,7 +413,7 @@ upstream frontend {
 
 server {
     listen 80;
-    server_name api.your-domain.com;
+    server_name api.[REPLACE_WITH_YOUR_DOMAIN];
 
     location / {
         proxy_pass http://backend;
@@ -401,7 +426,7 @@ server {
 
 server {
     listen 80;
-    server_name your-domain.com;
+    server_name [REPLACE_WITH_YOUR_DOMAIN];
 
     location / {
         proxy_pass http://frontend;
@@ -414,6 +439,12 @@ server {
 EOF
 ```
 
+**Example:** If your domain is `talkbyte.example.com`, the server_name lines would be:
+```
+server_name api.talkbyte.example.com;
+server_name talkbyte.example.com;
+```
+
 Enable the configuration:
 
 ```bash
@@ -424,10 +455,15 @@ sudo systemctl restart nginx
 
 ### Step 4: Get SSL Certificate
 
-Use Let's Encrypt to get a free SSL certificate:
+Replace `[REPLACE_WITH_YOUR_DOMAIN]` with your actual domain. Use Let's Encrypt to get a free SSL certificate:
 
 ```bash
-sudo certbot --nginx -d api.your-domain.com -d your-domain.com
+sudo certbot --nginx -d api.[REPLACE_WITH_YOUR_DOMAIN] -d [REPLACE_WITH_YOUR_DOMAIN]
+```
+
+**Example:** If your domain is `talkbyte.example.com`:
+```bash
+sudo certbot --nginx -d api.talkbyte.example.com -d talkbyte.example.com
 ```
 
 Follow the prompts. Certbot will automatically update your Nginx configuration with HTTPS.
@@ -435,7 +471,12 @@ Follow the prompts. Certbot will automatically update your Nginx configuration w
 ### Step 5: Verify HTTPS
 
 ```bash
-curl https://api.your-domain.com/health
+curl https://api.[REPLACE_WITH_YOUR_DOMAIN]/health
+```
+
+**Example:**
+```bash
+curl https://api.talkbyte.example.com/health
 ```
 
 ---
