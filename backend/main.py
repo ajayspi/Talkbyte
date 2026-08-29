@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 
 from config import config
 from app.services.logging import setup_logging
+from app.services.error_handler import register_exception_handlers
 from app.db.supabase import init_supabase
 from app.db.redis import init_redis
 from app.api import voice, orders, restaurants, payments, admin
@@ -41,6 +42,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+register_exception_handlers(app)
 
 # Routers
 app.include_router(voice.router,       prefix="/api/voice",       tags=["voice"])
