@@ -6,14 +6,14 @@ Run: uvicorn main:app --reload --port 8000
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-import structlog
 
 from config import config
+from app.services.logging import setup_logging
 from app.db.supabase import init_supabase
 from app.db.redis import init_redis
 from app.api import voice, orders, restaurants, payments, admin
 
-log = structlog.get_logger()
+log = setup_logging(config.debug)
 
 
 @asynccontextmanager
