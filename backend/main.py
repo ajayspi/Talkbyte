@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import structlog
 
+from config import config
 from app.db.supabase import init_supabase
 from app.db.redis import init_redis
 from app.api import voice, orders, restaurants, payments, admin
@@ -18,7 +19,7 @@ log = structlog.get_logger()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup / shutdown hooks."""
-    log.info("talkbyte.starting")
+    log.info("talkbyte.starting", environment=config.environment)
     await init_supabase()
     await init_redis()
     log.info("talkbyte.ready")
@@ -35,7 +36,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # extend in production
+    allow_origins=["http://localhost:3000"] if config.debug else ["https://yourdomain.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
