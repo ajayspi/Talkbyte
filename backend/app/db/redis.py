@@ -5,8 +5,8 @@ Keys: call_session:{call_id}
 """
 
 import json
-import os
 from upstash_redis.asyncio import Redis
+from config import config
 
 _redis: Redis | None = None
 
@@ -14,8 +14,8 @@ _redis: Redis | None = None
 async def init_redis() -> None:
     global _redis
     _redis = Redis(
-        url=os.environ["UPSTASH_REDIS_REST_URL"],
-        token=os.environ["UPSTASH_REDIS_REST_TOKEN"],
+        url=config.upstash_redis_rest_url,
+        token=config.upstash_redis_rest_token,
     )
 
 
