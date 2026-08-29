@@ -46,6 +46,7 @@ pydantic==2.10.4
 pydantic-settings==2.7.0
 structlog==24.4.0
 sentry-sdk[fastapi]==2.19.2
+requests==2.31.0
 
 # Dev / Testing
 pytest==8.3.4
