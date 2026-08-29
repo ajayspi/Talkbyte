@@ -10,24 +10,36 @@ os.environ['UPSTASH_REDIS_REST_TOKEN'] = 'test-token'
 
 @pytest.fixture
 def mock_supabase():
-    """Mock Supabase client."""
-    with patch('app.db.supabase.SupabaseClient') as mock:
+    """Mock Supabase client get_db() function."""
+    with patch('app.db.supabase.get_db') as mock:
         yield mock
 
 @pytest.fixture
 def mock_redis():
-    """Mock Redis client."""
-    with patch('app.db.redis.Redis') as mock:
+    """Mock Redis client get_redis() function."""
+    with patch('app.db.redis.get_redis') as mock:
         yield mock
 
 @pytest.fixture
 def mock_deepgram():
-    """Mock Deepgram STT."""
-    with patch('app.services.stt.DeepgramClient') as mock:
-        yield mock
+    """Mock Deepgram STT.
+
+    TODO Sprint 1, Task 6:
+      Deepgram integration not yet implemented.
+      When implementing livekit_agent.py, patch 'livekit.plugins.deepgram.STT'
+      or create app/services/stt.py with Deepgram wrapper.
+    """
+    # Placeholder — update when Task 6 begins
+    yield Mock()
 
 @pytest.fixture
 def mock_openai():
-    """Mock OpenAI LLM."""
-    with patch('app.services.llm.OpenAI') as mock:
-        yield mock
+    """Mock OpenAI LLM.
+
+    TODO Sprint 1, Task 7:
+      OpenAI integration not yet implemented.
+      When implementing livekit_agent.py, patch 'livekit.plugins.openai.LLM'
+      or create app/services/openai.py with OpenAI wrapper.
+    """
+    # Placeholder — update when Task 7 begins
+    yield Mock()
