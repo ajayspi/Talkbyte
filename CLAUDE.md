@@ -15,11 +15,14 @@ User research is running in parallel. **Do not start Sprint 1 code until researc
 
 | File | Contents |
 |------|----------|
-| `docs/talkbyte-production-plan.html` | Full production blueprint, 25 test scenarios, 5-year roadmap |
-| `docs/talkbyte-admin-panel.html` | Operator admin panel (static HTML prototype) |
-| `docs/talkbyte-user-research-plan.html` | 7-day research sprint, interview guides, surveys |
-| `docs/TalkByte_AI_SRS_v2.2.docx` | Research-validated SRS document |
-| `docs/talkbyte-restaurant-dashboard.html` | Restaurant owner/staff dashboard prototype |
+| `talkbyte-production-plan.html` | Full production blueprint, 25 test scenarios, 5-year roadmap |
+| `talkbyte-admin-panel.html` | Operator admin panel (static HTML prototype) |
+| `talkbyte-user-research-plan.html` | 7-day research sprint, interview guides, surveys |
+| `talkbyte-restaurant-dashboard.html` | Restaurant owner/staff dashboard prototype |
+| `docs/LOCAL_DEV_SETUP.md` | Local development setup guide |
+| `docs/DEPLOYMENT.md` | Production deployment guide |
+| `docs/ORACLE_CLOUD_SETUP.md` | Oracle Cloud Free Tier configuration |
+| `docs/DAILY_DEMO_INSTRUCTIONS.md` | Daily demo quick reference |
 
 ---
 
