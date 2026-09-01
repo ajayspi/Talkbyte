@@ -12,10 +12,9 @@ from livekit.plugins import deepgram, openai, elevenlabs, silero
 from app.services.llm import build_system_prompt
 from app.models.call import CallSession, CallState
 from app.db.redis import get_session, save_session
-from app.config import Config
+from config import config
 
 logger = logging.getLogger(__name__)
-config = Config()
 
 # ElevenLabs voice ID per restaurant (for now, single default voice)
 ELEVENLABS_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"
