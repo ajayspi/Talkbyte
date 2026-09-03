@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-purple: #4A0E4E;
+  --color-brand-sidebar: #1a0a1e;
+  --color-brand-violet: #7c3aed;
+  --color-brand-teal: #14b8a6;
+  --color-brand-orange: #FF6B35;
+  --color-brand-dark: #0f172a;
+  --color-brand-card: #1e293b;
+  --color-brand-border: #334155;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+:root {
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card-hover: #273549;
+  --bg-subtle: #334155;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-strong: rgba(255, 255, 255, 0.15);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+
+  --purple: #7c3aed;
+  --purple-dark: #4A0E4E;
+  --purple-mid: #6d28d9;
+  --purple-light: #ede9fe;
+  --purple-sidebar: #1a0a1e;
+  --teal: #14b8a6;
+  --teal-light: #ccfbf1;
+  --orange: #FF6B35;
+  --orange-light: #fff0eb;
+  --blue: #3b82f6;
+  --blue-light: #eff6ff;
+  --green: #22c55e;
+  --green-light: #f0fdf4;
+  --red: #ef4444;
+  --red-light: #fef2f2;
+  --yellow: #eab308;
+  --yellow-light: #fefce8;
+  --gray: #6b7280;
+  --border: #e5e7eb;
+  --text: #111827;
+  --bg: #f8f7ff;
+  --card: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Custom Scrollbars ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* ── Animations ── */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+.live-pulse {
+  animation: pulse-slow 1.5s infinite;
+}
+
+.live-badge-pulse {
+  animation: pulse-red 2s infinite;
+}
+
+.live-dot-pulse {
+  animation: pulse-dot 1.5s infinite;
+}
+
+/* ── Badges & Chips ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.2rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.badge-green {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.badge-yellow {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.badge-red {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-blue {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-purple {
+  background-color: rgba(124, 58, 237, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.badge-teal {
+  background-color: rgba(20, 184, 166, 0.15);
+  color: #2dd4bf;
+  border: 1px solid rgba(20, 184, 166, 0.3);
+}
+
+.badge-orange {
+  background-color: rgba(255, 107, 53, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(255, 107, 53, 0.3);
+}
+
+.badge-gray {
+  background-color: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+/* ── Live Call Cards ── */
+.live-call-card {
+  background: linear-gradient(135deg, #1a0a1e 0%, #0f172a 100%);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-left: 3px solid #22c55e;
+  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Panel Cards ── */
+.panel-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  transition: border-color 0.15s ease;
+}
+
+.panel-card:hover {
+  border-color: var(--border-color-strong);
+}
+
+/* ── Data Tables ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.data-table th {
+  background-color: rgba(15, 23, 42, 0.6);
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.data-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.data-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Health & Progress Bars ── */
+.health-bar {
+  height: 6px;
+  border-radius: 3px;
+  background-color: #334155;
+  overflow: hidden;
+  width: 80px;
+  display: inline-block;
+}
+
+.health-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.fill-green { background-color: var(--green); }
+.fill-yellow { background-color: var(--yellow); }
+.fill-red { background-color: var(--red); }

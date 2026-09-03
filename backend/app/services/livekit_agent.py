@@ -51,12 +51,52 @@ async def entrypoint(ctx: JobContext):
         system_prompt = build_system_prompt(session)
         logger.debug(f"[{ctx.room.name}] System prompt:\n{system_prompt}")
 
+        # Define function context for the LLM
+        fnc_ctx = llm.FunctionContext()
+
+        @fnc_ctx.ai_callable(description="Add items to the customer's order")
+        async def add_to_order(name: str, qty: int, price_cents: int):
+            from app.models.order import add_item, OrderItem
+            items = [OrderItem(**item) for item in session.order_items]
+            try:
+                items = add_item(items, name, qty, price_cents)
+                session.order_items = [item.model_dump() for item in items]
+                await save_session(session.to_redis(), ttl=1800)
+                logger.info(f"[{ctx.room.name}] Added to order: {qty}x {name}")
+                return "Successfully added to order."
+            except Exception as e:
+                return f"Failed to add: {e}"
+
+        @fnc_ctx.ai_callable(description="Remove items from the customer's order")
+        async def remove_from_order(name: str, qty: int):
+            from app.models.order import remove_item, OrderItem
+            items = [OrderItem(**item) for item in session.order_items]
+            try:
+                items = remove_item(items, name, qty)
+                session.order_items = [item.model_dump() for item in items]
+                await save_session(session.to_redis(), ttl=1800)
+                logger.info(f"[{ctx.room.name}] Removed from order: {qty}x {name}")
+                return "Successfully removed from order."
+            except Exception as e:
+                return f"Failed to remove: {e}"
+
+        @fnc_ctx.ai_callable(description="Confirm the complete order and proceed to payment")
+        async def confirm_order():
+            logger.info(f"[{ctx.room.name}] Order confirmed by AI")
+            session.transition(CallState.CONFIRMED)
+            await save_session(session.to_redis(), ttl=1800)
+            from app.db.supabase import update_call_state
+            await update_call_state(session.call_id, CallState.CONFIRMED)
+            # TODO Sprint 2: Push to POS, send payment SMS
+            return "Order confirmed. Proceed to inform the customer about payment via SMS."
+
         # Initialize VoiceAssistant
         assistant = VoiceAssistant(
             vad=vad,
             stt=deepgram.STT(model="nova-3", language="en-AU"),
             llm=openai.LLM(model="gpt-4.1", system_prompt=system_prompt),
             tts=elevenlabs.TTS(voice_id=ELEVENLABS_VOICE_ID),
+            fnc_ctx=fnc_ctx,
         )
 
         # Event: user speech committed → save to transcript
@@ -73,14 +113,6 @@ async def entrypoint(ctx: JobContext):
             """Agent message committed."""
             logger.info(f"[{ctx.room.name}] Agent speech: {message.content[:100]}")
             session.transcript.append({"role": "assistant", "content": message.content})
-
-            # Check if LLM returned function calls (order items, etc.)
-            if hasattr(message, "function_calls") and message.function_calls:
-                for call in message.function_calls:
-                    logger.info(f"[{ctx.room.name}] Function call: {call}")
-                    # Handle function calls (order capture, state transitions)
-                    # TODO Sprint 2: parse and handle order_item, confirm_order, etc.
-
             await save_session(session.to_redis(), ttl=1800)
 
         # Start the voice assistant
