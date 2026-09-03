@@ -27,6 +27,7 @@ class Config:
     supabase_url: str
     supabase_anon_key: str
     supabase_service_role_key: str
+    supabase_jwt_secret: str
 
     # Cache — Upstash Redis (not standard Redis)
     upstash_redis_rest_url: str
@@ -36,6 +37,7 @@ class Config:
     telnyx_api_key: str
     telnyx_public_key: str
     telnyx_sip_connection_id: str
+    internal_webhook_secret: str
 
     # API Keys — Voice & Video
     livekit_url: str
@@ -47,6 +49,7 @@ class Config:
 
     # Payments
     stripe_secret_key: str
+    stripe_webhook_secret: str
     square_application_id: str
     square_application_secret: str
 
@@ -55,6 +58,7 @@ class Config:
     environment: Literal["development", "staging", "production"]
     debug: bool
     log_level: Literal["debug", "info", "warning", "error"]
+    platform_admin_ids: frozenset[str]
 
     @classmethod
     def from_env(cls) -> "Config":
@@ -63,11 +67,13 @@ class Config:
             supabase_url=os.getenv("SUPABASE_URL", "http://localhost:54321"),
             supabase_anon_key=os.getenv("SUPABASE_ANON_KEY", ""),
             supabase_service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""),
+            supabase_jwt_secret=os.getenv("SUPABASE_JWT_SECRET", ""),
             upstash_redis_rest_url=os.getenv("UPSTASH_REDIS_REST_URL", ""),
             upstash_redis_rest_token=os.getenv("UPSTASH_REDIS_REST_TOKEN", ""),
             telnyx_api_key=os.getenv("TELNYX_API_KEY", ""),
             telnyx_public_key=os.getenv("TELNYX_PUBLIC_KEY", ""),
             telnyx_sip_connection_id=os.getenv("TELNYX_SIP_CONNECTION_ID", ""),
+            internal_webhook_secret=os.getenv("INTERNAL_WEBHOOK_SECRET", ""),
             livekit_url=os.getenv("LIVEKIT_URL", ""),
             livekit_api_key=os.getenv("LIVEKIT_API_KEY", ""),
             livekit_api_secret=os.getenv("LIVEKIT_API_SECRET", ""),
@@ -75,12 +81,14 @@ class Config:
             openai_api_key=os.getenv("OPENAI_API_KEY", ""),
             elevenlabs_api_key=os.getenv("ELEVENLABS_API_KEY", ""),
             stripe_secret_key=os.getenv("STRIPE_SECRET_KEY", ""),
+            stripe_webhook_secret=os.getenv("STRIPE_WEBHOOK_SECRET", ""),
             square_application_id=os.getenv("SQUARE_APPLICATION_ID", ""),
             square_application_secret=os.getenv("SQUARE_APPLICATION_SECRET", ""),
             frontend_url=os.getenv("FRONTEND_URL", "http://localhost:3000"),
             environment=os.getenv("ENVIRONMENT", "development"),  # type: ignore
             debug=os.getenv("DEBUG", "true").lower() == "true",
             log_level=os.getenv("LOG_LEVEL", "debug"),  # type: ignore
+            platform_admin_ids=frozenset(filter(None, os.getenv("PLATFORM_ADMIN_IDS", "").split(","))),
         )
 
 

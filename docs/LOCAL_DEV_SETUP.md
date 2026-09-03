@@ -145,7 +145,7 @@ Create test data for development. Choose one method:
 
 ```bash
 # Get the restaurant creation endpoint
-curl -X POST http://localhost:8000/api/v1/restaurants \
+   curl -X POST http://localhost:8000/api/restaurants/ \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test Cafe",
@@ -157,7 +157,7 @@ curl -X POST http://localhost:8000/api/v1/restaurants \
 **Method C: Using Swagger UI (Visual approach)**
 
 1. Open http://localhost:8000/docs
-2. Click on **POST /api/v1/restaurants**
+2. Click on **POST /api/restaurants/**
 3. Click **Try it out**
 4. Enter example data:
    ```json
@@ -190,7 +190,7 @@ LOG_LEVEL=debug                   # Show all logs (debug, info, warning, error)
 For local development, these are pre-configured in `docker-compose.yml`:
 
 ```
-SUPABASE_URL=http://supabase:5432           # Docker network reference
+SUPABASE_URL=https://your-project.supabase.co # Supabase REST endpoint
 SUPABASE_ANON_KEY=eyJhbGc...                # Test JWT token (don't change)
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...        # Service role token (don't change)
 ```
@@ -198,7 +198,8 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...        # Service role token (don't change)
 #### Redis Cache
 
 ```
-REDIS_URL=redis://redis:6379               # Docker network reference
+UPSTASH_REDIS_REST_URL=https://your-db.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-token
 ```
 
 #### Voice Services (Required for Phone Features)

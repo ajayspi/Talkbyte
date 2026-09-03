@@ -3,8 +3,12 @@ Voice webhook — receives Telnyx inbound call events, bridges to LiveKit.
 Sprint 1: stub handlers only. Implement each TODO in order.
 """
 
-from fastapi import APIRouter, Request, HTTPException
+import hmac
+
+from fastapi import APIRouter, Request, HTTPException, status
 import structlog
+from config import config
+from app.api.webhook_security import verify_telnyx_signature
 
 log = structlog.get_logger()
 router = APIRouter()
@@ -25,6 +29,14 @@ async def telnyx_webhook(request: Request):
       4. On call.answered  → create LiveKit room, dial SIP participant
       5. On call.hangup    → mark call CALL_DROPPED or COMPLETE in Redis + Supabase
     """
+    payload = await request.body()
+    if not verify_telnyx_signature(
+      payload,
+      request.headers.get("telnyx-signature-ed25519", ""),
+      request.headers.get("telnyx-timestamp", ""),
+      config.telnyx_public_key,
+    ):
+      raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Telnyx signature")
     body = await request.json()
     event_type = body.get("data", {}).get("event_type", "unknown")
     log.info("telnyx.webhook", event_type=event_type)
@@ -48,6 +60,11 @@ async def livekit_agent_start(request: Request):
       5. Update call state machine after each turn
       6. On CONFIRMED → save order to Supabase, trigger Sprint 2 payment
     """
+    supplied_secret = request.headers.get("x-internal-webhook-secret", "")
+    if not config.internal_webhook_secret or not hmac.compare_digest(
+      supplied_secret, config.internal_webhook_secret
+    ):
+      raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid internal webhook secret")
     body = await request.json()
     room_name = body.get("room_name")
     log.info("livekit.agent.start", room=room_name)

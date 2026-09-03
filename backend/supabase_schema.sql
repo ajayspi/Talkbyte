@@ -122,16 +122,64 @@ alter table calls         enable row level security;
 alter table orders        enable row level security;
 alter table payment_events enable row level security;
 
--- Restaurant staff policy (via restaurant_users join)
+-- Restaurant staff policy (via restaurant_users join). Keep service-role
+-- integrations separate: service-role requests intentionally bypass RLS.
 create policy "restaurant_own_data" on restaurants
-  for all using (
-    id in (
-      select restaurant_id from restaurant_users
-      where user_id = auth.uid()
-    )
-  );
+  for all using (exists (
+    select 1 from restaurant_users
+    where restaurant_users.restaurant_id = restaurants.id
+      and restaurant_users.user_id = auth.uid()
+  )) with check (exists (
+    select 1 from restaurant_users
+    where restaurant_users.restaurant_id = restaurants.id
+      and restaurant_users.user_id = auth.uid()
+  ));
 
--- Repeat similar policies for other tables (omitted for brevity — add in Sprint 3)
+create policy "menu_own_data" on menu_items
+  for all using (exists (
+    select 1 from restaurant_users
+    where restaurant_users.restaurant_id = menu_items.restaurant_id
+      and restaurant_users.user_id = auth.uid()
+  )) with check (exists (
+    select 1 from restaurant_users
+    where restaurant_users.restaurant_id = menu_items.restaurant_id
+      and restaurant_users.user_id = auth.uid()
+  ));
+
+create policy "calls_own_data" on calls
+  for all using (exists (
+    select 1 from restaurant_users
+    where restaurant_users.restaurant_id = calls.restaurant_id
+      and restaurant_users.user_id = auth.uid()
+  )) with check (exists (
+    select 1 from restaurant_users
+    where restaurant_users.restaurant_id = calls.restaurant_id
+      and restaurant_users.user_id = auth.uid()
+  ));
+
+create policy "orders_own_data" on orders
+  for all using (exists (
+    select 1 from restaurant_users
+    where restaurant_users.restaurant_id = orders.restaurant_id
+      and restaurant_users.user_id = auth.uid()
+  )) with check (exists (
+    select 1 from restaurant_users
+    where restaurant_users.restaurant_id = orders.restaurant_id
+      and restaurant_users.user_id = auth.uid()
+  ));
+
+create policy "payment_events_own_data" on payment_events
+  for all using (exists (
+    select 1 from orders
+    join restaurant_users on restaurant_users.restaurant_id = orders.restaurant_id
+    where orders.id = payment_events.order_id
+      and restaurant_users.user_id = auth.uid()
+  )) with check (exists (
+    select 1 from orders
+    join restaurant_users on restaurant_users.restaurant_id = orders.restaurant_id
+    where orders.id = payment_events.order_id
+      and restaurant_users.user_id = auth.uid()
+  ));
 
 
 -- ── Menu RAG helper function ─────────────────────────────────────────────────

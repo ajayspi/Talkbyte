@@ -286,6 +286,8 @@ const state = {
   selectedOrder: null
 };
 
+let analyticsCharts = [];
+
 // Utility Functions
 function formatDuration(seconds) {
   const mins = Math.floor(seconds / 60);
@@ -1033,6 +1035,8 @@ function renderDashboard() {
 
 function render() {
   const app = document.getElementById('app');
+  analyticsCharts.forEach(chart => chart.destroy());
+  analyticsCharts = [];
   if (state.isLoggedIn) {
     app.innerHTML = renderDashboard();
     if (state.currentPage === 'analytics') {
@@ -1181,7 +1185,7 @@ function initCharts() {
   // Call Volume Chart
   const callVolumeCtx = document.getElementById('callVolumeChart');
   if (callVolumeCtx) {
-    new Chart(callVolumeCtx, {
+    analyticsCharts.push(new Chart(callVolumeCtx, {
       type: 'bar',
       data: {
         labels: ['11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm'],
@@ -1207,13 +1211,13 @@ function initCharts() {
           y: { beginAtZero: true }
         }
       }
-    });
+    }));
   }
 
   // Order Status Chart
   const orderStatusCtx = document.getElementById('orderStatusChart');
   if (orderStatusCtx) {
-    new Chart(orderStatusCtx, {
+    analyticsCharts.push(new Chart(orderStatusCtx, {
       type: 'doughnut',
       data: {
         labels: ['Completed', 'Preparing', 'Pending'],
@@ -1234,7 +1238,7 @@ function initCharts() {
           }
         }
       }
-    });
+    }));
   }
 }
 
