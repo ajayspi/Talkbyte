@@ -58,11 +58,15 @@ def push_order_to_pos(self, order_id: str, restaurant_id: str):
             return
 
         try:
+            from app.db.supabase import get_platform_secret
+            access_token = await get_platform_secret("SQUARE_ACCESS_TOKEN")
+            location_id = await get_platform_secret("SQUARE_LOCATION_ID")
+            
             # We assume config has square token per restaurant, but for now use generic env var 
             # Or store in restaurant table. (We'll use generic config for now)
             pos = SquarePOS(
-                access_token=config.square_access_token,
-                location_id=config.square_location_id
+                access_token=access_token,
+                location_id=location_id
             )
             result = await pos.push_order(restaurant_id, order.model_dump())
             if result.get("success"):

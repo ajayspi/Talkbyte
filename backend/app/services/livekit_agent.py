@@ -90,12 +90,19 @@ async def entrypoint(ctx: JobContext):
             # TODO Sprint 2: Push to POS, send payment SMS
             return "Order confirmed. Proceed to inform the customer about payment via SMS."
 
+        from app.db.supabase import get_platform_secret
+        import os
+        
+        deepgram_key = await get_platform_secret("DEEPGRAM_API_KEY")
+        openai_key = await get_platform_secret("OPENAI_API_KEY")
+        elevenlabs_key = await get_platform_secret("ELEVENLABS_API_KEY")
+        
         # Initialize VoiceAssistant
         assistant = VoiceAssistant(
             vad=vad,
-            stt=deepgram.STT(model="nova-3", language="en-AU"),
-            llm=openai.LLM(model="gpt-4.1", system_prompt=system_prompt),
-            tts=elevenlabs.TTS(voice_id=ELEVENLABS_VOICE_ID),
+            stt=deepgram.STT(model="nova-3", language="en-AU", api_key=deepgram_key),
+            llm=openai.LLM(model="gpt-4.1", system_prompt=system_prompt, api_key=openai_key),
+            tts=elevenlabs.TTS(voice_id=ELEVENLABS_VOICE_ID, api_key=elevenlabs_key),
             fnc_ctx=fnc_ctx,
         )
 
@@ -128,9 +135,23 @@ async def entrypoint(ctx: JobContext):
         raise
 
 
+def _run_with_creds():
+    import asyncio
+    import os
+    from app.db.supabase import get_platform_secret, init_supabase
+    
+    async def fetch_creds():
+        await init_supabase()
+        os.environ["LIVEKIT_URL"] = await get_platform_secret("LIVEKIT_URL")
+        os.environ["LIVEKIT_API_KEY"] = await get_platform_secret("LIVEKIT_API_KEY")
+        os.environ["LIVEKIT_API_SECRET"] = await get_platform_secret("LIVEKIT_API_SECRET")
+        
+    asyncio.run(fetch_creds())
+    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
     )
-    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+    _run_with_creds()

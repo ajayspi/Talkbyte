@@ -9,7 +9,7 @@ import telnyx
 from livekit import api
 from app.models.call import CallSession, CallState
 from app.db.redis import save_session
-from app.db.supabase import save_call, update_call_state
+from app.db.supabase import save_call, update_call_state, get_platform_secret
 from config import config
 import uuid
 from datetime import datetime, timezone
@@ -17,9 +17,8 @@ from datetime import datetime, timezone
 log = structlog.get_logger()
 router = APIRouter()
 
-telnyx.api_key = config.telnyx_api_key
-
 async def dial_livekit_sip(call_control_id: str, caller_number: str, telnyx_number: str):
+    telnyx.api_key = await get_platform_secret("TELNYX_API_KEY")
     """Bridge answered Telnyx call to LiveKit via SIP."""
     room_name = f"call_{call_control_id}"
     
@@ -51,6 +50,7 @@ async def telnyx_webhook(request: Request, background_tasks: BackgroundTasks):
     """
     Telnyx sends all call events here.
     """
+    telnyx.api_key = await get_platform_secret("TELNYX_API_KEY")
     body = await request.json()
     event_type = body.get("data", {}).get("event_type", "unknown")
     call_control_id = body.get("data", {}).get("payload", {}).get("call_control_id")

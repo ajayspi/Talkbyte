@@ -3,21 +3,22 @@ Menu RAG search using OpenAI text-embedding-3-small and Supabase pgvector.
 """
 
 from openai import AsyncOpenAI
-from app.db.supabase import search_menu_by_embedding
+from app.db.supabase import search_menu_by_embedding, get_platform_secret
 from app.models.restaurant import MenuItem
 from config import config
 
 _client: AsyncOpenAI | None = None
 
-def get_openai_client() -> AsyncOpenAI:
+async def get_openai_client() -> AsyncOpenAI:
     global _client
     if _client is None:
-        _client = AsyncOpenAI(api_key=config.openai_api_key)
+        key = await get_platform_secret("OPENAI_API_KEY")
+        _client = AsyncOpenAI(api_key=key)
     return _client
 
 async def get_embedding(text: str) -> list[float]:
     """Generate embedding for a given text."""
-    client = get_openai_client()
+    client = await get_openai_client()
     response = await client.embeddings.create(
         input=text,
         model="text-embedding-3-small",

@@ -5,12 +5,12 @@ SMS service via Telnyx.
 import telnyx
 from config import config
 import structlog
+from app.db.supabase import get_platform_secret
 
 log = structlog.get_logger()
 
-telnyx.api_key = config.telnyx_api_key
-
 async def send_payment_sms(to_number: str, from_number: str, payment_url: str, restaurant_name: str) -> None:
+    telnyx.api_key = await get_platform_secret("TELNYX_API_KEY")
     """
     Send an SMS to the customer with their Stripe payment link.
     """

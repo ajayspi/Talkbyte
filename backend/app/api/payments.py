@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
 import stripe
 from config import config
-from app.db.supabase import get_order, update_order_state, get_call
+from app.db.supabase import get_order, update_order_state, get_call, get_platform_secret
 from app.models.order import OrderState
 from app.services.sms import send_payment_sms
 import structlog
@@ -11,16 +11,17 @@ from app.workers.celery_app import push_order_to_pos
 
 log = structlog.get_logger()
 router = APIRouter()
-stripe.api_key = config.stripe_secret_key
 
 @router.post("/stripe-webhook")
 async def stripe_webhook(request: Request):
+    stripe.api_key = await get_platform_secret("STRIPE_SECRET_KEY")
+    webhook_secret = await get_platform_secret("STRIPE_WEBHOOK_SECRET")
     payload = await request.body()
     sig_header = request.headers.get("Stripe-Signature")
     
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, config.stripe_webhook_secret
+            payload, sig_header, webhook_secret
         )
     except Exception as e:
         log.error("stripe.webhook.verification_failed", error=str(e))
@@ -41,6 +42,7 @@ async def stripe_webhook(request: Request):
 
 @router.post("/create-link/{order_id}")
 async def create_payment_link(order_id: str):
+    stripe.api_key = await get_platform_secret("STRIPE_SECRET_KEY")
     order = await get_order(order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -66,10 +68,11 @@ async def create_payment_link(order_id: str):
             client_reference_id=order_id,
         )
         
+        telnyx_number = await get_platform_secret("TELNYX_PHONE_NUMBER") or "+61411111111"
         # Send SMS via Telnyx
         await send_payment_sms(
             to_number=customer_number,
-            from_number=config.telnyx_number if hasattr(config, "telnyx_number") else "+61411111111",
+            from_number=telnyx_number,
             payment_url=session.url,
             restaurant_name="Our Restaurant"
         )

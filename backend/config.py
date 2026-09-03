@@ -32,23 +32,7 @@ class Config:
     upstash_redis_rest_url: str
     upstash_redis_rest_token: str
 
-    # API Keys — Telephony
-    telnyx_api_key: str
-    telnyx_public_key: str
-    telnyx_sip_connection_id: str
 
-    # API Keys — Voice & Video
-    livekit_url: str
-    livekit_api_key: str
-    livekit_api_secret: str
-    deepgram_api_key: str
-    openai_api_key: str
-    elevenlabs_api_key: str
-
-    # Payments
-    stripe_secret_key: str
-    square_application_id: str
-    square_application_secret: str
 
     # App Config
     frontend_url: str
@@ -65,18 +49,6 @@ class Config:
             supabase_service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""),
             upstash_redis_rest_url=os.getenv("UPSTASH_REDIS_REST_URL", ""),
             upstash_redis_rest_token=os.getenv("UPSTASH_REDIS_REST_TOKEN", ""),
-            telnyx_api_key=os.getenv("TELNYX_API_KEY", ""),
-            telnyx_public_key=os.getenv("TELNYX_PUBLIC_KEY", ""),
-            telnyx_sip_connection_id=os.getenv("TELNYX_SIP_CONNECTION_ID", ""),
-            livekit_url=os.getenv("LIVEKIT_URL", ""),
-            livekit_api_key=os.getenv("LIVEKIT_API_KEY", ""),
-            livekit_api_secret=os.getenv("LIVEKIT_API_SECRET", ""),
-            deepgram_api_key=os.getenv("DEEPGRAM_API_KEY", ""),
-            openai_api_key=os.getenv("OPENAI_API_KEY", ""),
-            elevenlabs_api_key=os.getenv("ELEVENLABS_API_KEY", ""),
-            stripe_secret_key=os.getenv("STRIPE_SECRET_KEY", ""),
-            square_application_id=os.getenv("SQUARE_APPLICATION_ID", ""),
-            square_application_secret=os.getenv("SQUARE_APPLICATION_SECRET", ""),
             frontend_url=os.getenv("FRONTEND_URL", "http://localhost:3000"),
             environment=os.getenv("ENVIRONMENT", "development"),  # type: ignore
             debug=os.getenv("DEBUG", "true").lower() == "true",

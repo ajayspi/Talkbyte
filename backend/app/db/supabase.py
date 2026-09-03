@@ -27,6 +27,18 @@ def get_db() -> AsyncClient:
         raise RuntimeError("Supabase not initialised — call init_supabase() at startup")
     return _supabase
 
+async def get_platform_secret(secret_name: str) -> str:
+    """Fetch API keys dynamically from the database (e.g. platform_secrets table)."""
+    import os
+    try:
+        res = await get_db().table("platform_secrets").select("secret_value").eq("secret_name", secret_name).maybe_single().execute()
+        if res.data and "secret_value" in res.data:
+            return res.data["secret_value"]
+    except Exception:
+        pass
+    # Fallback to os.environ for local dev if table doesn't exist yet
+    return os.environ.get(secret_name.upper(), "")
+
 
 # ── Restaurants ───────────────────────────────────────────────────────────────
 
