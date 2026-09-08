@@ -7,11 +7,11 @@ uvicorn[standard]==0.32.1
 python-multipart==0.0.20
 
 # Async HTTP
-httpx==0.28.1
+httpx
 aiohttp==3.11.11
 
 # Database
-supabase==2.10.0
+supabase
 asyncpg==0.30.0
 pgvector==0.3.6
 
@@ -24,16 +24,17 @@ kombu==5.4.2
 openai==1.59.3
 deepgram-sdk==3.9.0
 elevenlabs==1.13.0
-livekit-agents==0.12.0
-livekit-plugins-deepgram==0.8.0
-livekit-plugins-openai==0.10.0
-livekit-plugins-elevenlabs==0.7.0
+livekit-agents
+livekit-plugins-deepgram
+livekit-plugins-openai
+livekit-plugins-elevenlabs
+livekit-plugins-silero
 
 # Telephony
-telnyx==2.1.0
+telnyx
 
 # Payments / POS
-stripe==11.4.0
+stripe
 squareup==39.0.0.20241120
 
 # Auth / Security

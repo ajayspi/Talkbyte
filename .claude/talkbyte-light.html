@@ -1,0 +1,660 @@
+<title>TalkByte AI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+/* ── LIGHT / PURPLE GRADIENT TOKENS ── */
+:root {
+  /* Surfaces — bright white neumorphism */
+  --base:   #f0eeff;
+  --base-l: #f8f6ff;
+  --base-d: #e4e0f5;
+  --fu:     rgba(255,255,255,0.85);
+  --fd:     rgba(160,140,210,0.35);
+
+  /* Brand */
+  --v:      #7c3aed;
+  --v2:     #6d28d9;
+  --v3:     #4c1d95;
+  --vl:     #a78bfa;
+  --vg:     rgba(124,58,237,.2);
+  --t:      #0d9488;
+  --tl:     #2dd4bf;
+  --pk:     #c084fc;
+  --or:     #f97316;
+
+  /* Text */
+  --tx:     #1e1030;
+  --mu:     #6b5c8a;
+  --dm:     #a094c0;
+
+  /* Semantic */
+  --gr:     #16a34a;
+  --rd:     #dc2626;
+  --yw:     #d97706;
+
+  /* Neumorphic shadows — light mode */
+  --nr: 6px 6px 16px var(--fd), -4px -4px 12px var(--fu);
+  --ni: inset 4px 4px 10px var(--fd), inset -3px -3px 8px var(--fu);
+  --nf: 3px 3px 10px var(--fd), -3px -3px 8px var(--fu);
+
+  --fh: 'Space Grotesk', system-ui, sans-serif;
+  --fm: 'JetBrains Mono', monospace;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --base:#1a1030;--base-l:#221540;--base-d:#110a22;
+    --fu:rgba(255,255,255,.06);--fd:rgba(0,0,0,.5);
+    --v:#9d71f8;--v2:#7c3aed;--v3:#5b21b6;--vl:#c4b5fd;--vg:rgba(157,113,248,.3);
+    --t:#2dd4bf;--tl:#5eead4;--pk:#f0abfc;--or:#fb923c;
+    --tx:#e8e0ff;--mu:#9580c0;--dm:#5a4a7a;
+    --gr:#4ade80;--rd:#f87171;--yw:#fbbf24;
+    --nr:8px 8px 20px var(--fd),-4px -4px 12px var(--fu);
+    --ni:inset 4px 4px 10px var(--fd),inset -3px -3px 8px var(--fu);
+    --nf:4px 4px 12px var(--fd),-3px -3px 8px var(--fu);
+  }
+}
+:root[data-theme="dark"] {
+  --base:#1a1030;--base-l:#221540;--base-d:#110a22;
+  --fu:rgba(255,255,255,.06);--fd:rgba(0,0,0,.5);
+  --v:#9d71f8;--v2:#7c3aed;--v3:#5b21b6;--vl:#c4b5fd;--vg:rgba(157,113,248,.3);
+  --t:#2dd4bf;--tl:#5eead4;--pk:#f0abfc;--or:#fb923c;
+  --tx:#e8e0ff;--mu:#9580c0;--dm:#5a4a7a;
+  --gr:#4ade80;--rd:#f87171;--yw:#fbbf24;
+  --nr:8px 8px 20px var(--fd),-4px -4px 12px var(--fu);
+  --ni:inset 4px 4px 10px var(--fd),inset -3px -3px 8px var(--fu);
+  --nf:4px 4px 12px var(--fd),-3px -3px 8px var(--fu);
+}
+
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--fh);background:var(--base);color:var(--tx);overflow-x:hidden;cursor:none;transition:background .3s,color .3s}
+button,a{cursor:none;font-family:inherit;text-decoration:none;color:inherit}
+
+/* ── CURSOR ── */
+#cd{width:10px;height:10px;border-radius:50%;background:var(--v);position:fixed;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);box-shadow:0 0 10px var(--vg)}
+#cr{width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(124,58,237,.4);position:fixed;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:width .18s,height .18s,opacity .18s}
+
+/* ── CANVAS BG ── */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;height:68px;padding:0 60px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(240,238,255,.88);backdrop-filter:blur(20px);
+  box-shadow:0 1px 0 rgba(124,58,237,.1),0 4px 20px rgba(124,58,237,.07);
+  transform:translateY(-100%);animation:nd .7s .1s cubic-bezier(.16,1,.3,1) forwards;
+}
+[data-theme="dark"] nav{background:rgba(26,16,48,.88)}
+@keyframes nd{to{transform:translateY(0)}}
+.brand{display:flex;align-items:center;gap:14px}
+
+/* logo mark */
+.lm{width:44px;height:44px;border-radius:14px;background:var(--base);box-shadow:var(--nr);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;flex-shrink:0}
+.lm::before{content:'';position:absolute;inset:-2px;border-radius:16px;background:conic-gradient(var(--v),var(--pk),var(--t),var(--v));animation:sr 3s linear infinite;z-index:0}
+.lm::after{content:'';position:absolute;inset:2px;border-radius:12px;background:var(--base);z-index:1}
+@keyframes sr{to{transform:rotate(360deg)}}
+.lm-w{position:relative;z-index:2;display:flex;align-items:center;gap:1.5px}
+.lb{width:2.5px;border-radius:2px;background:linear-gradient(to top,var(--v),var(--pk));animation:lw 1.1s ease-in-out infinite}
+.lb:nth-child(1){height:8px;animation-delay:0s}.lb:nth-child(2){height:14px;animation-delay:.15s}.lb:nth-child(3){height:18px;animation-delay:.3s}.lb:nth-child(4){height:14px;animation-delay:.15s}.lb:nth-child(5){height:8px;animation-delay:0s}
+@keyframes lw{0%,100%{transform:scaleY(.4);opacity:.6}50%{transform:scaleY(1);opacity:1}}
+
+.bn{display:flex;flex-direction:column;gap:1px}
+.bname{font-size:18px;font-weight:800;letter-spacing:-.5px;color:var(--tx)}
+.bname span{background:linear-gradient(90deg,var(--v),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.btag{font-family:var(--fm);font-size:9px;color:var(--dm);letter-spacing:1px;text-transform:uppercase}
+.nl{display:flex;gap:28px}
+.nl a{font-size:13px;font-weight:500;color:var(--mu);transition:color .15s}
+.nl a:hover{color:var(--v)}
+.nc{display:flex;align-items:center;gap:12px}
+
+/* theme toggle */
+.theme-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--base);box-shadow:var(--nf);display:flex;align-items:center;justify-content:center;font-size:16px;transition:box-shadow .15s}
+.theme-btn:hover{box-shadow:var(--nr)}
+
+.bnu{padding:9px 22px;border-radius:10px;border:none;font-size:13px;font-weight:700;background:var(--base);color:var(--mu);box-shadow:var(--nf);transition:all .15s}
+.bnu:hover{box-shadow:var(--nr);color:var(--v)}
+.bgb{padding:9px 22px;border-radius:10px;border:none;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--v),var(--v3));box-shadow:0 4px 16px var(--vg);transition:transform .15s,box-shadow .2s;animation:pb 3s 2s infinite}
+.bgb:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--vg)}
+@keyframes pb{0%,100%{box-shadow:0 4px 16px var(--vg)}60%{box-shadow:0 4px 32px var(--vg)}}
+.lc{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:11px;color:var(--rd);padding:5px 12px;border-radius:99px;background:var(--base);box-shadow:var(--nf)}
+.ld{width:6px;height:6px;border-radius:50%;background:var(--rd);animation:bl 1.5s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;align-items:center;padding:130px 60px 80px;gap:80px;position:relative;z-index:1}
+.hl{flex:0 0 52%}
+.ey{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--v);padding:6px 14px;border-radius:99px;background:var(--base);box-shadow:var(--nf);margin-bottom:28px;opacity:0;animation:fu .5s .5s ease forwards}
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.ed{width:5px;height:5px;border-radius:50%;background:var(--v);animation:bl 2s infinite}
+.h1{font-size:clamp(36px,5.5vw,76px);font-weight:800;line-height:1.05;letter-spacing:-2.5px;color:var(--tx);margin-bottom:24px}
+.h1 .li{display:block;overflow:hidden}
+.h1 .li span{display:block;opacity:0;transform:translateY(110%)}
+.h1 .li:nth-child(1) span{animation:li .7s .6s cubic-bezier(.16,1,.3,1) forwards}
+.h1 .li:nth-child(2) span{animation:li .7s .75s cubic-bezier(.16,1,.3,1) forwards}
+.h1 .li:nth-child(3) span{animation:li .7s .9s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes li{to{opacity:1;transform:none}}
+.gx{background:linear-gradient(90deg,var(--v),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ty{font-family:var(--fm);font-size:14px;color:var(--v);margin-bottom:28px;min-height:20px;opacity:0;animation:fu .5s 1.1s ease forwards}
+.ty::after{content:'▋';animation:bl 1s infinite}
+.hs{font-size:15px;color:var(--mu);line-height:1.75;max-width:440px;margin-bottom:36px;opacity:0;animation:fu .5s 1.2s ease forwards}
+.hb{display:flex;gap:14px;align-items:center;opacity:0;animation:fu .5s 1.3s ease forwards}
+.bp{padding:14px 32px;border-radius:10px;border:none;font-size:14px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--v),var(--v3));box-shadow:0 4px 20px var(--vg);transition:transform .15s}
+.bp:hover{transform:translateY(-2px)}
+.bgh{padding:14px 24px;border-radius:10px;border:none;font-size:14px;font-weight:600;background:var(--base);color:var(--mu);box-shadow:var(--nf);transition:all .15s}
+.bgh:hover{box-shadow:var(--nr);color:var(--v)}
+
+/* ── 3D ORB ── */
+.hr{flex:1;display:flex;align-items:center;justify-content:center;opacity:0;animation:fu .8s 1s ease forwards}
+#orb-canvas{width:300px;height:300px;border-radius:50%;filter:drop-shadow(0 0 40px rgba(124,58,237,.2))}
+
+/* ── GRADIENT DIVIDER ── */
+.gdiv{height:3px;background:linear-gradient(90deg,transparent,var(--v),var(--pk),var(--t),transparent);opacity:.4}
+
+/* ── TICKER ── */
+.tk{height:46px;overflow:hidden;position:relative;z-index:1;background:var(--base-d);border-top:1px solid rgba(124,58,237,.1);border-bottom:1px solid rgba(124,58,237,.1);display:flex;align-items:center}
+.tks{display:flex;animation:tka 28s linear infinite;white-space:nowrap}
+@keyframes tka{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ti{display:inline-flex;align-items:center;gap:8px;padding:0 28px;font-family:var(--fm);font-size:12px;color:var(--mu)}
+.ti strong{color:var(--v)}
+.tsep{color:var(--dm)}
+
+/* ── SECTION ── */
+.sec{padding:90px 60px;position:relative;z-index:1}
+.sl{font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--v);margin-bottom:10px}
+.st{font-size:clamp(26px,3.5vw,42px);font-weight:800;letter-spacing:-1px;color:var(--tx);margin-bottom:12px}
+.ss{font-size:14px;color:var(--mu);line-height:1.7;max-width:500px}
+
+/* ── CARDS ── */
+.card{border-radius:20px;padding:28px;background:var(--base);box-shadow:var(--nr);transition:transform .25s,box-shadow .25s;position:relative;overflow:hidden}
+.card:hover{transform:translateY(-5px);box-shadow:8px 8px 24px var(--fd),-5px -5px 14px var(--fu)}
+.ci{font-size:30px;margin-bottom:14px;display:block}
+.ct{font-size:15px;font-weight:700;color:var(--tx);margin-bottom:8px}
+.cd{font-size:13px;color:var(--mu);line-height:1.6}
+.cs{font-family:var(--fm);font-size:32px;font-weight:700;color:var(--v);margin-top:14px;line-height:1}
+.csl{font-size:11px;color:var(--dm);margin-top:3px}
+
+/* purple gradient card accent */
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:20px 20px 0 0;background:linear-gradient(90deg,var(--v),var(--pk));opacity:0;transition:opacity .3s}
+.card:hover::before{opacity:1}
+
+/* ── BENTO ── */
+.ben{display:grid;grid-template-columns:repeat(6,1fr);gap:18px;margin-top:48px}
+.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}.s6{grid-column:span 6}
+
+/* ── HOW ── */
+.hw{display:flex;gap:0;margin-top:56px;position:relative}
+.hw::before{content:'';position:absolute;top:36px;left:40px;right:40px;height:2px;background:linear-gradient(90deg,var(--v),var(--pk),var(--t));opacity:.5;z-index:0}
+.hstep{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 12px;position:relative;z-index:1}
+.hc{width:72px;height:72px;border-radius:50%;background:var(--base);box-shadow:var(--nr);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px;transition:box-shadow .3s,transform .25s}
+.hstep:hover .hc{transform:translateY(-4px);box-shadow:8px 8px 24px var(--fd),-5px -5px 14px var(--fu),0 0 20px var(--vg)}
+.htl{font-size:14px;font-weight:700;color:var(--tx);margin-bottom:6px}
+.hd{font-size:12px;color:var(--mu);line-height:1.6}
+.htech{font-family:var(--fm);font-size:10px;color:var(--v);margin-top:5px}
+
+/* ── GLOBAL SECTION ── */
+#globe-canvas{width:min(480px,90vw);height:min(480px,90vw);display:block;margin:48px auto 32px;border-radius:50%;filter:drop-shadow(0 0 50px rgba(124,58,237,.15))}
+.market-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:32px}
+.mk{border-radius:16px;padding:20px;background:var(--base);box-shadow:var(--nr);transition:transform .2s}
+.mk:hover{transform:translateY(-4px)}
+.mk-flag{font-size:24px;margin-bottom:8px}
+.mk-name{font-size:14px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.mk-tag{font-family:var(--fm);font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.tg-live{color:var(--t)}.tg-hot{color:var(--v)}.tg-grow{color:var(--or)}
+.mk-desc{font-size:12px;color:var(--mu);line-height:1.5}
+.vert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-top:24px}
+.vc{border-radius:16px;padding:20px;background:var(--base);box-shadow:var(--nr);text-align:center;transition:transform .2s}
+.vc:hover{transform:translateY(-4px)}
+.vi{font-size:30px;margin-bottom:8px}
+.vt{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.vd{font-size:11px;color:var(--mu);line-height:1.5}
+
+/* ── DEMO PHONE ── */
+.demo-inner{display:flex;gap:60px;align-items:center}
+.ph{width:240px;flex-shrink:0;border-radius:36px;background:var(--base);box-shadow:var(--nr);padding:28px 18px 22px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.ph::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:72px;height:5px;background:rgba(124,58,237,.1);border-radius:0 0 6px 6px}
+.phs{display:flex;justify-content:space-between;font-family:var(--fm);font-size:10px;color:var(--dm)}
+.phc{text-align:center;padding:10px 0}
+.phb{display:inline-flex;align-items:center;gap:5px;font-family:var(--fm);font-size:10px;color:var(--gr);padding:3px 10px;border-radius:99px;margin-bottom:6px;background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2)}
+.phn{font-size:17px;font-weight:700;color:var(--tx);letter-spacing:-.5px}
+.phd{font-family:var(--fm);font-size:12px;color:var(--gr);margin-top:3px}
+.phorb{width:60px;height:60px;border-radius:50%;margin:4px auto;background:var(--base);box-shadow:var(--ni);display:flex;align-items:center;justify-content:center}
+.pw{display:flex;align-items:center;gap:2.5px;height:26px}
+.pwb{width:3px;border-radius:2px;background:linear-gradient(to top,var(--v),var(--pk));animation:wv .9s ease-in-out infinite}
+.pwb:nth-child(1){height:25%;animation-delay:0s}.pwb:nth-child(2){height:60%;animation-delay:.12s}.pwb:nth-child(3){height:100%;animation-delay:.24s}.pwb:nth-child(4){height:70%;animation-delay:.18s}.pwb:nth-child(5){height:40%;animation-delay:.06s}
+@keyframes wv{0%,100%{transform:scaleY(.3);opacity:.5}50%{transform:scaleY(1);opacity:1}}
+.pht{flex:1;display:flex;flex-direction:column;gap:7px;overflow:hidden}
+.t-ai{font-size:11px;line-height:1.45;padding:7px 10px;border-radius:4px 12px 12px 12px;background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.15);color:var(--v2)}
+.t-cu{font-size:11px;line-height:1.45;padding:7px 10px;border-radius:12px 4px 12px 12px;background:rgba(192,132,252,.1);border:1px solid rgba(192,132,252,.2);color:var(--v3);align-self:flex-end}
+.pha{display:flex;justify-content:center;gap:16px}
+.pab{width:44px;height:44px;border-radius:50%;border:none;font-size:18px;background:var(--base);display:flex;align-items:center;justify-content:center;box-shadow:var(--nf)}
+.dst{display:flex;flex-direction:column;gap:14px}
+.sc{border-radius:16px;padding:20px 24px;background:var(--base);box-shadow:var(--nr);display:flex;align-items:center;gap:16px}
+.sn{font-family:var(--fm);font-size:26px;font-weight:700;color:var(--v);line-height:1;flex-shrink:0}
+.sl2{font-size:13px;font-weight:600;color:var(--tx)}
+.ss2{font-size:12px;color:var(--mu);margin-top:2px}
+
+/* ── PRICING ── */
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
+.pc{border-radius:20px;padding:32px;background:var(--base);box-shadow:var(--nr);position:relative;transition:transform .25s;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,0 100%)}
+.pc:hover{transform:translateY(-6px)}
+.pcf{background:linear-gradient(160deg,var(--base-l),var(--base));box-shadow:var(--nr),0 0 40px rgba(124,58,237,.1)}
+.pbadge{position:absolute;top:14px;right:18px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#fff;padding:4px 10px;border-radius:99px;background:linear-gradient(135deg,var(--v),var(--pk))}
+.ppl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);margin-bottom:8px}
+.pp{font-family:var(--fm);font-size:48px;font-weight:700;color:var(--tx);letter-spacing:-2px;line-height:1}
+.pp sup{font-size:22px;vertical-align:top;margin-top:8px;display:inline-block}
+.pper{font-size:12px;color:var(--dm);margin-bottom:24px;margin-top:2px}
+.pfs{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
+.pf{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mu)}
+.pdot{width:5px;height:5px;border-radius:50%;background:var(--v);flex-shrink:0}
+.bpc{width:100%;padding:12px;border-radius:12px;border:none;font-size:14px;font-weight:700;font-family:var(--fh);transition:all .15s}
+.bpd{background:var(--base);color:var(--mu);box-shadow:var(--nf)}.bpd:hover{box-shadow:var(--nr);color:var(--v)}
+.bpg{background:linear-gradient(135deg,var(--v),var(--pk));color:#fff;box-shadow:0 4px 20px var(--vg)}.bpg:hover{transform:translateY(-1px);box-shadow:0 8px 28px var(--vg)}
+
+/* ── FEATURE HIGHLIGHT STRIP ── */
+.strip{padding:60px;background:linear-gradient(135deg,var(--base-l) 0%,rgba(167,139,250,.1) 50%,var(--base-l) 100%);position:relative;z-index:1}
+.strip-inner{display:flex;gap:40px;justify-content:center;flex-wrap:wrap}
+.stripe{text-align:center;flex:1;min-width:140px}
+.stripe-num{font-family:var(--fm);font-size:36px;font-weight:700;background:linear-gradient(135deg,var(--v),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stripe-label{font-size:13px;color:var(--mu);margin-top:4px}
+
+/* ── CTA ── */
+.cta{padding:100px 60px;text-align:center;position:relative;z-index:1}
+.ctaorb{width:120px;height:120px;border-radius:50%;margin:0 auto 36px;background:var(--base);box-shadow:var(--nr);display:flex;align-items:center;justify-content:center;font-size:52px;position:relative}
+.ctaorb::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(var(--v),var(--pk),var(--t),var(--v));animation:sr 4s linear infinite;z-index:-1}
+.ctaorb::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--base)}
+.ctae{position:relative;z-index:1}
+.ctah{font-size:clamp(30px,4.5vw,58px);font-weight:800;letter-spacing:-2px;color:var(--tx);margin-bottom:16px;line-height:1.1}
+.ctam{background:linear-gradient(90deg,var(--v),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ctas{font-size:15px;color:var(--mu);margin-bottom:36px}
+.bcta{padding:18px 56px;border-radius:16px;border:none;font-size:17px;font-weight:800;font-family:var(--fh);background:linear-gradient(135deg,var(--v),var(--pk));color:#fff;box-shadow:0 8px 32px var(--vg);transition:transform .15s,box-shadow .2s}
+.bcta:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 12px 40px var(--vg)}
+.ctrust{margin-top:16px;font-family:var(--fm);font-size:11px;color:var(--dm)}
+
+/* ── FOOTER ── */
+footer{padding:36px 60px;position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;border-top:1px solid rgba(124,58,237,.1)}
+
+/* ── REVEAL ── */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+
+/* ── RESP ── */
+@media(max-width:900px){
+  nav{padding:0 20px}.nl{display:none}
+  .hero{flex-direction:column;padding:100px 24px 60px;gap:40px}.hr{display:none}
+  .sec,.strip,.cta{padding:60px 24px}.ben{grid-template-columns:1fr}
+  .s2,.s3,.s4,.s6{grid-column:span 1}
+  .hw{flex-direction:column;gap:28px}.hw::before{display:none}
+  .pg{grid-template-columns:1fr}.demo-inner{flex-direction:column}
+  footer{padding:28px 24px;flex-direction:column;text-align:center}
+}
+</style>
+
+<!-- Cursor -->
+<div id="cd"></div>
+<div id="cr"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="brand">
+    <div class="lm"><div class="lm-w"><div class="lb"></div><div class="lb"></div><div class="lb"></div><div class="lb"></div><div class="lb"></div></div></div>
+    <div class="bn"><div class="bname">Talk<span>Byte</span></div><div class="btag">AI Voice · Global</div></div>
+  </div>
+  <div class="nl">
+    <a href="#features">Features</a><a href="#how">How It Works</a>
+    <a href="#global">Global</a><a href="#pricing">Pricing</a>
+  </div>
+  <div class="nc">
+    <div class="lc"><span class="ld"></span><span id="ln">14</span> live</div>
+    <button class="theme-btn" id="theme-toggle" title="Toggle theme">🌙</button>
+    <button class="bnu">Log in</button>
+    <button class="bgb">Get Started</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hl">
+    <div class="ey"><span class="ed"></span>AI Phone Ordering · Global Platform</div>
+    <h1 class="h1">
+      <span class="li"><span>Every Call.</span></span>
+      <span class="li"><span>Every Order.</span></span>
+      <span class="li"><span class="gx">Anywhere.</span></span>
+    </h1>
+    <div class="ty" id="ty"></div>
+    <p class="hs">TalkByte's voice AI answers your restaurant's phone, takes orders naturally, syncs with any POS, and scales across every market — from Sydney to San Francisco.</p>
+    <div class="hb">
+      <button class="bp">🚀 Start Free Trial</button>
+      <button class="bgh">▶ Watch Demo</button>
+    </div>
+  </div>
+  <div class="hr"><canvas id="orb-canvas"></canvas></div>
+</section>
+
+<!-- STAT STRIP -->
+<div class="strip">
+  <div class="strip-inner">
+    <div class="stripe"><div class="stripe-num">487</div><div class="stripe-label">Restaurants Live</div></div>
+    <div class="stripe"><div class="stripe-num">99.4%</div><div class="stripe-label">Order Accuracy</div></div>
+    <div class="stripe"><div class="stripe-num">487ms</div><div class="stripe-label">AI Latency</div></div>
+    <div class="stripe"><div class="stripe-num">6+</div><div class="stripe-label">Global Markets</div></div>
+    <div class="stripe"><div class="stripe-num">$0</div><div class="stripe-label">Missed Revenue</div></div>
+  </div>
+</div>
+
+<div class="gdiv"></div>
+
+<!-- TICKER -->
+<div class="tk">
+  <div class="tks">
+    <span class="ti"><strong>487</strong> Restaurants <span class="tsep">·</span></span>
+    <span class="ti"><strong>99.4%</strong> Accuracy <span class="tsep">·</span></span>
+    <span class="ti"><strong>487ms</strong> Latency <span class="tsep">·</span></span>
+    <span class="ti"><strong>$0</strong> Missed Revenue <span class="tsep">·</span></span>
+    <span class="ti"><strong>6</strong> Markets <span class="tsep">·</span></span>
+    <span class="ti"><strong>24/7</strong> Always On <span class="tsep">·</span></span>
+    <span class="ti"><strong>487</strong> Restaurants <span class="tsep">·</span></span>
+    <span class="ti"><strong>99.4%</strong> Accuracy <span class="tsep">·</span></span>
+    <span class="ti"><strong>487ms</strong> Latency <span class="tsep">·</span></span>
+    <span class="ti"><strong>$0</strong> Missed Revenue <span class="tsep">·</span></span>
+    <span class="ti"><strong>6</strong> Markets <span class="tsep">·</span></span>
+    <span class="ti"><strong>24/7</strong> Always On <span class="tsep">·</span></span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="sec" id="features">
+  <div class="rv"><div class="sl">The Stack</div><div class="st">Built to scale globally</div><div class="ss">Six reasons 487 restaurants trust TalkByte to answer their phones.</div></div>
+  <div class="ben">
+    <div class="card s3 rv"><span class="ci">🎙️</span><div class="ct">Natural Voice AI</div><div class="cd">Deepgram STT + GPT-4.1 + ElevenLabs TTS. Understands accents, specials, and any language. Sounds genuinely human.</div><div class="cs">487ms</div><div class="csl">end-to-end latency</div></div>
+    <div class="card s3 rv"><span class="ci">🟦</span><div class="ct">Any POS, Anywhere</div><div class="cd">Square, Toast, Lightspeed, Petpooja and more. Orders fire to the kitchen the moment they're confirmed. Zero double-entry.</div><div class="cs">Live</div><div class="csl">two-way sync</div></div>
+    <div class="card s2 rv"><span class="ci">📞</span><div class="ct">Never Miss a Call</div><div class="cd">Peak hours, holidays, 2am cravings — handled without extra staff.</div></div>
+    <div class="card s2 rv"><span class="ci">💳</span><div class="ct">Global Payments</div><div class="cd">Stripe (135+ countries), Razorpay (India), Moneris (Canada) — same API, different gateway.</div></div>
+    <div class="card s2 rv"><span class="ci">📊</span><div class="ct">Live Dashboard</div><div class="cd">Real-time call monitoring, revenue tracking, and sentiment analysis per location, per market.</div></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="sec" id="how" style="background:linear-gradient(180deg,var(--base) 0%,var(--base-l) 100%)">
+  <div class="rv"><div class="sl">The Call Journey</div><div class="st">Ring to receipt in 487ms</div></div>
+  <div class="hw rv">
+    <div class="hstep"><div class="hc">📱</div><div class="htl">Phone Rings</div><div class="hd">Customer calls your Telnyx number</div><div class="htech">Telnyx · 150+ countries</div></div>
+    <div class="hstep"><div class="hc">🎙️</div><div class="htl">AI Greets</div><div class="hd">LiveKit agent picks up in local language</div><div class="htech">LiveKit + ElevenLabs</div></div>
+    <div class="hstep"><div class="hc">🧠</div><div class="htl">Order Taken</div><div class="hd">GPT-4.1 handles items, mods, upsells</div><div class="htech">Deepgram + GPT-4.1</div></div>
+    <div class="hstep"><div class="hc">📩</div><div class="htl">SMS Sent</div><div class="hd">Confirmation to customer instantly</div><div class="htech">Telnyx SMS</div></div>
+    <div class="hstep"><div class="hc">🟦</div><div class="htl">POS Synced</div><div class="hd">Order fires to local POS. Kitchen prints.</div><div class="htech">Square / Toast / Lightspeed</div></div>
+  </div>
+</section>
+
+<!-- GLOBAL MARKETS -->
+<section class="sec" id="global">
+  <div class="rv"><div class="sl">Global Expansion</div><div class="st">One codebase. Every market.</div><div class="ss">TalkByte's plug-in architecture expands to new markets in days, not months.</div></div>
+  <canvas id="globe-canvas" class="rv"></canvas>
+  <div class="market-grid rv">
+    <div class="mk"><div class="mk-flag">🇦🇺</div><div class="mk-name">Australia</div><div class="mk-tag tg-live">● Live · 487 restaurants</div><div class="mk-desc">Square POS, Stripe, Telnyx AU numbers. Full production stack.</div></div>
+    <div class="mk"><div class="mk-flag">🇳🇿</div><div class="mk-name">New Zealand</div><div class="mk-tag tg-live">● Ready · 1 day</div><div class="mk-desc">Identical AU stack. ~18k restaurants. Essentially free expansion.</div></div>
+    <div class="mk"><div class="mk-flag">🇬🇧</div><div class="mk-name">United Kingdom</div><div class="mk-tag tg-hot">◆ High Priority · ~1 week</div><div class="mk-desc">Lightspeed/Tevalis POS. Strong takeaway culture.</div></div>
+    <div class="mk"><div class="mk-flag">🇺🇸</div><div class="mk-name">United States</div><div class="mk-tag tg-hot">◆ High Priority · ~2 weeks</div><div class="mk-desc">Toast/Clover POS. Spanish-English bilingual. 1M+ restaurants TAM.</div></div>
+    <div class="mk"><div class="mk-flag">🇨🇦</div><div class="mk-name">Canada</div><div class="mk-tag tg-grow">▲ Growth · ~1 week</div><div class="mk-desc">EN+FR bilingual. Moneris payment gateway swap.</div></div>
+    <div class="mk"><div class="mk-flag">🇮🇳</div><div class="mk-name">India</div><div class="mk-tag tg-grow">▲ Growth · ~3 weeks</div><div class="mk-desc">Hindi + 6 languages via Deepgram. Petpooja / Posist POS.</div></div>
+  </div>
+  <div style="margin-top:40px" class="rv">
+    <div class="sl" style="margin-bottom:16px">Beyond Restaurants</div>
+    <div class="vert-grid">
+      <div class="vc"><div class="vi">🚕</div><div class="vt">Taxi &amp; Rideshare</div><div class="vd">AI dispatches bookings. Swap order logic for trip scheduling.</div></div>
+      <div class="vc"><div class="vi">💇</div><div class="vt">Salons &amp; Spas</div><div class="vd">Booking, cancellations, upsells. Mindbody / Fresha.</div></div>
+      <div class="vc"><div class="vi">🏥</div><div class="vt">Medical Clinics</div><div class="vd">HIPAA-grade. Booking, triage, after-hours routing.</div></div>
+      <div class="vc"><div class="vi">🛒</div><div class="vt">Grocery &amp; FMCG</div><div class="vd">Phone-in orders. Connects to any inventory API.</div></div>
+      <div class="vc"><div class="vi">🏨</div><div class="vt">Hotels</div><div class="vd">Room service, concierge. Opera / Cloudbeds PMS.</div></div>
+      <div class="vc"><div class="vi">🏗️</div><div class="vt">B2B Ordering</div><div class="vd">Wholesale trade orders. Catches voicemail revenue.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="sec" id="demo" style="background:linear-gradient(180deg,var(--base-l) 0%,var(--base) 100%)">
+  <div class="rv"><div class="sl">Live Demo</div><div class="st">Hear a real call</div><div class="ss">Your AI sounds exactly like this — trained on thousands of restaurant calls worldwide.</div></div>
+  <div class="demo-inner" style="margin-top:48px">
+    <div class="ph rv">
+      <div class="phs"><span>9:41</span><span>●●●</span></div>
+      <div class="phc">
+        <div class="phb"><span style="width:5px;height:5px;border-radius:50%;background:var(--gr);display:inline-block"></span>Active Call</div>
+        <div class="phn">+61 2 8941 ···</div>
+        <div class="phd" id="pt">00:00</div>
+      </div>
+      <div class="phorb"><div class="pw"><div class="pwb"></div><div class="pwb"></div><div class="pwb"></div><div class="pwb"></div><div class="pwb"></div></div></div>
+      <div class="pht">
+        <div class="t-ai">Hi! Welcome to Mama's Pizzeria. What can I get you?</div>
+        <div class="t-cu">Large Margherita and garlic bread please.</div>
+        <div class="t-ai">Got it! Anything else today?</div>
+        <div class="t-cu">A Coke as well.</div>
+        <div class="t-ai">$32.50 confirmed. Order sent to kitchen!</div>
+      </div>
+      <div class="pha"><div class="pab">🎤</div><div class="pab">📵</div></div>
+    </div>
+    <div class="dst rv">
+      <div class="sc"><div class="sn" id="sc1">47</div><div><div class="sl2">Calls Today</div><div class="ss2">↑ 8 from 7-day avg</div></div></div>
+      <div class="sc"><div class="sn" style="background:linear-gradient(135deg,var(--v),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">94%</div><div><div class="sl2">Order Success Rate</div><div class="ss2">↑ 2pp this week</div></div></div>
+      <div class="sc"><div class="sn" style="color:var(--t)">$4,820</div><div><div class="sl2">Revenue Today</div><div class="ss2">↑ 12% vs yesterday</div></div></div>
+      <div class="sc"><div class="sn" style="color:var(--or)">487ms</div><div><div class="sl2">Avg Response</div><div class="ss2">Deepgram + GPT-4.1</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="sec" id="pricing">
+  <div class="rv"><div class="sl">Pricing</div><div class="st">Simple. Honest.</div><div class="ss">All plans include unlimited AI minutes, POS sync, and local support.</div></div>
+  <div class="pg">
+    <div class="pc rv"><div class="ppl">Starter</div><div class="pp"><sup>$</sup>149</div><div class="pper">per month · 1 location</div><div class="pfs"><div class="pf"><span class="pdot"></span>Unlimited AI calls</div><div class="pf"><span class="pdot"></span>Square / Toast POS sync</div><div class="pf"><span class="pdot"></span>SMS confirmations</div><div class="pf"><span class="pdot"></span>Restaurant dashboard</div></div><button class="bpc bpd">Get Started</button></div>
+    <div class="pc pcf rv"><div class="pbadge">Most Popular</div><div class="ppl">Growth</div><div class="pp"><sup>$</sup>199</div><div class="pper">per month · 3 locations</div><div class="pfs"><div class="pf"><span class="pdot"></span>Everything in Starter</div><div class="pf"><span class="pdot"></span>Up to 3 locations</div><div class="pf"><span class="pdot"></span>Global payment gateways</div><div class="pf"><span class="pdot"></span>Multi-language AI</div></div><button class="bpc bpg">Start Free Trial</button></div>
+    <div class="pc rv"><div class="ppl">Enterprise</div><div class="pp"><sup>$</sup>299</div><div class="pper">per month · unlimited</div><div class="pfs"><div class="pf"><span class="pdot"></span>Everything in Growth</div><div class="pf"><span class="pdot"></span>Unlimited locations + markets</div><div class="pf"><span class="pdot"></span>Custom voice &amp; script</div><div class="pf"><span class="pdot"></span>Dedicated account manager</div></div><button class="bpc bpd">Contact Sales</button></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="rv">
+    <div class="ctaorb"><div class="ctae">🎙️</div></div>
+    <h2 class="ctah">Your restaurant<br><span class="ctam">misses calls.</span></h2>
+    <p class="ctas">Every missed call is a missed order. TalkByte answers every one — in any language, in any market.</p>
+    <button class="bcta">Start Free 14-Day Trial →</button>
+    <div class="ctrust">Setup in 15 min · No credit card · Support in your timezone</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="brand">
+    <div class="lm" style="width:32px;height:32px;border-radius:10px"><div class="lm-w"><div class="lb"></div><div class="lb"></div><div class="lb"></div><div class="lb"></div><div class="lb"></div></div></div>
+    <div style="font-size:15px;font-weight:800;letter-spacing:-.3px;color:var(--tx)">Talk<span class="gx">Byte</span></div>
+  </div>
+  <div style="font-size:12px;color:var(--dm)">© 2026 TalkByte · Global AI Voice Platform</div>
+  <div style="font-family:var(--fm);font-size:11px;color:var(--dm)">LiveKit · Deepgram · GPT-4.1 · ElevenLabs · Telnyx</div>
+</footer>
+
+<script>
+/* ── THEME TOGGLE ── */
+const root=document.documentElement,tbtn=document.getElementById('theme-toggle');
+let dark=false; // default light
+function applyTheme(){
+  root.setAttribute('data-theme',dark?'dark':'light');
+  tbtn.textContent=dark?'☀️':'🌙';
+  tbtn.title=dark?'Switch to Light':'Switch to Dark';
+}
+applyTheme();
+tbtn.addEventListener('click',()=>{dark=!dark;applyTheme();try{localStorage.setItem('tb-theme',dark?'dark':'light')}catch(e){}});
+try{const s=localStorage.getItem('tb-theme');if(s){dark=s==='dark';applyTheme()}}catch(e){};
+
+/* ── CURSOR ── */
+const cd=document.getElementById('cd'),cr=document.getElementById('cr');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cd.style.left=mx+'px';cd.style.top=my+'px'});
+(function loop(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;cr.style.left=rx+'px';cr.style.top=ry+'px';requestAnimationFrame(loop)})();
+document.querySelectorAll('button,a').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cr.style.width='52px';cr.style.height='52px';cr.style.opacity='.4'});
+  el.addEventListener('mouseleave',()=>{cr.style.width='34px';cr.style.height='34px';cr.style.opacity='1'});
+});
+
+/* ── THREE.JS BACKGROUND — soft purple particles ── */
+const bgC=document.getElementById('bg-canvas');
+const bgR=new THREE.WebGLRenderer({canvas:bgC,alpha:true,antialias:false});
+bgR.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+function rBg(){bgR.setSize(window.innerWidth,window.innerHeight)}
+rBg();window.addEventListener('resize',rBg);
+const bgS=new THREE.Scene(),bgCam=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,1,1000);
+bgCam.position.z=400;
+window.addEventListener('resize',()=>{bgCam.aspect=window.innerWidth/window.innerHeight;bgCam.updateProjectionMatrix()});
+const geo=new THREE.BufferGeometry(),cnt=600,pos=new Float32Array(cnt*3);
+for(let i=0;i<cnt;i++){pos[i*3]=(Math.random()-.5)*1400;pos[i*3+1]=(Math.random()-.5)*900;pos[i*3+2]=(Math.random()-.5)*600}
+geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+const pmat=new THREE.PointsMaterial({size:1.5,color:0x7c3aed,transparent:true,opacity:.25});
+const pts=new THREE.Points(geo,pmat);bgS.add(pts);
+let bT=0;
+function bgA(){requestAnimationFrame(bgA);bT+=.0004;pts.rotation.y=bT;pts.rotation.x=bT*.3;bgR.render(bgS,bgCam)}
+bgA();
+
+/* ── THREE.JS ORB ── */
+const oC=document.getElementById('orb-canvas');
+if(oC){
+  const oR=new THREE.WebGLRenderer({canvas:oC,alpha:true,antialias:true});
+  oR.setPixelRatio(window.devicePixelRatio);oR.setSize(300,300);
+  const oS=new THREE.Scene(),oCam=new THREE.PerspectiveCamera(40,1,0.1,100);
+  oCam.position.z=4.5;
+  // Wireframe icosahedron — purple
+  const wGeo=new THREE.IcosahedronGeometry(1.2,3);
+  const wMat=new THREE.MeshBasicMaterial({color:0x7c3aed,wireframe:true,transparent:true,opacity:.2});
+  const wsphere=new THREE.Mesh(wGeo,wMat);oS.add(wsphere);
+  // Inner soft sphere
+  const iGeo=new THREE.SphereGeometry(1,32,32);
+  const iMat=new THREE.MeshBasicMaterial({color:0xc084fc,transparent:true,opacity:.05,side:THREE.BackSide});
+  oS.add(new THREE.Mesh(iGeo,iMat));
+  // Gradient rings
+  const ringColors=[0x7c3aed,0xc084fc,0x2dd4bf];
+  const rings=[];
+  for(let i=0;i<3;i++){
+    const rGeo=new THREE.TorusGeometry(1.55+i*.28,.009,8,80);
+    const rMat=new THREE.MeshBasicMaterial({color:ringColors[i],transparent:true,opacity:.35});
+    const ring=new THREE.Mesh(rGeo,rMat);
+    ring.rotation.x=Math.PI/2+i*.45;ring.rotation.z=i*.7;
+    ring.userData.spd=(i+1)*.009*(i%2?1:-1);
+    rings.push(ring);oS.add(ring);
+  }
+  // Orbiting dots
+  const dots=[];
+  const dColors=[0x7c3aed,0xc084fc,0x2dd4bf,0xf97316];
+  for(let i=0;i<8;i++){
+    const dg=new THREE.SphereGeometry(.055,8,8);
+    const dm=new THREE.MeshBasicMaterial({color:dColors[i%4]});
+    const d=new THREE.Mesh(dg,dm);
+    d.userData={r:1.75+Math.random()*.55,spd:.011+Math.random()*.02,angle:Math.random()*Math.PI*2,el:(Math.random()-.5)*Math.PI*.6};
+    dots.push(d);oS.add(d);
+  }
+  let oT=0,omx=0,omy=0;
+  document.addEventListener('mousemove',e=>{omx=(e.clientX/window.innerWidth-.5)*2;omy=(e.clientY/window.innerHeight-.5)*2});
+  function oA(){
+    requestAnimationFrame(oA);oT+=.012;
+    wsphere.rotation.y=oT*.28+omx*.4;wsphere.rotation.x=omy*.28;
+    rings.forEach(r=>{r.rotation.z+=r.userData.spd;r.rotation.y+=r.userData.spd*.4});
+    dots.forEach(d=>{
+      d.userData.angle+=d.userData.spd;
+      const r=d.userData.r,el=d.userData.el;
+      d.position.set(Math.cos(d.userData.angle)*r*Math.cos(el),Math.sin(el)*r,Math.sin(d.userData.angle)*r*Math.cos(el));
+    });
+    oR.render(oS,oCam);
+  }
+  oA();
+}
+
+/* ── THREE.JS GLOBE ── */
+const gC=document.getElementById('globe-canvas');
+if(gC){
+  const W=Math.min(480,window.innerWidth*.9);gC.width=W;gC.height=W;
+  const gR=new THREE.WebGLRenderer({canvas:gC,alpha:true,antialias:true});
+  gR.setPixelRatio(window.devicePixelRatio);gR.setSize(W,W);
+  const gSc=new THREE.Scene(),gCam=new THREE.PerspectiveCamera(40,1,0.1,100);
+  gCam.position.z=3.5;
+  const gGeo=new THREE.SphereGeometry(1,48,48);
+  const gMat=new THREE.MeshBasicMaterial({color:0x7c3aed,wireframe:true,transparent:true,opacity:.1});
+  const globe=new THREE.Mesh(gGeo,gMat);gSc.add(globe);
+  // Atmosphere ring
+  const atmGeo=new THREE.SphereGeometry(1.04,32,32);
+  const atmMat=new THREE.MeshBasicMaterial({color:0xc084fc,transparent:true,opacity:.04,side:THREE.BackSide});
+  gSc.add(new THREE.Mesh(atmGeo,atmMat));
+  function ll2v(lat,lon,r){
+    const phi=(90-lat)*Math.PI/180,th=(lon+180)*Math.PI/180;
+    return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(th),r*Math.cos(phi),r*Math.sin(phi)*Math.sin(th));
+  }
+  const markets=[
+    {lat:-33.8,lon:151.2,col:0x2dd4bf,sz:.065},
+    {lat:-36.8,lon:174.7,col:0x2dd4bf,sz:.05},
+    {lat:51.5,lon:-.1,col:0x7c3aed,sz:.065},
+    {lat:40.7,lon:-74,col:0x7c3aed,sz:.07},
+    {lat:43.6,lon:-79.4,col:0xf97316,sz:.055},
+    {lat:19,lon:72.8,col:0xf97316,sz:.06},
+  ];
+  const pulses=[];
+  markets.forEach(m=>{
+    const dg=new THREE.SphereGeometry(m.sz,8,8);
+    const dm=new THREE.MeshBasicMaterial({color:m.col});
+    const dot=new THREE.Mesh(dg,dm);
+    const p=ll2v(m.lat,m.lon,1.02);dot.position.copy(p);gSc.add(dot);
+    const pg=new THREE.TorusGeometry(m.sz*2,.008,6,24);
+    const pm=new THREE.MeshBasicMaterial({color:m.col,transparent:true,opacity:.4});
+    const pulse=new THREE.Mesh(pg,pm);pulse.position.copy(p);
+    pulse.lookAt(new THREE.Vector3(0,0,0));pulse.rotateX(Math.PI/2);
+    pulse.userData.phase=Math.random()*Math.PI*2;pulses.push(pulse);gSc.add(pulse);
+  });
+  // Arcs
+  function arcPts(a,b){
+    const av=ll2v(a[0],a[1],1.02),bv=ll2v(b[0],b[1],1.02),pts=[];
+    for(let i=0;i<=50;i++){
+      const t=i/50,v=new THREE.Vector3().lerpVectors(av,bv,t);
+      v.normalize().multiplyScalar(1.02+Math.sin(Math.PI*t)*.18);pts.push(v);
+    }
+    return new THREE.CatmullRomCurve3(pts).getPoints(60);
+  }
+  [
+    [[-33.8,151.2],[-36.8,174.7]],
+    [[-33.8,151.2],[51.5,-.1]],
+    [[-33.8,151.2],[40.7,-74]],
+    [[51.5,-.1],[40.7,-74]],
+    [[19,72.8],[51.5,-.1]],
+  ].forEach(([a,b])=>{
+    const ag=new THREE.BufferGeometry().setFromPoints(arcPts(a,b));
+    gSc.add(new THREE.Line(ag,new THREE.LineBasicMaterial({color:0x7c3aed,transparent:true,opacity:.2})));
+  });
+  let gT=0;
+  function gA(){
+    requestAnimationFrame(gA);gT+=.003;
+    globe.rotation.y=gT;
+    pulses.forEach(p=>{const s=1+.3*Math.sin(gT*3+p.userData.phase);p.scale.setScalar(s);p.material.opacity=.35*(1-Math.abs(Math.sin(gT*3+p.userData.phase))*.5)});
+    gR.render(gSc,gCam);
+  }
+  gA();
+}
+
+/* ── TYPEWRITER ── */
+const phrases=['Answering for Sakura Ramen, Sydney...','Taking order at Masala House, Mumbai...','Handling peak hour at The Blue Fox, London...','Upselling dessert for Bistro Nord, Toronto...'];
+let pi=0,ci=0,typing=true,pw=0;
+function step(){
+  if(pw-->0){setTimeout(step,50);return}
+  const el=document.getElementById('ty');
+  if(typing){el.textContent=phrases[pi].slice(0,++ci);if(ci>=phrases[pi].length){typing=false;pw=40}}
+  else{el.textContent=phrases[pi].slice(0,--ci);if(ci<=0){typing=true;pi=(pi+1)%phrases.length;pw=10}}
+  setTimeout(step,typing?55:30);
+}
+setTimeout(step,1400);
+
+/* ── CALL TIMER ── */
+let secs=0;
+setInterval(()=>{secs++;const m=String(Math.floor(secs/60)).padStart(2,'0'),s=String(secs%60).padStart(2,'0');document.getElementById('pt').textContent=m+':'+s},1000);
+
+/* ── REVEAL ── */
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.1});
+document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+</script>

@@ -13,7 +13,7 @@ ARG ENV=development
 ENV ENV=${ENV}
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --only=production
+RUN npm ci
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/src ./src
@@ -22,8 +22,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --quiet --tries=1 --spider http://localhost:3000 || exit 1
 
-CMD if [ "$ENV" = "production" ]; then \
-      npm run start; \
-    else \
-      npm run dev; \
-    fi
+CMD ["npx", "next", "start"]
