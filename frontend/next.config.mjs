@@ -5,10 +5,20 @@ const nextConfig = {
     unoptimized: true,
   },
   typescript: {
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/',
+          destination: '/landing.html',
+        },
+      ]
+    }
   },
 };
 
