@@ -40,6 +40,16 @@ async def entrypoint(ctx: JobContext):
         session = CallSession.from_redis(session_data)
         logger.info(f"[{ctx.room.name}] Session loaded: {session.call_id}, state={session.state}")
 
+        # Fetch restaurant for dynamic STT language
+        restaurant = await get_restaurant_by_id(session.restaurant_id)
+        stt_language = "en-US" # Default
+        if restaurant and hasattr(restaurant, 'timezone'):
+            if "Australia" in restaurant.timezone:
+                stt_language = "en-AU"
+            elif "Europe" in restaurant.timezone or "London" in restaurant.timezone:
+                stt_language = "en-GB"
+
+
         # Load VAD (Voice Activity Detection)
         try:
             vad = silero.VAD.load()
@@ -85,7 +95,7 @@ async def entrypoint(ctx: JobContext):
             logger.info(f"[{ctx.room.name}] Order confirmed by AI")
             session.transition(CallState.CONFIRMED)
             await save_session(session.to_redis(), ttl=1800)
-            from app.db.supabase import update_call_state
+            from app.db.supabase import update_call_state, get_restaurant_by_id
             await update_call_state(session.call_id, CallState.CONFIRMED)
             # TODO Sprint 2: Push to POS, send payment SMS
             return "Order confirmed. Proceed to inform the customer about payment via SMS."
@@ -100,8 +110,8 @@ async def entrypoint(ctx: JobContext):
         # Initialize VoiceAssistant
         assistant = VoiceAssistant(
             vad=vad,
-            stt=deepgram.STT(model="nova-3", language="en-AU", api_key=deepgram_key),
-            llm=openai.LLM(model="gpt-4.1", system_prompt=system_prompt, api_key=openai_key),
+            stt=deepgram.STT(model="nova-3", language=stt_language, api_key=deepgram_key),
+            llm=openai.LLM(model="gpt-4o-mini", system_prompt=system_prompt, api_key=openai_key),
             tts=elevenlabs.TTS(voice_id=ELEVENLABS_VOICE_ID, api_key=elevenlabs_key),
             fnc_ctx=fnc_ctx,
         )
