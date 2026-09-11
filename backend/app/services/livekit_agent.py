@@ -8,7 +8,7 @@ Reference: https://docs.livekit.io/agents/quickstart/
 import logging
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
 from livekit.agents.voice_assistant import VoiceAssistant
-from livekit.plugins import deepgram, openai, elevenlabs, silero
+from livekit.plugins import deepgram, openai, elevenlabs, silero, cartesia
 from app.services.llm import build_system_prompt
 from app.models.call import CallSession, CallState
 from app.db.redis import get_session, save_session
@@ -105,14 +105,38 @@ async def entrypoint(ctx: JobContext):
         
         deepgram_key = await get_platform_secret("DEEPGRAM_API_KEY")
         openai_key = await get_platform_secret("OPENAI_API_KEY")
-        elevenlabs_key = await get_platform_secret("ELEVENLABS_API_KEY")
         
+        # Determine TTS provider dynamically based on restaurant config
+        tts_provider_name = getattr(restaurant, "tts_provider", "elevenlabs") if restaurant else "elevenlabs"
+        voice_id = getattr(restaurant, "voice_id", None) if restaurant else None
+
+        # Fetch keys
+        cartesia_key = await get_platform_secret("CARTESIA_API_KEY")
+        elevenlabs_key = await get_platform_secret("ELEVENLABS_API_KEY")
+        fallback_provider = os.getenv("TTS_FALLBACK_PROVIDER", "elevenlabs")
+
+        try:
+            if tts_provider_name == "cartesia" and cartesia_key:
+                cartesia_voice_id = voice_id if voice_id else "a0e99841-438c-4a64-b679-ae501e7d6091"
+                tts_plugin = cartesia.TTS(voice=cartesia_voice_id, api_key=cartesia_key)
+                logger.info(f"[{ctx.room.name}] Using Cartesia TTS (voice={cartesia_voice_id})")
+            else:
+                raise ValueError("Cartesia selected but no key available, falling back")
+        except Exception as e:
+            logger.warning(f"[{ctx.room.name}] Primary TTS failed/unavailable ({e}). Routing to fallback: {fallback_provider}")
+            if fallback_provider == "elevenlabs" and elevenlabs_key:
+                eleven_voice_id = ELEVENLABS_VOICE_ID # Safe default fallback
+                tts_plugin = elevenlabs.TTS(voice_id=eleven_voice_id, api_key=elevenlabs_key)
+            else:
+                logger.error("No valid TTS fallback available.")
+                raise
+
         # Initialize VoiceAssistant
         assistant = VoiceAssistant(
             vad=vad,
             stt=deepgram.STT(model="nova-3", language=stt_language, api_key=deepgram_key),
             llm=openai.LLM(model="gpt-4o-mini", system_prompt=system_prompt, api_key=openai_key),
-            tts=elevenlabs.TTS(voice_id=ELEVENLABS_VOICE_ID, api_key=elevenlabs_key),
+            tts=tts_plugin,
             fnc_ctx=fnc_ctx,
         )
 

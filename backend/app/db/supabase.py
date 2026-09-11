@@ -66,6 +66,8 @@ def _row_to_restaurant(row: dict) -> Restaurant:
         active=row.get("active", False),
         ai_instructions=row.get("ai_instructions"),
         timezone=row.get("timezone", "Australia/Sydney"),
+        tts_provider=row.get("tts_provider", "elevenlabs"),
+        voice_id=row.get("voice_id"),
         created_at=row["created_at"],
     )
 
