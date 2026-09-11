@@ -42,7 +42,8 @@ def _menu() -> list[MenuItem]:
 # ── Restaurant context ───────────────────────────────────────────────────────
 
 def test_prompt_names_the_restaurant():
-    prompt = build_system_prompt(_session(), restaurant=Restaurant(name="Nonna's"))
+    prompt = build_system_prompt(
+        _session(), restaurant=Restaurant(name="Nonna's"))
 
     assert "Nonna's" in prompt
 
@@ -68,7 +69,8 @@ def test_prompt_falls_back_to_the_test_menu_when_none_supplied():
 
 
 def test_prompt_includes_restaurant_ai_instructions():
-    restaurant = Restaurant(name="Nonna's", ai_instructions="Always offer garlic bread.")
+    restaurant = Restaurant(
+        name="Nonna's", ai_instructions="Always offer garlic bread.")
 
     prompt = build_system_prompt(_session(), restaurant=restaurant)
 
@@ -76,7 +78,8 @@ def test_prompt_includes_restaurant_ai_instructions():
 
 
 def test_prompt_omits_the_instructions_block_when_there_are_none():
-    prompt = build_system_prompt(_session(), restaurant=Restaurant(name="Nonna's"))
+    prompt = build_system_prompt(
+        _session(), restaurant=Restaurant(name="Nonna's"))
 
     assert "Special instructions" not in prompt
 
@@ -101,7 +104,8 @@ def test_prompt_reports_the_current_state():
 
 def test_prompt_lists_items_captured_so_far():
     session = _session(
-        order_items=[{"name": "Margherita Pizza", "qty": 2, "price_cents": 1800}]
+        order_items=[{"name": "Margherita Pizza",
+                      "qty": 2, "price_cents": 1800}]
     )
 
     prompt = build_system_prompt(session)
