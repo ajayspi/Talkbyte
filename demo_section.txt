@@ -1,0 +1,28 @@
+<section class="sec" id="demo" style="background:linear-gradient(180deg,var(--base-l) 0%,var(--base) 100%)">
+  <div class="rv"><div class="sl">Live Demo</div><div class="st">Hear a real call</div><div class="ss">Your AI sounds exactly like this — trained on thousands of restaurant calls worldwide.</div></div>
+  <div class="demo-inner" style="margin-top:48px">
+    <div class="ph rv">
+      <div class="phs"><span>9:41</span><span>●●●</span></div>
+      <div class="phc">
+        <div class="phb"><span style="width:5px;height:5px;border-radius:50%;background:var(--gr);display:inline-block"></span>Active Call</div>
+        <div class="phn">+61 2 8941 ···</div>
+        <div class="phd" id="pt">00:00</div>
+      </div>
+      <div class="phorb"><div class="pw"><div class="pwb"></div><div class="pwb"></div><div class="pwb"></div><div class="pwb"></div><div class="pwb"></div></div></div>
+      <div class="pht">
+        <div class="t-ai">Hi! Welcome to Mama's Pizzeria. What can I get you?</div>
+        <div class="t-cu">Large Margherita and garlic bread please.</div>
+        <div class="t-ai">Got it! Anything else today?</div>
+        <div class="t-cu">A Coke as well.</div>
+        <div class="t-ai">$32.50 confirmed. Order sent to kitchen!</div>
+      </div>
+      <div class="pha"><div class="pab">🎤</div><div class="pab">📵</div></div>
+    </div>
+    <div class="dst rv">
+      <div class="sc"><div class="sn" id="sc1">47</div><div><div class="sl2">Calls Today</div><div class="ss2">↑ 8 from 7-day avg</div></div></div>
+      <div class="sc"><div class="sn" style="background:linear-gradient(135deg,var(--v),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">94%</div><div><div class="sl2">Order Success Rate</div><div class="ss2">↑ 2pp this week</div></div></div>
+      <div class="sc"><div class="sn" style="color:var(--t)">$4,820</div><div><div class="sl2">Revenue Today</div><div class="ss2">↑ 12% vs yesterday</div></div></div>
+      <div class="sc"><div class="sn" style="color:var(--or)">487ms</div><div><div class="sl2">Avg Response</div><div class="ss2">Deepgram + GPT-4.1</div></div></div>
+    </div>
+  </div>
+</section>
