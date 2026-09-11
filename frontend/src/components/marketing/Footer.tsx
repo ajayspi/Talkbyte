@@ -31,25 +31,25 @@ export default function Footer() {
                 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
                   <defs>
                     <linearGradient id="footerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" style={{ stopColor: '#7c3aed', stopOpacity: 1 }} />
-                      <stop offset="100%" style={{ stopColor: '#14b8a6', stopOpacity: 1 }} />
+                      <stop offset="0%" style={{ stopColor: '#D4AF37', stopOpacity: 1 }} />
+                      <stop offset="100%" style={{ stopColor: '#FCF6BA', stopOpacity: 1 }} />
                     </linearGradient>
                   </defs>
                   <rect x="40" y="25" width="20" height="30" rx="10" fill="url(#footerGrad)" />
                   <line x1="50" y1="55" x2="50" y2="75" stroke="url(#footerGrad)" strokeWidth="3" strokeLinecap="round" />
                   <line x1="35" y1="75" x2="65" y2="75" stroke="url(#footerGrad)" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M 20 40 Q 15 50 20 60" stroke="#7c3aed" strokeWidth="2.5" fill="none" opacity="0.7" />
-                  <path d="M 10 35 Q 3 50 10 65" stroke="#7c3aed" strokeWidth="2" fill="none" opacity="0.5" />
-                  <path d="M 80 40 Q 85 50 80 60" stroke="#14b8a6" strokeWidth="2.5" fill="none" opacity="0.7" />
-                  <path d="M 90 35 Q 97 50 90 65" stroke="#14b8a6" strokeWidth="2" fill="none" opacity="0.5" />
+                  <path d="M 20 40 Q 15 50 20 60" stroke="#D4AF37" strokeWidth="2.5" fill="none" opacity="0.7" />
+                  <path d="M 10 35 Q 3 50 10 65" stroke="#D4AF37" strokeWidth="2" fill="none" opacity="0.5" />
+                  <path d="M 80 40 Q 85 50 80 60" stroke="#FCF6BA" strokeWidth="2.5" fill="none" opacity="0.7" />
+                  <path d="M 90 35 Q 97 50 90 65" stroke="#FCF6BA" strokeWidth="2" fill="none" opacity="0.5" />
                 </svg>
               </div>
-              <span className="text-lg font-bold bg-gradient-to-r from-purple-400 to-teal-400 bg-clip-text text-transparent">
-                TalkByte AI
+              <span className="text-lg font-extrabold tracking-wider text-white uppercase font-sans">
+                TalkByte <span className="gold-gradient-text">OS</span>
               </span>
             </Link>
             <p className="text-white/50 text-sm leading-relaxed max-w-[220px]">
-              AI phone ordering for Australian restaurants. Answer every call, take every order.
+              Enterprise-grade voice AI for global hospitality networks.
             </p>
           </div>
 

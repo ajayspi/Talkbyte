@@ -36,21 +36,21 @@ export default function Navbar() {
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
               <defs>
                 <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{ stopColor: '#7c3aed', stopOpacity: 1 }} />
-                  <stop offset="100%" style={{ stopColor: '#14b8a6', stopOpacity: 1 }} />
+                  <stop offset="0%" style={{ stopColor: '#D4AF37', stopOpacity: 1 }} />
+                  <stop offset="100%" style={{ stopColor: '#FCF6BA', stopOpacity: 1 }} />
                 </linearGradient>
               </defs>
               <rect x="40" y="25" width="20" height="30" rx="10" fill="url(#navLogoGrad)" />
               <line x1="50" y1="55" x2="50" y2="75" stroke="url(#navLogoGrad)" strokeWidth="3" strokeLinecap="round" />
               <line x1="35" y1="75" x2="65" y2="75" stroke="url(#navLogoGrad)" strokeWidth="3" strokeLinecap="round" />
-              <path d="M 20 40 Q 15 50 20 60" stroke="#7c3aed" strokeWidth="2.5" fill="none" opacity="0.7" />
-              <path d="M 10 35 Q 3 50 10 65" stroke="#7c3aed" strokeWidth="2" fill="none" opacity="0.5" />
-              <path d="M 80 40 Q 85 50 80 60" stroke="#14b8a6" strokeWidth="2.5" fill="none" opacity="0.7" />
-              <path d="M 90 35 Q 97 50 90 65" stroke="#14b8a6" strokeWidth="2" fill="none" opacity="0.5" />
+              <path d="M 20 40 Q 15 50 20 60" stroke="#D4AF37" strokeWidth="2.5" fill="none" opacity="0.7" />
+              <path d="M 10 35 Q 3 50 10 65" stroke="#D4AF37" strokeWidth="2" fill="none" opacity="0.5" />
+              <path d="M 80 40 Q 85 50 80 60" stroke="#FCF6BA" strokeWidth="2.5" fill="none" opacity="0.7" />
+              <path d="M 90 35 Q 97 50 90 65" stroke="#FCF6BA" strokeWidth="2" fill="none" opacity="0.5" />
             </svg>
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-teal-400 bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
-            TalkByte AI
+          <span className="text-xl font-extrabold tracking-wider text-white group-hover:opacity-80 transition-opacity uppercase font-sans">
+            TalkByte <span className="gold-gradient-text">OS</span>
           </span>
         </Link>
 
@@ -60,16 +60,16 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-white/70 hover:text-white text-sm font-medium transition-colors duration-200"
+              className="text-white/60 hover:text-white text-sm font-semibold tracking-wide uppercase transition-colors duration-200"
             >
               {link.label}
             </Link>
           ))}
           <Link
             href="/contact"
-            className="ml-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-teal-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-purple-900/30"
+            className="ml-2 px-6 py-2.5 rounded-lg border border-[var(--gold-border)] bg-[rgba(212,175,55,0.1)] text-white text-sm font-bold uppercase tracking-wider hover:bg-[rgba(212,175,55,0.2)] hover:border-[var(--gold-core)] transition-all shadow-[0_0_15px_var(--gold-glow)]"
           >
-            Book a Demo
+            Deploy AI
           </Link>
         </nav>
 
