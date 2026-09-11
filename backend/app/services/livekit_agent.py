@@ -131,14 +131,19 @@ async def entrypoint(ctx: JobContext):
                 logger.error("No valid TTS fallback available.")
                 raise
 
+
         # Initialize VoiceAssistant
+        # Using LiteLLM Proxy (http://litellm:4000) for cross-provider LLM failover (OpenAI -> Anthropic)
+        # and unified spend tracking across tenants.
+        litellm_base_url = os.getenv("LITELLM_BASE_URL", "http://litellm:4000/v1")
         assistant = VoiceAssistant(
             vad=vad,
             stt=deepgram.STT(model="nova-3", language=stt_language, api_key=deepgram_key),
-            llm=openai.LLM(model="gpt-4o-mini", system_prompt=system_prompt, api_key=openai_key),
+            llm=openai.LLM(model="gpt-4o-mini", system_prompt=system_prompt, api_key=openai_key, base_url=litellm_base_url),
             tts=tts_plugin,
             fnc_ctx=fnc_ctx,
         )
+
 
         # Event: user speech committed → save to transcript
         @assistant.on("user_speech_committed")
