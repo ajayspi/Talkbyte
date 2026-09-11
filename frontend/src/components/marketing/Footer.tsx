@@ -21,12 +21,12 @@ const LINKS = {
 
 export default function Footer() {
   return (
-    <footer className="relative bg-[#0a0614] border-t border-white/10 pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
+    <footer className="relative bg-[var(--bg-deep)] border-t border-[var(--border-subtle)] pt-24 pb-12">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-3 mb-4">
+            <Link href="/" className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8">
                 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
                   <defs>
@@ -44,12 +44,12 @@ export default function Footer() {
                   <path d="M 90 35 Q 97 50 90 65" stroke="#FCF6BA" strokeWidth="2" fill="none" opacity="0.5" />
                 </svg>
               </div>
-              <span className="text-lg font-extrabold tracking-wider text-white uppercase font-sans">
-                TalkByte <span className="gold-gradient-text">OS</span>
+              <span className="text-xl font-black tracking-tighter text-white uppercase font-sans">
+                TalkByte <span className="text-gradient-gold">OS</span>
               </span>
             </Link>
-            <p className="text-white/50 text-sm leading-relaxed max-w-[220px]">
-              Enterprise-grade voice AI for global hospitality networks.
+            <p className="text-[var(--text-dim)] text-sm leading-relaxed max-w-[250px] font-medium">
+              Enterprise-grade Voice AI infrastructure for the hospitality sector.
             </p>
           </div>
 

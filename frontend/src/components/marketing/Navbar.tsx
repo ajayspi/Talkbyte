@@ -23,13 +23,13 @@ export default function Navbar() {
   return (
     <motion.header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-[#0f0a1a]/90 backdrop-blur-md border-b border-white/10 shadow-lg' : 'bg-transparent'
+        scrolled ? 'bg-[var(--bg-pure)]/80 backdrop-blur-xl border-b border-[var(--border-subtle)] shadow-2xl' : 'bg-transparent'
       }`}
       initial={{ y: -80 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-9 h-9 flex-shrink-0">
@@ -49,8 +49,8 @@ export default function Navbar() {
               <path d="M 90 35 Q 97 50 90 65" stroke="#FCF6BA" strokeWidth="2" fill="none" opacity="0.5" />
             </svg>
           </div>
-          <span className="text-xl font-extrabold tracking-wider text-white group-hover:opacity-80 transition-opacity uppercase font-sans">
-            TalkByte <span className="gold-gradient-text">OS</span>
+          <span className="text-xl font-black tracking-tighter text-white uppercase group-hover:opacity-80 transition-opacity">
+            TalkByte <span className="text-gradient-gold">OS</span>
           </span>
         </Link>
 
@@ -60,16 +60,16 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-white/60 hover:text-white text-sm font-semibold tracking-wide uppercase transition-colors duration-200"
+              className="text-[var(--text-dim)] hover:text-white text-xs font-bold tracking-widest uppercase transition-colors duration-200"
             >
               {link.label}
             </Link>
           ))}
           <Link
             href="/contact"
-            className="ml-2 px-6 py-2.5 rounded-lg border border-[var(--gold-border)] bg-[rgba(212,175,55,0.1)] text-white text-sm font-bold uppercase tracking-wider hover:bg-[rgba(212,175,55,0.2)] hover:border-[var(--gold-core)] transition-all shadow-[0_0_15px_var(--gold-glow)]"
+            className="ml-4 px-6 py-2.5 rounded-full border border-[var(--gold-border)] bg-[rgba(212,175,55,0.05)] text-white text-xs font-bold uppercase tracking-widest hover:bg-[rgba(212,175,55,0.15)] hover:border-[var(--gold-core)] transition-all shadow-[0_0_15px_var(--gold-glow)]"
           >
-            Deploy AI
+            Deploy
           </Link>
         </nav>
 

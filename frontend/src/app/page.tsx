@@ -1,15 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import Navbar from '@/components/marketing/Navbar';
 import Footer from '@/components/marketing/Footer';
-import ParticlesBackground from '@/components/marketing/ParticlesBackground';
-import { PhoneIcon, CheckCircleIcon, ServerIcon, ClockIcon } from '@/components/icons';
+import { PhoneIcon, CheckCircleIcon, ServerIcon } from '@/components/icons';
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 50 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } },
 };
 
@@ -22,198 +21,184 @@ const staggerContainer = {
 };
 
 export default function HomePage() {
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+
   return (
-    <div className="relative min-h-screen bg-[var(--surface-dark)] overflow-hidden">
-      {/* Background layer */}
-      <div className="absolute inset-0 grid-bg opacity-40"></div>
-      <ParticlesBackground />
+    <div className="relative min-h-screen bg-[var(--bg-pure)] text-white selection:bg-[var(--gold-core)] selection:text-black overflow-x-hidden" ref={containerRef}>
+      <div className="fixed inset-0 grid-bg-infinite z-0 opacity-40 pointer-events-none"></div>
+      <div className="gold-glow-orb top-[-20%] left-[-10%]"></div>
+      <div className="gold-glow-orb bottom-[20%] right-[-10%] opacity-50"></div>
 
       <Navbar />
 
       <main className="relative z-10">
-        {/* HERO SECTION */}
-        <section className="section-spacing min-h-screen flex flex-col justify-center pt-32">
-          <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
-            {/* Left Content */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={staggerContainer}
-              className="space-y-8"
-            >
-              <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--gold-border)] bg-[var(--surface-panel)] backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-[var(--gold-core)] animate-pulse"></span>
-                <span className="text-xs font-mono text-[var(--gold-core)] uppercase tracking-wider">Enterprise AI Voice</span>
-              </motion.div>
-
-              <motion.h1 variants={fadeInUp} className="text-5xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
-                Every Call. <br />
-                Every Order. <br />
-                <span className="gold-gradient-text">Answered.</span>
-              </motion.h1>
-
-              <motion.p variants={fadeInUp} className="text-lg text-slate-400 max-w-xl leading-relaxed">
-                TalkByte's futuristic voice AI handles your restaurant's inbound phone orders, processes payments via SMS, and syncs directly with Square POS. Zero double-entry. Never sleeps.
-              </motion.p>
-
-              <motion.div variants={fadeInUp} className="flex flex-wrap gap-4 pt-4">
-                <Link href="/dashboard" className="btn-premium">
-                  Launch Dashboard
-                </Link>
-                <Link href="/admin" className="btn-ghost">
-                  Operator Panel
-                </Link>
-              </motion.div>
-            </motion.div>
-
-            {/* Right Content - Abstract Futuristic Visual */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.4 }}
-              className="relative hidden lg:flex justify-center items-center"
-            >
-              {/* Outer Glow Ring */}
-              <div className="absolute w-[500px] h-[500px] rounded-full border border-[var(--gold-border)] animate-[spin_20s_linear_infinite] opacity-50"></div>
-              <div className="absolute w-[400px] h-[400px] rounded-full border border-[rgba(255,255,255,0.1)] animate-[spin_15s_linear_infinite_reverse]"></div>
-
-              {/* Core Orb */}
-              <div className="relative w-64 h-64 rounded-full bg-gradient-to-br from-[var(--gold-core)] to-purple-900 flex flex-col items-center justify-center shadow-[0_0_80px_var(--gold-glow)] gold-border-glow z-10">
-                <span className="text-5xl mb-4 filter drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">🎙️</span>
-                <div className="flex gap-1.5 h-8 items-center">
-                  {[1,2,3,4,5].map((i) => (
-                    <motion.div
-                      key={i}
-                      animate={{ height: ['20%', '100%', '20%'] }}
-                      transition={{ duration: 1, repeat: Infinity, delay: i * 0.1, ease: 'easeInOut' }}
-                      className="w-1 bg-white rounded-full"
-                    />
-                  ))}
-                </div>
-                <span className="text-[10px] font-mono text-white/80 uppercase tracking-widest mt-4">AI Active</span>
-              </div>
-
-              {/* Floating Elements */}
-              <motion.div
-                animate={{ y: [-15, 15, -15] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute top-10 right-10 glass-panel p-4 rounded-xl flex items-center gap-3"
-              >
-                <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center"><CheckCircleIcon size={16} className="text-emerald-400" /></div>
-                <div className="text-sm font-semibold text-white">POS Synced</div>
-              </motion.div>
-
-              <motion.div
-                animate={{ y: [15, -15, 15] }}
-                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute bottom-10 left-10 glass-panel p-4 rounded-xl flex items-center gap-3"
-              >
-                <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center"><PhoneIcon size={16} className="text-indigo-400" /></div>
-                <div className="text-sm font-semibold text-white">284ms Latency</div>
-              </motion.div>
-            </motion.div>
-
-          </div>
-        </section>
-
-        {/* TICKER SECTION */}
-        <div className="w-full bg-[rgba(255,255,255,0.02)] border-y border-[rgba(255,255,255,0.05)] py-4 overflow-hidden relative backdrop-blur-sm">
+        {/* STICKY HERO SECTION */}
+        <section className="h-[100vh] w-full flex items-center justify-center relative px-6 sticky top-0 -z-10">
           <motion.div
-            animate={{ x: [0, -1000] }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-            className="flex gap-16 whitespace-nowrap px-8 items-center"
+            style={{ opacity: heroOpacity, scale: heroScale }}
+            className="max-w-6xl mx-auto w-full text-center flex flex-col items-center"
           >
-            {[...Array(3)].map((_, i) => (
-              <React.Fragment key={i}>
-                <span className="text-sm font-mono text-slate-400"><strong className="text-[var(--gold-core)]">487</strong> Active Venues</span>
-                <span className="text-white/20">•</span>
-                <span className="text-sm font-mono text-slate-400"><strong className="text-[var(--gold-core)]">&lt; 350ms</strong> Response Latency</span>
-                <span className="text-white/20">•</span>
-                <span className="text-sm font-mono text-slate-400"><strong className="text-[var(--gold-core)]">99.4%</strong> STT Accuracy</span>
-                <span className="text-white/20">•</span>
-                <span className="text-sm font-mono text-slate-400"><strong className="text-[var(--gold-core)]">$0</strong> Missed Revenue</span>
-                <span className="text-white/20">•</span>
-              </React.Fragment>
-            ))}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="inline-flex items-center gap-3 px-5 py-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-glass)] backdrop-blur-lg mb-8"
+            >
+              <span className="w-2 h-2 rounded-full bg-[var(--gold-core)] shadow-[0_0_10px_var(--gold-core)] animate-pulse"></span>
+              <span className="text-xs font-mono text-[var(--gold-primary)] uppercase tracking-[0.2em]">Enterprise WebOps</span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="text-5xl md:text-8xl lg:text-[110px] font-black tracking-tighter leading-[0.9] mb-8"
+            >
+              <span className="text-gradient-white">Accelerate your</span><br />
+              <span className="text-gradient-gold">Digital Growth</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.7 }}
+              className="text-lg md:text-xl text-[var(--text-dim)] max-w-2xl mx-auto font-light leading-relaxed mb-12"
+            >
+              We embed directly as your WebOps team. Design, build, and scale high-performance enterprise platforms that drive pipeline.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.9 }}
+              className="flex flex-wrap justify-center gap-6"
+            >
+              <Link href="/dashboard" className="px-8 py-4 rounded-full bg-white text-black font-bold text-sm uppercase tracking-wider hover:bg-[var(--gold-core)] transition-colors duration-300 shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:shadow-[0_0_40px_var(--gold-glow)]">
+                Deploy System
+              </Link>
+              <Link href="/how-it-works" className="px-8 py-4 rounded-full border border-[var(--border-subtle)] text-white font-bold text-sm uppercase tracking-wider hover:bg-white/5 transition-colors duration-300">
+                View Playbook
+              </Link>
+            </motion.div>
           </motion.div>
-        </div>
-
-        {/* FEATURES BENTO GRID */}
-        <section className="section-spacing bg-black/40">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <h2 className="text-xs font-mono text-[var(--gold-core)] tracking-[0.2em] uppercase mb-4">Architecture</h2>
-              <h3 className="text-4xl lg:text-5xl font-bold text-white tracking-tight">Engineered for Scale</h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <motion.div whileHover={{ y: -8 }} className="glass-panel p-8 rounded-2xl gold-border-glow lg:col-span-2 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[var(--gold-core)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-lg bg-[rgba(212,175,55,0.1)] border border-[var(--gold-border)] flex items-center justify-center mb-6 text-2xl">🎙️</div>
-                  <h4 className="text-xl font-bold text-white mb-3">Natural Voice Intelligence</h4>
-                  <p className="text-slate-400 leading-relaxed mb-6 max-w-md">
-                    Powered by Deepgram Flux STT and GPT-4.1. TalkByte understands complex Australian slang, dietary modifications, and noisy backgrounds seamlessly.
-                  </p>
-                  <div className="text-3xl font-mono font-bold text-[var(--gold-core)]">284ms<span className="text-xs text-slate-500 ml-2 uppercase font-sans">E2E Latency</span></div>
-                </div>
-              </motion.div>
-
-              <motion.div whileHover={{ y: -8 }} className="glass-panel p-8 rounded-2xl relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-6 text-indigo-400"><ServerIcon size={24} /></div>
-                  <h4 className="text-xl font-bold text-white mb-3">Square POS Sync</h4>
-                  <p className="text-slate-400 leading-relaxed text-sm">
-                    Orders drop directly into your kitchen display system the second the payment is confirmed via SMS link.
-                  </p>
-                </div>
-              </motion.div>
-
-              <motion.div whileHover={{ y: -8 }} className="glass-panel p-8 rounded-2xl relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 text-emerald-400"><CheckCircleIcon size={24} /></div>
-                  <h4 className="text-xl font-bold text-white mb-3">Automated Payments</h4>
-                  <p className="text-slate-400 leading-relaxed text-sm">
-                    Secure Stripe links dispatched instantly via Telnyx SMS. Zero PCI scope for your staff over the phone.
-                  </p>
-                </div>
-              </motion.div>
-
-              <motion.div whileHover={{ y: -8 }} className="glass-panel p-8 rounded-2xl lg:col-span-2 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6 text-purple-400"><ClockIcon size={24} /></div>
-                  <h4 className="text-xl font-bold text-white mb-3">Menu Retrieval-Augmented Generation</h4>
-                  <p className="text-slate-400 leading-relaxed max-w-md">
-                    TalkByte uses pgvector embeddings to dynamically retrieve menu items, prices, and allergen data during the call. Out-of-stock items are automatically excluded from recommendations.
-                  </p>
-                </div>
-              </motion.div>
-            </div>
-          </div>
         </section>
 
-        {/* CTA SECTION */}
-        <section className="section-spacing border-t border-[rgba(255,255,255,0.05)]">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <div className="relative w-24 h-24 mx-auto bg-[var(--surface-dark)] rounded-full gold-border-glow flex items-center justify-center shadow-[0_0_50px_var(--gold-glow)]">
-              <span className="text-4xl">🚀</span>
+        <div className="h-[20vh] w-full"></div> {/* Spacer to let hero scroll out */}
+
+        {/* STACKED FEATURE CARDS */}
+        <section className="max-w-6xl mx-auto px-6 py-32 space-y-32">
+          {/* Card 1 */}
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="sticky top-32 glass-card p-12 md:p-16 flex flex-col lg:flex-row gap-16 items-center shadow-2xl"
+          >
+            <div className="flex-1 space-y-8">
+              <div className="text-[var(--gold-core)] font-mono text-sm tracking-widest uppercase">01 / Operations</div>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gradient-white">Zero-Disaster Deployments.</h2>
+              <p className="text-[var(--text-dim)] text-lg leading-relaxed">
+                We handle the infrastructure, the CI/CD pipelines, and the global edge networks. When you click deploy, it works perfectly worldwide in under 300ms.
+              </p>
+              <ul className="space-y-4 pt-4">
+                <li className="flex items-center gap-4 text-sm font-medium"><CheckCircleIcon size={20} className="text-[var(--gold-core)]" /> Automated E2E Testing</li>
+                <li className="flex items-center gap-4 text-sm font-medium"><CheckCircleIcon size={20} className="text-[var(--gold-core)]" /> Multi-Region Failover</li>
+                <li className="flex items-center gap-4 text-sm font-medium"><CheckCircleIcon size={20} className="text-[var(--gold-core)]" /> Real-time Analytics Sync</li>
+              </ul>
             </div>
-            <h2 className="text-4xl lg:text-6xl font-extrabold text-white tracking-tight">
-              Ready to automate your <br className="hidden md:block"/> <span className="gold-gradient-text">front of house?</span>
-            </h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-              Stop missing calls during Friday night rush. Get set up in 15 minutes and let TalkByte handle the logistics.
-            </p>
-            <div className="pt-8">
-              <Link href="/contact" className="btn-premium !text-lg !px-10 !py-4 inline-block">
-                Start 14-Day Free Trial
+            <div className="w-full lg:w-[45%] aspect-square rounded-2xl bg-[#050505] border border-[var(--border-subtle)] relative overflow-hidden flex items-center justify-center">
+               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.1)_0%,transparent_70%)]"></div>
+               <ServerIcon size={120} className="text-[var(--gold-core)]/80 drop-shadow-[0_0_30px_rgba(212,175,55,0.4)]" />
+            </div>
+          </motion.div>
+
+          {/* Card 2 */}
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="sticky top-40 glass-card p-12 md:p-16 flex flex-col lg:flex-row-reverse gap-16 items-center shadow-2xl"
+          >
+            <div className="flex-1 space-y-8">
+              <div className="text-[var(--gold-core)] font-mono text-sm tracking-widest uppercase">02 / Intelligence</div>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gradient-white">Voice AI at the Edge.</h2>
+              <p className="text-[var(--text-dim)] text-lg leading-relaxed">
+                Connect deeply with your customers using our sub-400ms latency voice models. Handles complex negotiations, deep technical support, and instant POS synchronization.
+              </p>
+              <ul className="space-y-4 pt-4">
+                <li className="flex items-center gap-4 text-sm font-medium"><PhoneIcon size={20} className="text-[var(--gold-core)]" /> Human-parity Speech Generation</li>
+                <li className="flex items-center gap-4 text-sm font-medium"><PhoneIcon size={20} className="text-[var(--gold-core)]" /> pgVector RAG Database</li>
+                <li className="flex items-center gap-4 text-sm font-medium"><PhoneIcon size={20} className="text-[var(--gold-core)]" /> Automatic Sentiment Triage</li>
+              </ul>
+            </div>
+            <div className="w-full lg:w-[45%] aspect-square rounded-2xl bg-[#050505] border border-[var(--border-subtle)] relative overflow-hidden flex items-center justify-center">
+               <div className="absolute inset-0 grid-bg-infinite opacity-50"></div>
+               <div className="relative text-[160px] filter drop-shadow-[0_0_40px_rgba(212,175,55,0.3)]">🧠</div>
+            </div>
+          </motion.div>
+
+          {/* Card 3 */}
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="sticky top-48 glass-card p-12 md:p-16 flex flex-col lg:flex-row gap-16 items-center shadow-2xl"
+          >
+            <div className="flex-1 space-y-8">
+              <div className="text-[var(--gold-core)] font-mono text-sm tracking-widest uppercase">03 / Analytics</div>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gradient-white">See the entire pipeline.</h2>
+              <p className="text-[var(--text-dim)] text-lg leading-relaxed">
+                Stop guessing. Our unified telemetry tracks every call, every dropped session, and every dollar processed directly to your bottom line.
+              </p>
+            </div>
+            <div className="w-full lg:w-[45%] aspect-square rounded-2xl bg-[#050505] border border-[var(--border-subtle)] p-8 relative overflow-hidden">
+               {/* Abstract chart graphic */}
+               <div className="w-full h-full flex items-end gap-4 justify-between pt-12">
+                 {[40, 65, 45, 80, 55, 90, 100].map((h, i) => (
+                   <motion.div
+                     key={i}
+                     initial={{ height: 0 }}
+                     whileInView={{ height: `${h}%` }}
+                     transition={{ duration: 1, delay: i * 0.1 }}
+                     className="w-full rounded-t-sm bg-gradient-to-t from-[var(--gold-core)] to-yellow-200"
+                   />
+                 ))}
+               </div>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* CTA FOOTER TRANSITION */}
+        <section className="mt-32 pb-40 px-6 text-center relative z-10 bg-gradient-to-b from-transparent to-[#050505]">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="max-w-4xl mx-auto space-y-12"
+          >
+            <motion.h2 variants={fadeInUp} className="text-5xl md:text-7xl font-bold tracking-tighter">
+              Ready to <span className="text-gradient-gold">dominate?</span>
+            </motion.h2>
+            <motion.p variants={fadeInUp} className="text-xl text-[var(--text-dim)] max-w-2xl mx-auto font-light">
+              Join the 200+ enterprise teams relying on our WebOps infrastructure.
+            </motion.p>
+            <motion.div variants={fadeInUp}>
+              <Link href="/contact" className="inline-block px-12 py-5 rounded-full bg-white text-black font-bold text-sm uppercase tracking-widest hover:scale-105 transition-transform duration-300 shadow-[0_0_40px_rgba(255,255,255,0.15)]">
+                Start Your Project
               </Link>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </section>
       </main>
 
