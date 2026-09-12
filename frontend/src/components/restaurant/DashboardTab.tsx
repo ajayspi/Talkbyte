@@ -9,6 +9,9 @@ import {
   ClockIcon,
 } from '@/components/icons';
 import type { Order, Call } from '@/types/database.types';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 
 interface DashboardTabProps {
   onNavigateTab: (tab: string) => void;
@@ -86,12 +89,12 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       </div>
 
       {/* Alert Warning Strip */}
-      <div className="alert alert-warn flex items-center justify-between">
+      <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 p-4 rounded-xl flex items-center justify-between shadow-sm">
         <div>
           ⚠️ 2 payment links expired without payment in the last hour.{' '}
           <span
             onClick={() => onNavigateTab('orders')}
-            className="cursor-pointer underline font-semibold text-amber-900 ml-1 hover:text-amber-950"
+            className="cursor-pointer underline font-semibold text-amber-400 ml-1 hover:text-amber-300"
           >
             Review orders
           </span>
@@ -99,193 +102,184 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       </div>
 
       {/* Top 4 KPI Cards */}
-      <div className="kpi-grid">
-        <div className="kpi-card purple">
-          <div className="kpi-label">Calls Today</div>
-          <div className="kpi-value">47</div>
-          <div className="kpi-trend trend-up">↑ 18% vs yesterday</div>
-          <div className="kpi-icon text-purple-600">
-            <PhoneIcon size={24} />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-violet-900/40 to-slate-800/80">
+          <CardContent className="p-5 relative overflow-hidden">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Calls Today</div>
+            <div className="text-3xl font-extrabold text-violet-400 mt-2 mb-1">47</div>
+            <div className="text-xs text-emerald-400 font-medium">↑ 18% vs yesterday</div>
+            <div className="absolute top-4 right-4 text-violet-500/30">
+              <PhoneIcon size={32} />
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="kpi-card teal">
-          <div className="kpi-label">Revenue Today</div>
-          <div className="kpi-value">$1,284</div>
-          <div className="kpi-trend trend-up">↑ $320 vs yesterday</div>
-          <div className="kpi-icon text-teal-600">
-            <DollarIcon size={24} />
-          </div>
-        </div>
+        <Card className="bg-gradient-to-br from-teal-900/40 to-slate-800/80">
+          <CardContent className="p-5 relative overflow-hidden">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Revenue Today</div>
+            <div className="text-3xl font-extrabold text-teal-400 mt-2 mb-1">$1,284</div>
+            <div className="text-xs text-emerald-400 font-medium">↑ $320 vs yesterday</div>
+            <div className="absolute top-4 right-4 text-teal-500/30">
+              <DollarIcon size={32} />
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="kpi-card orange">
-          <div className="kpi-label">AI Answer Rate</div>
-          <div className="kpi-value">96%</div>
-          <div className="kpi-trend trend-up">↑ 2% vs last week</div>
-          <div className="kpi-icon text-[#FF6B35]">
-            <HeadsetIcon size={24} />
-          </div>
-        </div>
+        <Card className="bg-gradient-to-br from-rose-900/40 to-slate-800/80">
+          <CardContent className="p-5 relative overflow-hidden">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">AI Answer Rate</div>
+            <div className="text-3xl font-extrabold text-rose-400 mt-2 mb-1">96%</div>
+            <div className="text-xs text-emerald-400 font-medium">↑ 2% vs last week</div>
+            <div className="absolute top-4 right-4 text-rose-500/30">
+              <HeadsetIcon size={32} />
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="kpi-card green">
-          <div className="kpi-label">Customer Satisfaction</div>
-          <div className="kpi-value">4.7</div>
-          <div className="kpi-trend text-gray-500">— Same as last week</div>
-          <div className="kpi-icon text-emerald-600">
-            <CheckCircleIcon size={24} />
-          </div>
-        </div>
+        <Card className="bg-gradient-to-br from-emerald-900/40 to-slate-800/80">
+          <CardContent className="p-5 relative overflow-hidden">
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Customer Satisfaction</div>
+            <div className="text-3xl font-extrabold text-emerald-400 mt-2 mb-1">4.7</div>
+            <div className="text-xs text-slate-400 font-medium">— Same as last week</div>
+            <div className="absolute top-4 right-4 text-emerald-500/30">
+              <CheckCircleIcon size={32} />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Two Column Layout */}
-      <div className="two-col">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
         {/* Left Column: Active Calls & Recent Orders */}
-        <div className="space-y-5">
+        <div className="space-y-6">
           {/* Active Calls Card */}
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">Active Calls</span>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Active Calls</CardTitle>
               <span
-                className="card-action"
+                className="text-violet-400 hover:text-violet-300 text-sm font-medium cursor-pointer"
                 onClick={() => onNavigateTab('livecalls')}
               >
                 View all →
               </span>
-            </div>
-            <div className="card-body" style={{ padding: '16px' }}>
-              <div className="live-call">
-                <div className="call-info">
-                  <span className="call-icon text-emerald-400">
+            </CardHeader>
+            <CardContent>
+              <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 mb-3">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                     <PhoneIcon size={20} />
-                  </span>
-                  <div style={{ flex: 1 }}>
-                    <div className="caller-num">+61 4•• ••• 847</div>
-                    <div className="call-meta">Inbound · Ordering</div>
                   </div>
-                  <div className="call-duration">
+                  <div className="flex-1">
+                    <div className="text-white font-bold text-lg">+61 4•• ••• 847</div>
+                    <div className="text-slate-400 text-xs">Inbound · Ordering</div>
+                  </div>
+                  <div className="text-emerald-400 font-mono font-bold">
                     {formatDuration(tickerSeconds)}
                   </div>
                 </div>
-                <div className="call-transcript">
+                <div className="bg-slate-800/50 p-3 rounded-lg text-sm text-slate-300 border border-slate-700/50 mb-4 font-mono italic">
                   &quot;Can I get a large margherita, extra cheese, and two garlic bread please...&quot;
                 </div>
-                <div className="call-actions">
-                  <button
-                    className={`call-btn call-btn-intercept transition-all ${
-                      isTakingOver ? 'opacity-80 scale-95' : ''
-                    }`}
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant={isTakingOver ? 'secondary' : 'danger'}
                     onClick={() => {
                       setIsTakingOver(!isTakingOver);
                       if (!isTakingOver) setIsMonitoring(false);
                     }}
                   >
                     {isTakingOver ? 'Staff Speaking ✓' : 'Take Over'}
-                  </button>
-                  <button
-                    className={`call-btn call-btn-monitor transition-all ${
-                      isMonitoring ? 'bg-teal-600 text-white' : ''
-                    }`}
+                  </Button>
+                  <Button
+                    variant={isMonitoring ? 'primary' : 'secondary'}
                     onClick={() => {
                       setIsMonitoring(!isMonitoring);
                       if (!isMonitoring) setIsTakingOver(false);
                     }}
                   >
                     {isMonitoring ? 'Monitoring 🎧' : 'Monitor'}
-                  </button>
+                  </Button>
                 </div>
               </div>
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: '10px 0',
-                  fontSize: '13px',
-                  color: 'var(--muted)',
-                }}
-              >
+              <div className="text-center text-sm text-slate-500 font-medium">
                 1 active · 0 queued
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Recent Orders Card */}
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">Recent Orders</span>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Recent Orders</CardTitle>
               <span
-                className="card-action"
+                className="text-violet-400 hover:text-violet-300 text-sm font-medium cursor-pointer"
                 onClick={() => onNavigateTab('orders')}
               >
                 View all →
               </span>
+            </CardHeader>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-slate-400 uppercase bg-slate-800/50 border-y border-slate-700/50">
+                  <tr>
+                    <th className="px-6 py-3 font-semibold">Order</th>
+                    <th className="px-6 py-3 font-semibold">Items</th>
+                    <th className="px-6 py-3 font-semibold">Total</th>
+                    <th className="px-6 py-3 font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700/50 text-slate-300">
+                  <tr className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-6 py-4 font-medium text-white">#1047</td>
+                    <td className="px-6 py-4">Margherita L, Garlic ×2</td>
+                    <td className="px-6 py-4 font-bold text-white">$38.50</td>
+                    <td className="px-6 py-4">
+                      <Badge variant="success">✓ Paid</Badge>
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-6 py-4 font-medium text-white">#1046</td>
+                    <td className="px-6 py-4">Pepperoni XL, Coke ×3</td>
+                    <td className="px-6 py-4 font-bold text-white">$54.00</td>
+                    <td className="px-6 py-4">
+                      <Badge variant="warning">⏳ Link Sent</Badge>
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-6 py-4 font-medium text-white">#1045</td>
+                    <td className="px-6 py-4">Veggie Special, Tiramisu</td>
+                    <td className="px-6 py-4 font-bold text-white">$42.80</td>
+                    <td className="px-6 py-4">
+                      <Badge variant="success">✓ POS Synced</Badge>
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-6 py-4 font-medium text-white">#1044</td>
+                    <td className="px-6 py-4">Quattro Stagioni</td>
+                    <td className="px-6 py-4 font-bold text-white">$28.00</td>
+                    <td className="px-6 py-4">
+                      <Badge variant="danger">✗ Link Expired</Badge>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Order</th>
-                  <th>Items</th>
-                  <th>Total</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>#1047</td>
-                  <td>Margherita L, Garlic ×2</td>
-                  <td>
-                    <strong>$38.50</strong>
-                  </td>
-                  <td>
-                    <span className="badge badge-green">✓ Paid</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>#1046</td>
-                  <td>Pepperoni XL, Coke ×3</td>
-                  <td>
-                    <strong>$54.00</strong>
-                  </td>
-                  <td>
-                    <span className="badge badge-yellow">⏳ Link Sent</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>#1045</td>
-                  <td>Veggie Special, Tiramisu</td>
-                  <td>
-                    <strong>$42.80</strong>
-                  </td>
-                  <td>
-                    <span className="badge badge-green">✓ POS Synced</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>#1044</td>
-                  <td>Quattro Stagioni</td>
-                  <td>
-                    <strong>$28.00</strong>
-                  </td>
-                  <td>
-                    <span className="badge badge-red">✗ Link Expired</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          </Card>
         </div>
 
         {/* Right Column: Calls Today Chart & Sentiment Feed */}
-        <div className="space-y-5">
+        <div className="space-y-6">
           {/* Calls Today (by hour) */}
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">Calls Today (by hour)</span>
-            </div>
-            <div className="card-body">
-              <div className="chart-wrap relative">
+          <Card>
+            <CardHeader>
+              <CardTitle>Calls Today (by hour)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[200px] w-full relative pt-4">
                 {/* SVG Bar Chart */}
                 <svg
                   viewBox="0 0 520 200"
-                  className="w-full h-full"
+                  className="w-full h-full overflow-visible"
                   preserveAspectRatio="none"
                 >
                   {/* Grid lines */}
@@ -298,15 +292,17 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                           y1={y}
                           x2="510"
                           y2={y}
-                          stroke="#f3f4f6"
+                          stroke="#334155"
                           strokeWidth="1"
+                          strokeDasharray="4 4"
                         />
                         <text
                           x="22"
                           y={y + 4}
-                          fontSize="9"
-                          fill="#9ca3af"
+                          fontSize="10"
+                          fill="#64748b"
                           textAnchor="end"
+                          className="font-medium"
                         >
                           {val}
                         </text>
@@ -316,9 +312,9 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
                   {/* Bars */}
                   {hourlyData.map((d, index) => {
-                    const barWidth = 22;
+                    const barWidth = 24;
                     const spacing = 34;
-                    const x = 40 + index * spacing;
+                    const x = 38 + index * spacing;
                     const barHeight = (d.calls / maxCalls) * 140;
                     const y = 170 - barHeight;
                     const isHovered = hoveredBar === index;
@@ -335,113 +331,102 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                           y={y}
                           width={barWidth}
                           height={barHeight}
-                          rx="5"
-                          ry="5"
+                          rx="4"
+                          ry="4"
                           fill={
                             isHovered
-                              ? '#7c3aed'
-                              : 'rgba(124, 58, 237, 0.7)'
+                              ? '#8b5cf6'
+                              : 'rgba(124, 58, 237, 0.4)'
                           }
                           className="transition-colors duration-150"
                         />
                         {/* Hour Label */}
                         <text
                           x={x + barWidth / 2}
-                          y="188"
+                          y="190"
                           fontSize="10"
-                          fill={isHovered ? '#111827' : '#6b7280'}
+                          fill={isHovered ? '#e2e8f0' : '#64748b'}
                           fontWeight={
                             d.hour.includes('pm') || d.hour === '8am'
                               ? '600'
-                              : '400'
+                              : '500'
                           }
                           textAnchor="middle"
                         >
                           {d.hour}
                         </text>
-
-                        {/* Tooltip on hover */}
+                        {/* Tooltip hint on hover */}
                         {isHovered && (
-                          <g>
-                            <rect
-                              x={x - 8}
-                              y={y - 24}
-                              width={barWidth + 16}
-                              height="18"
-                              rx="4"
-                              fill="#1a0a1e"
-                            />
-                            <text
-                              x={x + barWidth / 2}
-                              y={y - 12}
-                              fontSize="9"
-                              fill="#fff"
-                              fontWeight="600"
-                              textAnchor="middle"
-                            >
-                              {d.calls} calls
-                            </text>
-                          </g>
+                          <text
+                            x={x + barWidth / 2}
+                            y={y - 8}
+                            fontSize="12"
+                            fontWeight="bold"
+                            fill="#f8fafc"
+                            textAnchor="middle"
+                          >
+                            {d.calls} calls
+                          </text>
                         )}
                       </g>
                     );
                   })}
                 </svg>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Customer Sentiment — Last 7 Days */}
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">Customer Sentiment — Last 7 Days</span>
-            </div>
-            <div className="card-body" style={{ padding: '12px 20px' }}>
-              <div className="sentiment-row">
-                <div className="sentiment-score pos">😊</div>
-                <div style={{ flex: 1 }}>
-                  <strong>Mon — Positive</strong>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Sentiment — Last 7 Days</CardTitle>
+            </CardHeader>
+            <div className="divide-y divide-slate-700/50">
+              <div className="p-4 flex items-center gap-4 hover:bg-slate-800/30 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-xl flex-shrink-0">😊</div>
+                <div className="flex-1">
+                  <strong className="text-sm text-white">Mon — Positive</strong>
+                  <div className="text-xs text-slate-400 mt-0.5">
                     &quot;Easy ordering, loved the voice!&quot;
                   </div>
                 </div>
-                <span className="badge badge-green">94%</span>
+                <Badge variant="success">94%</Badge>
               </div>
 
-              <div className="sentiment-row">
-                <div className="sentiment-score pos">😊</div>
-                <div style={{ flex: 1 }}>
-                  <strong>Tue — Positive</strong>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+              <div className="p-4 flex items-center gap-4 hover:bg-slate-800/30 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-xl flex-shrink-0">😊</div>
+                <div className="flex-1">
+                  <strong className="text-sm text-white">Tue — Positive</strong>
+                  <div className="text-xs text-slate-400 mt-0.5">
                     &quot;Quick and simple, will order again&quot;
                   </div>
                 </div>
-                <span className="badge badge-green">91%</span>
+                <Badge variant="success">91%</Badge>
               </div>
 
-              <div className="sentiment-row">
-                <div className="sentiment-score neu">😐</div>
-                <div style={{ flex: 1 }}>
-                  <strong>Wed — Neutral</strong>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+              <div className="p-4 flex items-center gap-4 hover:bg-slate-800/30 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-xl flex-shrink-0">😐</div>
+                <div className="flex-1">
+                  <strong className="text-sm text-white">Wed — Neutral</strong>
+                  <div className="text-xs text-slate-400 mt-0.5">
                     &quot;Took a few tries to get the order right&quot;
                   </div>
                 </div>
-                <span className="badge badge-gray">72%</span>
+                <Badge variant="warning">72%</Badge>
               </div>
 
-              <div className="sentiment-row">
-                <div className="sentiment-score neg">😞</div>
-                <div style={{ flex: 1 }}>
-                  <strong>Thu — Negative</strong>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+              <div className="p-4 flex items-center gap-4 hover:bg-slate-800/30 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center text-xl flex-shrink-0">😞</div>
+                <div className="flex-1">
+                  <strong className="text-sm text-white">Thu — Negative</strong>
+                  <div className="text-xs text-slate-400 mt-0.5">
                     &quot;AI didn&apos;t understand my request&quot;
                   </div>
                 </div>
-                <span className="badge badge-red">48%</span>
+                <Badge variant="danger">48%</Badge>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

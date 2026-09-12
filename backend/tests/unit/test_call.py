@@ -121,7 +121,8 @@ def test_a_dropped_call_is_reachable_from_greeting():
 
 def test_session_round_trips_through_a_redis_dict():
     session = _session(
-        order_items=[{"name": "Margherita Pizza", "qty": 2, "price_cents": 1800}],
+        order_items=[{"name": "Margherita Pizza",
+                      "qty": 2, "price_cents": 1800}],
         mishear_count=1,
     )
     session.transition(CallState.TAKING_ORDER)

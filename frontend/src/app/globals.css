@@ -13,12 +13,13 @@
 }
 
 :root {
+  /* ── CORE MODERN PALETTE (Replaces Neumorphic Single-Color) ── */
   --bg-main: #0f172a;
   --bg-card: #1e293b;
-  --bg-card-hover: #273549;
-  --bg-subtle: #334155;
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-color-strong: rgba(255, 255, 255, 0.15);
+  --bg-card-hover: #334155;
+  --bg-subtle: #1e293b;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-color-strong: rgba(255, 255, 255, 0.2);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
@@ -26,43 +27,56 @@
   --purple: #7c3aed;
   --purple-dark: #4A0E4E;
   --purple-mid: #6d28d9;
-  --purple-light: #ede9fe;
-  --purple-sidebar: #1a0a1e;
-  --teal: #14b8a6;
-  --teal-light: #ccfbf1;
-  --orange: #FF6B35;
-  --orange-light: #fff0eb;
-  --blue: #3b82f6;
-  --blue-light: #eff6ff;
-  --green: #22c55e;
-  --green-light: #f0fdf4;
-  --red: #ef4444;
-  --red-light: #fef2f2;
-  --yellow: #eab308;
-  --yellow-light: #fefce8;
-  --gray: #6b7280;
-  --border: #e5e7eb;
-  --text: #111827;
-  --bg: #f8f7ff;
-  --card: #ffffff;
-  
-  /* ── NEUMORPHIC TOKENS ── */
-  --base:       #1a1030;
-  --base-light: #221540;
-  --base-dark:  #110a22;
-  --shadow-up:  rgba(255,255,255,0.06);
-  --shadow-dn:  rgba(0,0,0,0.45);
-  --violet:     #9d71f8;
-  --violet-glo: rgba(157,113,248,0.35);
-  --teal-glo:   rgba(45,212,191,0.3);
-  --pink:       #f0abfc;
-  --font-h:     'Space Grotesk', system-ui, sans-serif;
-  --font-m:     'JetBrains Mono', monospace;
+  --purple-light: rgba(124, 58, 237, 0.1);
+  --purple-sidebar: #0f172a;
 
-  /* Neumorphic shadows */
-  --neu-raised:  8px 8px 20px var(--shadow-dn), -4px -4px 12px var(--shadow-up);
-  --neu-inset:   inset 4px 4px 10px var(--shadow-dn), inset -3px -3px 8px var(--shadow-up);
-  --neu-flat:    4px 4px 12px var(--shadow-dn), -3px -3px 8px var(--shadow-up);
+  --indigo: #6366f1;
+  --indigo-light: rgba(99, 102, 241, 0.1);
+
+  --teal: #14b8a6;
+  --teal-light: rgba(20, 184, 166, 0.1);
+
+  --emerald: #10b981;
+  --emerald-light: rgba(16, 185, 129, 0.1);
+
+  --rose: #f43f5e;
+  --rose-light: rgba(244, 63, 94, 0.1);
+
+  --amber: #f59e0b;
+  --amber-light: rgba(245, 158, 11, 0.1);
+
+  --blue: #3b82f6;
+  --blue-light: rgba(59, 130, 246, 0.1);
+
+  /* ── FLOW NINJA STYLE TOKENS ── */
+  --bg-pure: #000000;
+  --bg-deep: #0a0a0a;
+  --bg-surface: #111111;
+  --bg-glass: rgba(17, 17, 17, 0.6);
+
+  --text-pure: #ffffff;
+  --text-dim: #a1a1aa;
+
+  --gold-primary: #D4AF37;
+  --gold-glow: rgba(212, 175, 55, 0.15);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+
+  /* Overrides for legacy tokens used in HTML */
+  --base: #000000;
+  --base-light: #111111;
+  --base-dark: #000000;
+  --violet: #8b5cf6;
+  --violet-glo: rgba(139, 92, 246, 0.4);
+  --teal-glo: rgba(20, 184, 166, 0.4);
+  --pink: #ec4899;
+  
+  --font-h: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-m: 'JetBrains Mono', monospace;
+
+  /* Modern Glassmorphic / Flat Shadows */
+  --neu-raised: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --neu-inset: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  --neu-flat: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 * {
@@ -70,8 +84,8 @@
 }
 
 body {
-  background-color: var(--base);
-  color: var(--text-main);
+  background-color: var(--bg-pure);
+  color: var(--text-pure);
   font-family: var(--font-h);
   margin: 0;
   padding: 0;
@@ -83,18 +97,58 @@ body {
 
 /* ── Custom Scrollbars ── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--bg-pure);
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 9999px;
+  background: #333333;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #555555;
+}
+
+/* Flow Ninja Specific Utilities */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #FFDF73 0%, #D4AF37 50%, #997A15 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-white {
+  background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.5) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+}
+
+.grid-bg-infinite {
+  background-size: 50px 50px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse at top, black 20%, transparent 70%);
+}
+
+.gold-glow-orb {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ── Animations ── */

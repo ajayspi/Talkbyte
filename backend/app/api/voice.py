@@ -17,22 +17,23 @@ from datetime import datetime, timezone
 log = structlog.get_logger()
 router = APIRouter()
 
+
 async def dial_livekit_sip(call_control_id: str, caller_number: str, telnyx_number: str):
     telnyx.api_key = await get_platform_secret("TELNYX_API_KEY")
     """Bridge answered Telnyx call to LiveKit via SIP."""
     room_name = f"call_{call_control_id}"
-    
+
     # Initialize CallSession in Redis
     session = CallSession(
         call_id=call_control_id,
-        restaurant_id=telnyx_number, # Will resolve to real restaurant_id in agent
+        restaurant_id=telnyx_number,  # Will resolve to real restaurant_id in agent
         caller_number=caller_number,
         state=CallState.GREETING,
         started_at=datetime.now(timezone.utc)
     )
     await save_session(session.to_redis(), ttl=1800)
     await save_call(session)
-    
+
     # We use Telnyx Call Control to transfer the answered call to LiveKit SIP URI
     try:
         call = telnyx.Call()
@@ -60,8 +61,9 @@ async def telnyx_webhook(request: Request, background_tasks: BackgroundTasks):
     telnyx.api_key = await get_platform_secret("TELNYX_API_KEY")
     body = await request.json()
     event_type = body.get("data", {}).get("event_type", "unknown")
-    call_control_id = body.get("data", {}).get("payload", {}).get("call_control_id")
-    
+    call_control_id = body.get("data", {}).get(
+        "payload", {}).get("call_control_id")
+
     log.info("telnyx.webhook", event_type=event_type, call_id=call_control_id)
 
     if event_type == "call.initiated":
@@ -72,18 +74,20 @@ async def telnyx_webhook(request: Request, background_tasks: BackgroundTasks):
             call.answer()
         except Exception as e:
             log.error("telnyx.answer_failed", error=str(e))
-            
+
     elif event_type == "call.answered":
         caller_number = body.get("data", {}).get("payload", {}).get("from")
         telnyx_number = body.get("data", {}).get("payload", {}).get("to")
         # Start SIP bridging in background
-        background_tasks.add_task(dial_livekit_sip, call_control_id, caller_number, telnyx_number)
-        
+        background_tasks.add_task(
+            dial_livekit_sip, call_control_id, caller_number, telnyx_number)
+
     elif event_type == "call.hangup":
         # Call ended
         await update_call_state(call_control_id, CallState.COMPLETE)
 
     return {"received": True}
+
 
 @router.post("/livekit-agent-start")
 async def livekit_agent_start(request: Request):

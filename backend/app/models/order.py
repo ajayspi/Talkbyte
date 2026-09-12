@@ -18,18 +18,20 @@ from app.models.exception import NotFound, ValidationError
 
 
 class OrderState(str, Enum):
-    CONFIRMED  = "CONFIRMED"     # caller confirmed, not yet pushed to POS
+    CONFIRMED = "CONFIRMED"     # caller confirmed, not yet pushed to POS
     POS_PUSHED = "POS_PUSHED"    # accepted by Square / Lightspeed
     POS_FAILED = "POS_FAILED"    # push failed after retries → email fallback
-    CANCELLED  = "CANCELLED"
+    CANCELLED = "CANCELLED"
 
 
 class OrderItem(BaseModel):
     """One line of an order. Serialises to the {name, qty, price_cents} jsonb shape."""
 
     name: str
-    qty: int = Field(gt=0, description="Always at least 1; remove the line instead of going to 0")
-    price_cents: int = Field(ge=0, description="Unit price. 0 is allowed (comped item)")
+    qty: int = Field(
+        gt=0, description="Always at least 1; remove the line instead of going to 0")
+    price_cents: int = Field(
+        ge=0, description="Unit price. 0 is allowed (comped item)")
 
     @property
     def subtotal_cents(self) -> int:
@@ -46,7 +48,8 @@ class Order(BaseModel):
     total_cents: int = 0
     state: OrderState = OrderState.CONFIRMED
     pos_order_id: str | None = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ── Capture logic ────────────────────────────────────────────────────────────
