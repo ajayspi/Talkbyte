@@ -35,6 +35,22 @@ If deploying via a Python script, you can use the `deploy_ssh.py` file located i
    docker compose up -d --build
    ```
 
+## Troubleshooting: Docker Cache (Stale UI)
+When updating static files (like `public/landing.html`) that are baked into the Next.js image, Docker's build context caching may ignore the modified file if the timestamps don't trigger invalidation. 
+- **Symptom:** You push changes, but the live site still shows the old UI.
+- **Fix:** Connect via SSH and forcefully rebuild without cache:
+  ```bash
+  cd /root/MoneyPrinterTurbo
+  docker compose build --no-cache frontend
+  docker compose up -d
+  ```
+
 ## Verification
 - Monitor the Docker build process in the SSH output.
-- Once deployed, verify the live frontend is returning HTTP 200 by checking `http://talkbyte.172.236.176.251.nip.io/`.
+- **Backend/API changes**: Verify by checking `http://talkbyte.172.236.176.251.nip.io/` or hitting the API endpoints.
+- **Frontend/UI changes**: NEVER rely solely on fetching the HTML source to verify correctness. A page can return HTTP 200 with all HTML tags present, but have completely broken CSS layout. **Always** use a headless browser tool (e.g., `chrome-devtools-mcp`'s `take_screenshot` or a Playwright python script) to capture a visual screenshot of the live URL. Visually verify the layout integrity before concluding the deployment is successful.
+
+## Pro-Tip: HTML Prototypes
+When programmatically updating raw HTML prototypes (e.g., swapping CSS themes):
+- Never blindly replace `<style>` blocks with regex, as you may delete structural Flexbox/grid layouts.
+- Always assume raw prototypes might be missing closing tags like `</body>` or `</html>`. When injecting scripts (like Three.js), append them to the absolute end of the file rather than doing string replacement on closing tags.
