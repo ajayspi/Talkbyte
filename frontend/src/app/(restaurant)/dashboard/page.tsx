@@ -1,6 +1,4 @@
 'use client';
-
-import React from 'react';
 import { useRestaurant } from '../layout';
 import DashboardTab from '@/components/restaurant/DashboardTab';
 import LiveCallsTab from '@/components/restaurant/LiveCallsTab';
@@ -9,6 +7,7 @@ import MenuTab from '@/components/restaurant/MenuTab';
 import AnalyticsTab from '@/components/restaurant/AnalyticsTab';
 import BillingTab from '@/components/restaurant/BillingTab';
 import SettingsTab from '@/components/restaurant/SettingsTab';
+import TeamTab from './team';
 
 export default function RestaurantDashboardPage() {
   const {
@@ -16,12 +15,14 @@ export default function RestaurantDashboardPage() {
     setActiveTab,
     isAddItemModalOpen,
     setIsAddItemModalOpen,
+    isExportModalOpen,
+    setIsExportModalOpen,
   } = useRestaurant();
 
   return (
-    <div>
+    <div className="tab-content" id="tab-content">
       {activeTab === 'dashboard' && (
-        <DashboardTab onNavigateTab={(tab: any) => setActiveTab(tab)} />
+        <DashboardTab onViewCalls={() => setActiveTab('livecalls')} />
       )}
 
       {activeTab === 'livecalls' && <LiveCallsTab />}
@@ -30,8 +31,8 @@ export default function RestaurantDashboardPage() {
 
       {activeTab === 'menu' && (
         <MenuTab
-          isAddItemModalOpen={isAddItemModalOpen}
-          setIsAddItemModalOpen={setIsAddItemModalOpen}
+          isModalOpen={isAddItemModalOpen}
+          setIsModalOpen={setIsAddItemModalOpen}
         />
       )}
 
@@ -40,6 +41,8 @@ export default function RestaurantDashboardPage() {
       {activeTab === 'billing' && <BillingTab />}
 
       {activeTab === 'settings' && <SettingsTab />}
+
+      {activeTab === 'team' && <TeamTab />}
     </div>
   );
 }

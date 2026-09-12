@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/admin/forgot-password') ||
     request.nextUrl.pathname.startsWith('/admin/update-password')
 
-  const isRestaurantRoute = request.nextUrl.pathname.startsWith('/dashboard')
+  const isRestaurantRoute = request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/onboarding')
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin/login') && !request.nextUrl.pathname.startsWith('/admin/signup') && !request.nextUrl.pathname.startsWith('/admin/forgot-password') && !request.nextUrl.pathname.startsWith('/admin/update-password')
 
 

@@ -26,7 +26,8 @@ export type TabId =
   | 'menu'
   | 'analytics'
   | 'billing'
-  | 'settings';
+  | 'settings'
+  | 'team';
 
 interface RestaurantContextType {
   activeTab: TabId;
@@ -56,6 +57,7 @@ const TAB_TITLES: Record<TabId, string> = {
   analytics: 'Analytics',
   billing: 'Billing & Plan',
   settings: 'Settings',
+  team: 'Team Management',
 };
 
 const TAB_SUBS: Record<TabId, string> = {
@@ -66,6 +68,7 @@ const TAB_SUBS: Record<TabId, string> = {
   analytics: 'Last 7 days overview',
   billing: 'Pro Plan · $1,500/mo',
   settings: 'Account & AI configuration',
+  team: 'Manage staff access and roles',
 };
 
 export default function RestaurantLayout({
@@ -1011,6 +1014,13 @@ export default function RestaurantLayout({
             </div>
 
             <div className="nav-section">Account</div>
+            <div
+              className={`nav-item ${activeTab === 'team' ? 'active' : ' '}`}
+              onClick={() => handleSelectTab('team')}
+            >
+              <span className="nav-icon">👥</span> Team
+            </div>
+
 
             <div
               className={`nav-item ${activeTab === 'billing' ? 'active' : ''}`}
