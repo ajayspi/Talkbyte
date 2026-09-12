@@ -48,23 +48,10 @@
   --blue: #3b82f6;
   --blue-light: rgba(59, 130, 246, 0.1);
 
-  /* ── FLOW NINJA STYLE TOKENS ── */
-  --bg-pure: #000000;
-  --bg-deep: #0a0a0a;
-  --bg-surface: #111111;
-  --bg-glass: rgba(17, 17, 17, 0.6);
-
-  --text-pure: #ffffff;
-  --text-dim: #a1a1aa;
-
-  --gold-primary: #D4AF37;
-  --gold-glow: rgba(212, 175, 55, 0.15);
-  --border-subtle: rgba(255, 255, 255, 0.1);
-
   /* Overrides for legacy tokens used in HTML */
-  --base: #000000;
-  --base-light: #111111;
-  --base-dark: #000000;
+  --base: #0f172a;
+  --base-light: #1e293b;
+  --base-dark: #020617;
   --violet: #8b5cf6;
   --violet-glo: rgba(139, 92, 246, 0.4);
   --teal-glo: rgba(20, 184, 166, 0.4);
@@ -84,8 +71,8 @@
 }
 
 body {
-  background-color: var(--bg-pure);
-  color: var(--text-pure);
+  background-color: var(--base);
+  color: var(--text-main);
   font-family: var(--font-h);
   margin: 0;
   padding: 0;
@@ -97,58 +84,18 @@ body {
 
 /* ── Custom Scrollbars ── */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-pure);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #333333;
-  border-radius: 4px;
+  background: #334155;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #555555;
-}
-
-/* Flow Ninja Specific Utilities */
-.text-gradient-gold {
-  background: linear-gradient(135deg, #FFDF73 0%, #D4AF37 50%, #997A15 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.text-gradient-white {
-  background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.5) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.glass-card {
-  background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-subtle);
-  border-radius: 24px;
-}
-
-.grid-bg-infinite {
-  background-size: 50px 50px;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  mask-image: radial-gradient(ellipse at top, black 20%, transparent 70%);
-}
-
-.gold-glow-orb {
-  position: absolute;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
-  filter: blur(60px);
-  pointer-events: none;
-  z-index: 0;
+  background: #475569;
 }
 
 /* ── Animations ── */
