@@ -12,7 +12,7 @@ This skill documents the standard deployment runbook for pushing the TalkByte mo
 - Authentication is handled via SSH/SFTP.
   - **Host**: `172.236.176.251`
   - **User**: `root`
-  - **Password**: `9700675637Ajkk!@`
+  - **Password**: `9700675637Ajkk`
 
 ## Deployment Steps
 

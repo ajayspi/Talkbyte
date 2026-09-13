@@ -5,7 +5,7 @@ import shutil
 
 host = "172.236.176.251"
 username = "root"
-password = "9700675637Ajkk!@"
+password = "9700675637Ajkk"
 
 def run_ssh_command(ssh, command):
     print(f"Running: {command}")
