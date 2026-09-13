@@ -42,7 +42,7 @@ try:
     run_ssh_command(ssh, "unzip -o -q /root/talkbyte_deploy.zip -d /root/MoneyPrinterTurbo")
     
     print("Running docker compose up...")
-    run_ssh_command(ssh, "cd /root/MoneyPrinterTurbo && docker compose pull && docker compose up -d --build")
+    run_ssh_command(ssh, "cd /root/MoneyPrinterTurbo && docker compose pull && docker compose build --no-cache frontend && docker compose up -d --build")
     
     print("Deployment triggered successfully!")
     ssh.close()
