@@ -10,7 +10,6 @@ from square.client import Client
 
 log = structlog.get_logger()
 
-
 class SquarePOS(POSBase):
 
     def __init__(self, access_token: str, location_id: str, environment: str = "sandbox"):
