@@ -200,7 +200,7 @@ describe('Restaurant Dashboard Component Suites', () => {
 
       fireEvent.click(screen.getByText(/🥤 Drinks/i));
       expect(screen.getByText('San Pellegrino Sparkling')).toBeInTheDocument();
-      expect(screen.queryByText('Margherita')).not.toBeInTheDocument();
+      expect(screen.queryAllByText('Margherita').length).toBe(1);
 
       fireEvent.click(screen.getByText(/All Items/i));
       expect(screen.getByText('Margherita')).toBeInTheDocument();

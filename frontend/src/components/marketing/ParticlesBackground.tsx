@@ -1,19 +1,18 @@
 'use client';
 
-import { useCallback } from 'react';
-import Particles from '@tsparticles/react';
-import { loadSlim } from '@tsparticles/slim';
+import Particles, { ParticlesProvider, useParticlesProvider } from '@tsparticles/react';
 import type { Engine } from '@tsparticles/engine';
+import { loadSlim } from '@tsparticles/slim';
+import { useCallback } from 'react';
 
-export default function ParticlesBackground() {
-  const particlesInit = useCallback(async (engine: Engine) => {
-    await loadSlim(engine);
-  }, []);
+function ParticlesContent() {
+  const { loaded } = useParticlesProvider();
+
+  if (!loaded) return null;
 
   return (
     <Particles
       id="tsparticles"
-      init={particlesInit}
       className="absolute inset-0 z-0"
       options={{
         background: { color: { value: 'transparent' } },
@@ -55,5 +54,17 @@ export default function ParticlesBackground() {
         detectRetina: true,
       }}
     />
+  );
+}
+
+export default function ParticlesBackground() {
+  const init = useCallback(async (engine: Engine) => {
+    await loadSlim(engine);
+  }, []);
+
+  return (
+    <ParticlesProvider init={init}>
+      <ParticlesContent />
+    </ParticlesProvider>
   );
 }
