@@ -15,6 +15,8 @@ export interface Restaurant {
   active: boolean;
   ai_instructions: string | null;
   timezone: string;
+  tts_provider?: 'elevenlabs' | 'cartesia' | string;
+  voice_id?: string | null;
   health_score?: number;
   pos_provider?: 'square' | 'lightspeed' | 'kounta' | string;
   pos_status?: 'connected' | 'syncing' | 'error' | 'disconnected' | string;

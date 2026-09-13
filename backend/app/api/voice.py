@@ -39,8 +39,15 @@ async def dial_livekit_sip(call_control_id: str, caller_number: str, telnyx_numb
         call = telnyx.Call()
         call.call_control_id = call_control_id
         # We need a SIP domain configured in LiveKit, typically provided in env vars.
-        # Fallback to a dummy for now if not in config
-        sip_domain = getattr(config, "livekit_sip_domain", "sip.livekit.cloud")
+        import os
+        region = os.getenv("LIVEKIT_REGION", "")
+        sip_domain = getattr(config, "livekit_sip_domain", None)
+        if not sip_domain:
+            if region:
+                 sip_domain = f"{region}.sip.livekit.cloud"
+            else:
+                 sip_domain = "sip.livekit.cloud"
+
         call.transfer(to=f"sip:{room_name}@{sip_domain}")
     except Exception as e:
         log.error("telnyx.sip_transfer_failed", error=str(e))
