@@ -9,6 +9,8 @@ import {
 } from '@/components/icons';
 import { toggleMenuItemAvailability, getMenuItems } from '@/lib/supabase';
 import type { MenuItem } from '@/types/database.types';
+import { usePlanGating, FeatureKey } from '@/lib/planGating';
+import { PlanUpgradeModal, LockIcon } from '@/components/ui/PlanGate';
 
 interface MenuTabProps {
   isAddItemModalOpen?: boolean;
@@ -113,6 +115,8 @@ export const MenuTab: React.FC<MenuTabProps> = ({
   isAddItemModalOpen: externalIsAddItemOpen,
   setIsAddItemModalOpen: externalSetIsAddItemOpen,
 }) => {
+  const { canAccess, navigateToBilling } = usePlanGating();
+  const [upgradeFeature, setUpgradeFeature] = useState<FeatureKey | null>(null);
   const [items, setItems] = useState<LocalMenuItem[]>(DEFAULT_MENU_ITEMS);
   const [activeCategory, setActiveCategory] = useState<string>('All Items');
   const [internalAddItemOpen, setInternalAddItemOpen] = useState(false);
@@ -215,16 +219,38 @@ export const MenuTab: React.FC<MenuTabProps> = ({
         </div>
         <div className="flex items-center gap-2.5">
           <button
-            onClick={() => setIsImportModalOpen(true)}
+            onClick={() => {
+              if (!canAccess('menu:web_scraper')) {
+                setUpgradeFeature('menu:web_scraper');
+                return;
+              }
+              setIsImportModalOpen(true);
+            }}
             className="topbar-btn btn-ghost text-xs flex items-center gap-1.5"
           >
-            📥 Import from Website
+            <span>📥 Import from Website</span>
+            {!canAccess('menu:web_scraper') && (
+              <span className="text-[9px] bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded font-bold flex items-center gap-0.5">
+                <LockIcon size={9} /> ENT
+              </span>
+            )}
           </button>
           <button
-            onClick={() => setIsUploadCsvOpen(true)}
-            className="topbar-btn btn-ghost text-xs"
+            onClick={() => {
+              if (!canAccess('menu:csv_upload')) {
+                setUpgradeFeature('menu:csv_upload');
+                return;
+              }
+              setIsUploadCsvOpen(true);
+            }}
+            className="topbar-btn btn-ghost text-xs flex items-center gap-1.5"
           >
-            Upload CSV
+            <span>Upload CSV</span>
+            {!canAccess('menu:csv_upload') && (
+              <span className="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold flex items-center gap-0.5">
+                <LockIcon size={9} /> PRO
+              </span>
+            )}
           </button>
           <button
             onClick={() => setAddItemOpen(true)}
@@ -512,6 +538,17 @@ export const MenuTab: React.FC<MenuTabProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {upgradeFeature && (
+        <PlanUpgradeModal
+          feature={upgradeFeature}
+          onClose={() => setUpgradeFeature(null)}
+          onUpgrade={() => {
+            setUpgradeFeature(null);
+            navigateToBilling();
+          }}
+        />
       )}
     </div>
   );

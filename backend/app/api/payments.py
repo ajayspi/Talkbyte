@@ -5,7 +5,7 @@ import stripe
 from config import config
 from app.db.supabase import get_order, update_order_state, get_call, get_platform_secret
 from app.models.order import OrderState
-from app.services.sms import send_payment_sms
+from app.services.messaging import send_payment_message
 import structlog
 from app.workers.celery_app import push_order_to_pos
 
@@ -31,13 +31,32 @@ async def stripe_webhook(request: Request):
 
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
-        order_id = session.get("client_reference_id")
-        if order_id:
-            # Trigger POS push
-            log.info("stripe.payment_completed", order_id=order_id)
-            order = await get_order(order_id)
-            if order:
-                push_order_to_pos.delay(order_id, order.restaurant_id)
+        if session.get("mode") == "subscription":
+            rest_id = session.get("client_reference_id") or (session.get("metadata") or {}).get("restaurant_id")
+            plan_id = (session.get("metadata") or {}).get("plan_id")
+            if rest_id and plan_id:
+                from app.db.supabase import get_db
+                db = get_db()
+                norm_plan = plan_id.lower().strip()
+                if norm_plan == "pro":
+                    norm_plan = "growth"
+                try:
+                    await db.table("restaurants").update({"plan_id": norm_plan}).eq("id", rest_id).execute()
+                    log.info("payments.subscription_session_completed", restaurant_id=rest_id, plan_id=norm_plan)
+                except Exception as db_e:
+                    log.error("payments.webhook.plan_update_failed", error=str(db_e))
+        else:
+            order_id = session.get("client_reference_id")
+            if order_id:
+                # Trigger POS push
+                log.info("stripe.payment_completed", order_id=order_id)
+                order = await get_order(order_id)
+                if order:
+                    push_order_to_pos.delay(order_id, order.restaurant_id)
+    elif event["type"] in ("customer.subscription.created", "customer.subscription.updated"):
+        from app.api.billing import _handle_subscription_change
+        subscription = event["data"]["object"]
+        await _handle_subscription_change(subscription, event["type"])
 
     return {"received": True}
 
@@ -71,13 +90,14 @@ async def create_payment_link(order_id: str):
         )
 
         telnyx_number = await get_platform_secret("TELNYX_PHONE_NUMBER") or "+61411111111"
-        # Send SMS via Telnyx
-        await send_payment_sms(
+        # Send payment link via WhatsApp (with Telnyx SMS fallback)
+        await send_payment_message(
             to_number=customer_number,
-            from_number=telnyx_number,
             payment_url=session.url,
-            restaurant_name="Our Restaurant"
+            restaurant_name="Our Restaurant",
+            from_number=telnyx_number,
         )
+
 
         return {"payment_url": session.url, "order_id": order_id}
     except Exception as e:

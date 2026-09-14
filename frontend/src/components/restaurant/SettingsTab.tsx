@@ -8,6 +8,8 @@ import {
   PlusIcon,
   XIcon,
 } from '@/components/icons';
+import { usePlanGating, FeatureKey } from '@/lib/planGating';
+import { PlanUpgradeModal, LockIcon } from '@/components/ui/PlanGate';
 
 interface StaffMember {
   id: string;
@@ -17,6 +19,9 @@ interface StaffMember {
 }
 
 export const SettingsTab: React.FC = () => {
+  const { canAccess, navigateToBilling } = usePlanGating();
+  const [upgradeFeature, setUpgradeFeature] = useState<FeatureKey | null>(null);
+
   // Business Details State
   const [businessName, setBusinessName] = useState("Mama's Pizzeria");
   const [didNumber] = useState("+61 2 9999 1234");
@@ -24,12 +29,21 @@ export const SettingsTab: React.FC = () => {
   const [holidayMode, setHolidayMode] = useState(false);
 
   // AI Voice Settings State
+  const [ttsProvider, setTtsProvider] = useState<'cartesia' | 'elevenlabs'>('cartesia');
   const [personaName, setPersonaName] = useState("Aria");
   const [greetingScript, setGreetingScript] = useState(
     '"Hi, welcome to Mama\'s Pizzeria! I\'m Aria. Would you like to place an order today?"'
   );
   const [allowManualTakeover, setAllowManualTakeover] = useState(true);
   const [transferLowConfidence, setTransferLowConfidence] = useState(true);
+
+  const handleTtsChange = (newVal: 'cartesia' | 'elevenlabs') => {
+    if (newVal === 'elevenlabs' && !canAccess('settings:tts_elevenlabs')) {
+      setUpgradeFeature('settings:tts_elevenlabs');
+      return;
+    }
+    setTtsProvider(newVal);
+  };
 
   // Integrations State
   const [shopifyConnected, setShopifyConnected] = useState(false);
@@ -220,13 +234,22 @@ export const SettingsTab: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
+                        if (!canAccess('settings:pos_shopify')) {
+                          setUpgradeFeature('settings:pos_shopify');
+                          return;
+                        }
                         setShopifyConnected(true);
                         showToast('Shopify POS connector initialized.');
                       }}
-                      className="topbar-btn btn-ghost"
+                      className="topbar-btn btn-ghost flex items-center gap-1"
                       style={{ fontSize: '11px', padding: '5px 10px' }}
                     >
-                      Connect
+                      <span>Connect</span>
+                      {!canAccess('settings:pos_shopify') && (
+                        <span className="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold flex items-center gap-0.5">
+                          <LockIcon size={9} /> PRO
+                        </span>
+                      )}
                     </button>
                   )}
                 </div>
@@ -244,9 +267,14 @@ export const SettingsTab: React.FC = () => {
               <div className="card-body">
                 <div className="input-group">
                   <div className="input-label">TTS Provider (Text-to-Speech)</div>
-                  <select defaultValue="cartesia">
+                  <select
+                    value={ttsProvider}
+                    onChange={(e) => handleTtsChange(e.target.value as any)}
+                  >
                     <option value="cartesia">Cartesia Sonic (Ultra-low Latency)</option>
-                    <option value="elevenlabs">ElevenLabs (High Quality)</option>
+                    <option value="elevenlabs">
+                      ElevenLabs (High Quality) {!canAccess('settings:tts_elevenlabs') ? '🔒 [Growth/Pro]' : ''}
+                    </option>
                   </select>
                 </div>
 
@@ -270,16 +298,29 @@ export const SettingsTab: React.FC = () => {
 
                 <div className="settings-row">
                   <div>
-                    <div className="setting-label">Allow Manual Takeover</div>
+                    <div className="setting-label flex items-center gap-1.5">
+                      <span>Allow Manual Takeover</span>
+                      {!canAccess('settings:manual_takeover') && (
+                        <span className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold flex items-center gap-0.5">
+                          <LockIcon size={9} /> PRO
+                        </span>
+                      )}
+                    </div>
                     <div className="setting-desc">
                       Staff can intercept active AI calls from dashboard
                     </div>
                   </div>
                   <div
-                    className={`toggle ${allowManualTakeover ? 'on' : ''}`}
-                    onClick={() =>
-                      setAllowManualTakeover(!allowManualTakeover)
-                    }
+                    className={`toggle ${allowManualTakeover ? 'on' : ''} ${
+                      !canAccess('settings:manual_takeover') ? 'opacity-60 cursor-pointer' : ''
+                    }`}
+                    onClick={() => {
+                      if (!canAccess('settings:manual_takeover')) {
+                        setUpgradeFeature('settings:manual_takeover');
+                        return;
+                      }
+                      setAllowManualTakeover(!allowManualTakeover);
+                    }}
                   />
                 </div>
 
@@ -317,11 +358,22 @@ export const SettingsTab: React.FC = () => {
                 <span className="card-title">Staff Access</span>
                 <button
                   type="button"
-                  onClick={() => setInviteModalOpen(true)}
+                  onClick={() => {
+                    if (!canAccess('settings:multi_staff')) {
+                      setUpgradeFeature('settings:multi_staff');
+                      return;
+                    }
+                    setInviteModalOpen(true);
+                  }}
                   className="topbar-btn btn-ghost text-xs flex items-center gap-1"
                 >
                   <PlusIcon size={12} />
-                  Invite
+                  <span>Invite</span>
+                  {!canAccess('settings:multi_staff') && (
+                    <span className="text-[9px] bg-purple-100 text-purple-700 px-1 rounded font-bold flex items-center gap-0.5">
+                      <LockIcon size={9} /> PRO
+                    </span>
+                  )}
                 </button>
               </div>
               <table>
@@ -446,6 +498,17 @@ export const SettingsTab: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {upgradeFeature && (
+        <PlanUpgradeModal
+          feature={upgradeFeature}
+          onClose={() => setUpgradeFeature(null)}
+          onUpgrade={() => {
+            setUpgradeFeature(null);
+            navigateToBilling();
+          }}
+        />
       )}
     </div>
   );

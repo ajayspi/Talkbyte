@@ -265,25 +265,29 @@ describe('Restaurant Dashboard Component Suites', () => {
       render(<BillingTab />);
 
       // Next billing alert
-      expect(screen.getByText(/Next billing date: 1 September 2026/i)).toBeInTheDocument();
+      expect(screen.getByText(/Next billing date: 1 October 2026/i)).toBeInTheDocument();
 
       // Plans
       expect(screen.getByText('Starter')).toBeInTheDocument();
-      expect(screen.getByText('Pro')).toBeInTheDocument();
+      expect(screen.getByText('Growth')).toBeInTheDocument();
       expect(screen.getByText('Enterprise')).toBeInTheDocument();
+      expect(screen.getByText('$149')).toBeInTheDocument();
+      expect(screen.getByText('$249')).toBeInTheDocument();
+      expect(screen.getByText('$499')).toBeInTheDocument();
       expect(screen.getByText('Current Plan')).toBeInTheDocument();
       expect(screen.getByText('Active Plan')).toBeInTheDocument();
 
       // Monthly Usage
-      expect(screen.getByText('Usage This Month')).toBeInTheDocument();
-      expect(screen.getByText('Calls Used')).toBeInTheDocument();
-      expect(screen.getByText('4,841')).toBeInTheDocument();
-      expect(screen.getByText('AI Minutes')).toBeInTheDocument();
-      expect(screen.getByText('11,183')).toBeInTheDocument();
-      expect(screen.getByText('SMS Sent')).toBeInTheDocument();
+      expect(screen.getByText(/Usage This Month/i)).toBeInTheDocument();
+      expect(screen.getByText('Calls Handled')).toBeInTheDocument();
+      expect(screen.getByText('1,481')).toBeInTheDocument();
+      expect(screen.getByText('AI Conversation Minutes')).toBeInTheDocument();
+      expect(screen.getByText('4,183')).toBeInTheDocument();
+      expect(screen.getByText('SMS & WhatsApp Messages')).toBeInTheDocument();
 
       // Billing History
-      expect(screen.getByText('Billing History')).toBeInTheDocument();
+      expect(screen.getByText(/Billing & Invoice History/i)).toBeInTheDocument();
+      expect(screen.getByText('Sep 2026')).toBeInTheDocument();
       expect(screen.getByText('Aug 2026')).toBeInTheDocument();
       expect(screen.getByText('Jul 2026')).toBeInTheDocument();
     });
@@ -291,14 +295,14 @@ describe('Restaurant Dashboard Component Suites', () => {
     it('opens and confirms plan switch modal', () => {
       render(<BillingTab />);
 
-      const switchBtn = screen.getByRole('button', { name: 'Switch to Starter' });
+      const switchBtn = screen.getByRole('button', { name: /Upgrade to Starter|Switch to Starter/i });
       fireEvent.click(switchBtn);
 
-      expect(screen.getByText('Confirm Plan Change')).toBeInTheDocument();
-      expect(screen.getByText(/Includes up to 3,000 inbound calls/i)).toBeInTheDocument();
+      expect(screen.getByText('Confirm Subscription Change')).toBeInTheDocument();
+      expect(screen.getByText(/Starter includes up to 500 inbound calls/i)).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Confirm & Update Billing' }));
-      expect(screen.queryByText('Confirm Plan Change')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /Proceed to Stripe Checkout|Confirm/i }));
+      expect(screen.queryByText('Confirm Subscription Change')).not.toBeInTheDocument();
     });
   });
 

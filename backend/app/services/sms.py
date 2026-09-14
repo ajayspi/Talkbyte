@@ -27,13 +27,14 @@ async def send_payment_sms(
     from_number: str,
     payment_url: str,
     restaurant_name: str,
-) -> None:
+    force_sms: bool = False,
+) -> bool:
     """
     Send the Stripe payment link to the customer.
 
     For Australian mobile numbers (+614xxxxxxxx) the message is first
-    attempted via the Meta WhatsApp Business Cloud API.  If that fails —
-    or the number is not registered on WhatsApp — the function falls back
+    attempted via the Meta WhatsApp Business Cloud API unless *force_sms* is True.
+    If that fails — or the number is not registered on WhatsApp — the function falls back
     to plain SMS delivered through the existing Telnyx integration.
 
     Parameters
@@ -46,9 +47,12 @@ async def send_payment_sms(
         Stripe Checkout URL to include in the message body.
     restaurant_name:
         Display name of the restaurant shown in the message.
+    force_sms:
+        If True, skip the WhatsApp check and send directly via Telnyx SMS.
+        Defaults to False for backward compatibility.
     """
-    # -- WhatsApp (AU mobiles only) --------------------------------------------
-    if is_au_mobile(to_number):
+    # -- WhatsApp (AU mobiles only, unless force_sms is True) ------------------
+    if not force_sms and is_au_mobile(to_number):
         log.info("messaging.whatsapp_attempt", to=to_number)
         whatsapp_ok = await send_whatsapp_payment_link(
             to_number=to_number,
@@ -56,12 +60,13 @@ async def send_payment_sms(
             restaurant_name=restaurant_name,
         )
         if whatsapp_ok:
-            return  # Delivered via WhatsApp - no SMS needed
+            return True  # Delivered via WhatsApp - no SMS needed
         log.info(
             "messaging.whatsapp_failed_sms_fallback",
             to=to_number,
             reason="WhatsApp delivery unsuccessful",
         )
+
 
     # -- Telnyx SMS (always runs for non-AU; fallback for AU) ------------------
     telnyx.api_key = await get_platform_secret("TELNYX_API_KEY")
@@ -79,5 +84,8 @@ async def send_payment_sms(
             text=message_text,
         )
         log.info("sms.payment_link_sent", to=to_number, url=payment_url)
+        return True
     except Exception as e:
         log.error("sms.payment_link_failed", error=str(e), to=to_number)
+        return False
+

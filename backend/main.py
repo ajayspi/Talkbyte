@@ -12,7 +12,8 @@ from app.services.logging import setup_logging
 from app.services.error_handler import register_exception_handlers
 from app.db.supabase import init_supabase
 from app.db.redis import init_redis
-from app.api import voice, orders, restaurants, payments, admin
+from app.api import voice, orders, restaurants, payments, admin, billing, messages
+
 
 log = setup_logging(config.debug)
 
@@ -51,6 +52,10 @@ app.include_router(orders.router,      prefix="/api/orders",      tags=["orders"
 app.include_router(restaurants.router, prefix="/api/restaurants", tags=["restaurants"])
 app.include_router(payments.router,    prefix="/api/payments",    tags=["payments"])
 app.include_router(admin.router,       prefix="/api/admin",       tags=["admin"])
+app.include_router(billing.router,     prefix="/api/billing",     tags=["billing"])
+app.include_router(messages.router,    prefix="/api/messages",    tags=["messages"])
+app.include_router(messages.router,    prefix="/api/messaging",   tags=["messages"], include_in_schema=False)
+
 
 
 @app.get("/health")

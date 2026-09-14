@@ -23,15 +23,152 @@ _GRAPH_API_BASE = "https://graph.facebook.com/v20.0"
 _AU_MOBILE_RE = re.compile(r"^\+614\d{8}$")
 
 
+from typing import NamedTuple
+
+
+class NormalizedPhone(NamedTuple):
+    """Normalized representation of a phone number."""
+    raw: str
+    is_valid: bool
+    is_au_mobile: bool
+    e164: str
+    whatsapp_id: str
+
+    @property
+    def whatsapp_to(self) -> str:
+        """Alias for Meta WhatsApp recipient format."""
+        return self.whatsapp_id
+
+
+def normalize_phone_number(raw_number: str) -> NormalizedPhone:
+    """
+    Parse, validate, and normalize any phone number into canonical formats.
+
+    Supports:
+    - Domestic AU mobile: 0412345678 -> E.164: +61412345678, WhatsApp: 61412345678
+    - International AU mobile: +61412345678 or 61412345678
+    - Formatted AU mobile: (04) 1234 5678, 0412-345-678, 0412.345.678, +61 412 345 678
+    - AU landlines: 02/03/07/08 -> is_valid=True, is_au_mobile=False
+    - Non-AU international: +12025550179 -> is_valid=True, is_au_mobile=False
+    - Malformed/invalid numbers -> is_valid=False, is_au_mobile=False
+    """
+    if not raw_number or not isinstance(raw_number, str):
+        return NormalizedPhone(
+            raw=str(raw_number) if raw_number else "",
+            is_valid=False,
+            is_au_mobile=False,
+            e164="",
+            whatsapp_id="",
+        )
+
+    cleaned = re.sub(r"[\s\-\(\)\.]", "", raw_number.strip())
+    if not cleaned:
+        return NormalizedPhone(raw=raw_number, is_valid=False, is_au_mobile=False, e164="", whatsapp_id="")
+
+    # 1. Domestic AU mobile: 04XXXXXXXX (exactly 10 digits starting with 04)
+    if re.match(r"^04\d{8}$", cleaned):
+        digits = "61" + cleaned[1:]
+        return NormalizedPhone(
+            raw=raw_number,
+            is_valid=True,
+            is_au_mobile=True,
+            e164="+" + digits,
+            whatsapp_id=digits,
+        )
+
+    # 2. International AU mobile with '+': +614XXXXXXXX (exactly 12 chars)
+    if _AU_MOBILE_RE.match(cleaned):
+        digits = cleaned[1:]
+        return NormalizedPhone(
+            raw=raw_number,
+            is_valid=True,
+            is_au_mobile=True,
+            e164=cleaned,
+            whatsapp_id=digits,
+        )
+
+    # 3. International AU mobile digits only: 614XXXXXXXX (exactly 11 digits)
+    if re.match(r"^614\d{8}$", cleaned):
+        return NormalizedPhone(
+            raw=raw_number,
+            is_valid=True,
+            is_au_mobile=True,
+            e164="+" + cleaned,
+            whatsapp_id=cleaned,
+        )
+
+    # 4. AU Landline: 02/03/07/08 (10 digits starting with 02, 03, 07, 08)
+    if re.match(r"^0[2378]\d{8}$", cleaned):
+        digits = "61" + cleaned[1:]
+        return NormalizedPhone(
+            raw=raw_number,
+            is_valid=True,
+            is_au_mobile=False,
+            e164="+" + digits,
+            whatsapp_id=digits,
+        )
+    # AU Landline with +61
+    if re.match(r"^\+61[2378]\d{8}$", cleaned):
+        return NormalizedPhone(
+            raw=raw_number,
+            is_valid=True,
+            is_au_mobile=False,
+            e164=cleaned,
+            whatsapp_id=cleaned[1:],
+        )
+    # AU Landline with 61 digits only
+    if re.match(r"^61[2378]\d{8}$", cleaned):
+        return NormalizedPhone(
+            raw=raw_number,
+            is_valid=True,
+            is_au_mobile=False,
+            e164="+" + cleaned,
+            whatsapp_id=cleaned,
+        )
+
+    # If it starts with Australian prefixes (+61, 61, 0) but didn't match valid AU patterns above, it's invalid
+    if cleaned.startswith("+61") or cleaned.startswith("61") or cleaned.startswith("0"):
+        return NormalizedPhone(
+            raw=raw_number,
+            is_valid=False,
+            is_au_mobile=False,
+            e164=cleaned if cleaned.startswith("+") else "+" + cleaned,
+            whatsapp_id=cleaned.lstrip("+"),
+        )
+
+    # 5. General International E.164 (+ followed by 7 to 14 digits, country code 1-9)
+    if re.match(r"^\+[1-9]\d{6,13}$", cleaned):
+        return NormalizedPhone(
+            raw=raw_number,
+            is_valid=True,
+            is_au_mobile=False,
+            e164=cleaned,
+            whatsapp_id=cleaned[1:],
+        )
+
+    # Unparseable / invalid fallback
+    return NormalizedPhone(
+        raw=raw_number,
+        is_valid=False,
+        is_au_mobile=False,
+        e164=cleaned if cleaned.startswith("+") else "+" + cleaned,
+        whatsapp_id=cleaned.lstrip("+"),
+    )
+
+
+# Alias for backward compatibility / alternate naming
+normalize_phone = normalize_phone_number
+
+
 def is_au_mobile(phone_number: str) -> bool:
     """
     Return True if *phone_number* is an Australian mobile number.
 
-    Accepts E.164 format only (e.g. ``+61412345678``).
-    Australian mobiles start with ``+614`` followed by 8 digits.
+    Accepts E.164 (+614xxxxxxxx), domestic (04xxxxxxxx), or digits-only (614xxxxxxxx)
+    with or without whitespace, hyphens, and parentheses.
     """
-    normalised = phone_number.replace(" ", "").replace("-", "")
-    return bool(_AU_MOBILE_RE.match(normalised))
+    return normalize_phone_number(phone_number).is_au_mobile
+
 
 
 async def send_whatsapp_payment_link(
@@ -67,8 +204,8 @@ async def send_whatsapp_payment_link(
         )
         return False
 
-    # Strip leading '+' -- Meta expects E.164 without the plus sign
-    recipient = to_number.lstrip("+")
+    norm = normalize_phone_number(to_number)
+    recipient = norm.whatsapp_id if (norm.is_valid and norm.whatsapp_id) else to_number.lstrip("+")
 
     message_text = (
         f"Thank you for ordering with {restaurant_name}! "
