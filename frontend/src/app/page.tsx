@@ -166,33 +166,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* HOW IT WORKS */}
-        <section id="how-it-works" className="py-32 relative z-10">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-20">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">How It <span className="text-gradient-gold">Works.</span></h2>
-              <p className="text-white/60 text-lg">From ring to receipt in under 487ms.</p>
-            </div>
-            <div className="grid md:grid-cols-4 gap-8 text-center relative">
-              <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-[var(--gold)] to-[var(--violet)] opacity-30 -translate-y-1/2 -z-10"></div>
-              {[
-                { step: "1", title: "Phone Rings", desc: "Customer calls your Telnyx number." },
-                { step: "2", title: "AI Answers", desc: "LiveKit agent picks up instantly." },
-                { step: "3", title: "Order Taken", desc: "GPT-4.1 processes the natural conversation." },
-                { step: "4", title: "POS Synced", desc: "Payment link sent, order fires to Square." }
-              ].map((hw, i) => (
-                <div key={i} className="glass-card p-6 rounded-3xl relative hover:scale-105 transition-transform duration-300">
-                  <div className="w-12 h-12 mx-auto rounded-full bg-[var(--gold)] text-black font-bold flex items-center justify-center mb-4 text-xl border-4 border-[#050505] shadow-[0_0_20px_rgba(212,175,55,0.4)]">
-                    {hw.step}
-                  </div>
-                  <h3 className="text-lg font-bold mb-2 text-white">{hw.title}</h3>
-                  <p className="text-sm text-white/60">{hw.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* USE CASES / VERTICALS */}
         <section id="use-cases" className="py-32 bg-black/40 border-y border-white/5 relative z-10">
           <div className="max-w-7xl mx-auto px-6">
@@ -296,28 +269,3 @@ export default function Home() {
     </div>
   );
 }
-<section id="how-it-works" className="py-32 bg-black/40 border-y border-white/5 relative z-10 pt-32">
-  <div className="max-w-7xl mx-auto px-6">
-    <div className="text-center mb-20">
-      <h2 className="text-4xl md:text-5xl font-bold mb-4">How It <span className="text-gradient-gold">Works.</span></h2>
-      <p className="text-white/60 text-lg">From ring to receipt in under 487ms.</p>
-    </div>
-    <div className="grid md:grid-cols-4 gap-8 text-center relative">
-      <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-[var(--gold)] to-[var(--violet)] opacity-30 -translate-y-1/2 -z-10"></div>
-      {[
-        { step: "1", title: "Phone Rings", desc: "Customer calls your Telnyx number." },
-        { step: "2", title: "AI Answers", desc: "LiveKit agent picks up instantly." },
-        { step: "3", title: "Order Taken", desc: "GPT-4.1 processes the natural conversation." },
-        { step: "4", title: "POS Synced", desc: "Payment link sent, order fires to Square." }
-      ].map((hw, i) => (
-        <div key={i} className="glass-card p-6 rounded-3xl relative">
-          <div className="w-12 h-12 mx-auto rounded-full bg-[var(--gold)] text-black font-bold flex items-center justify-center mb-4 text-xl border-4 border-[#050505] shadow-[0_0_20px_rgba(212,175,55,0.4)]">
-            {hw.step}
-          </div>
-          <h3 className="text-lg font-bold mb-2 text-white">{hw.title}</h3>
-          <p className="text-sm text-white/60">{hw.desc}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-</section>

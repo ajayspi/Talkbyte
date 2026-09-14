@@ -39,9 +39,9 @@ export default function Navigation() {
         </div>
 
         <div className="flex items-center gap-4">
-          <a href="http://talkbyte.172.236.176.251.nip.io/dashboard" className="hidden sm:block text-sm font-medium text-white/70 hover:text-white transition-colors">
+          <Link href="/login" className="hidden sm:block text-sm font-medium text-white/70 hover:text-white transition-colors">
             Login
-          </a>
+          </Link>
           <Link href="#pricing" className="px-5 py-2.5 rounded-full glow-btn text-sm font-bold uppercase tracking-wide">
             Start Free
           </Link>
