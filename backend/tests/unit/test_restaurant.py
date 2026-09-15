@@ -42,7 +42,8 @@ def test_restaurant_defaults_match_the_schema():
 
 
 def test_restaurant_carries_ai_instructions_for_the_prompt():
-    restaurant = Restaurant(name="Nonna's", ai_instructions="Upsell garlic bread.")
+    restaurant = Restaurant(
+        name="Nonna's", ai_instructions="Upsell garlic bread.")
 
     assert restaurant.ai_instructions == "Upsell garlic bread."
 

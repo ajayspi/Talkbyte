@@ -21,7 +21,8 @@ async def init_redis() -> None:
 
 def get_redis() -> Redis:
     if _redis is None:
-        raise RuntimeError("Redis not initialised — call init_redis() at startup")
+        raise RuntimeError(
+            "Redis not initialised — call init_redis() at startup")
     return _redis
 
 

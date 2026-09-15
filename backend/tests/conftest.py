@@ -10,17 +10,20 @@ os.environ['SUPABASE_SERVICE_ROLE_KEY'] = 'test-service-role-key'
 os.environ['UPSTASH_REDIS_REST_URL'] = 'https://test.upstash.io'
 os.environ['UPSTASH_REDIS_REST_TOKEN'] = 'test-token'
 
+
 @pytest.fixture
 def mock_supabase():
     """Mock Supabase client get_db() function."""
     with patch('app.db.supabase.get_db') as mock:
         yield mock
 
+
 @pytest.fixture
 def mock_redis():
     """Mock Redis client get_redis() function."""
     with patch('app.db.redis.get_redis') as mock:
         yield mock
+
 
 @pytest.fixture
 def mock_deepgram():
@@ -33,6 +36,7 @@ def mock_deepgram():
     """
     # Placeholder — update when Task 6 begins
     yield Mock()
+
 
 @pytest.fixture
 def mock_openai():

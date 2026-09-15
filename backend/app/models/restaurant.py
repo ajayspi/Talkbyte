@@ -26,7 +26,8 @@ class Restaurant(BaseModel):
     active: bool = False
     ai_instructions: str | None = None   # injected into the system prompt
     timezone: str = "Australia/Sydney"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc))
 
 
 class MenuItem(BaseModel):
