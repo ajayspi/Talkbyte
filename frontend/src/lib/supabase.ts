@@ -110,7 +110,7 @@ export async function toggleMenuItemAvailability(
   try {
     const { error } = await withTimeout((supabase.from('menu_items') as any)
       .update({ available })
-      .eq('id', itemId));
+      .eq('id', itemId)) as { error: unknown };
     if (!error) {
       localMenuItems = localMenuItems.map((item) =>
         item.id === itemId ? { ...item, available } : item
