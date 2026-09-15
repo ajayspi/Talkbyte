@@ -2,23 +2,25 @@
 
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
-import { Phone, Globe2, UtensilsCrossed, Store, Zap, CheckCircle2, ChevronRight } from "lucide-react";
+import { Phone, CheckCircle2, Store, Activity } from "lucide-react";
 import Link from "next/link";
+import GoldGlobe from "@/components/landing/GoldGlobe";
+import AnimatedGraph from "@/components/landing/AnimatedGraph";
+import NodeNetwork from "@/components/landing/NodeNetwork";
 
 export default function Home() {
   return (
-    <div className="relative selection:bg-[var(--gold)] selection:text-black">
+    <div className="relative selection:bg-[var(--gold)] selection:text-black mesh-bg min-h-screen">
       <Navigation />
 
-      {/* Background Effects */}
-      <div className="fixed inset-0 z-[-1] bg-[#050505]">
-        <div className="absolute inset-0 grid-bg opacity-30 mix-blend-screen" />
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--gold)]/10 blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--violet)]/10 blur-[120px]" />
+      {/* Background Lighting */}
+      <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#D4AF37]/5 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#7c3aed]/10 blur-[120px]" />
       </div>
 
       <main>
-        {/* HERO SECTION */}
+        {/* HERO SECTION - Masterpiece Core */}
         <section className="relative min-h-screen flex items-center justify-center pt-32 pb-20 px-6 overflow-hidden">
           <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-16 items-center">
 
@@ -28,188 +30,157 @@ export default function Home() {
               transition={{ duration: 1, ease: "easeOut" }}
               className="space-y-8 relative z-10"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--gold)]/30 bg-[var(--gold)]/5 backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-[var(--gold)] animate-pulse" />
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass-panel"
+              >
+                <span className="w-2 h-2 rounded-full bg-[var(--gold)] animate-pulse shadow-[0_0_10px_#D4AF37]" />
                 <span className="text-[var(--gold)] text-xs font-bold tracking-widest uppercase">The Voice Commerce OS</span>
-              </div>
+              </motion.div>
 
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1]">
+              <h1 className="text-5xl sm:text-6xl lg:text-[80px] font-black tracking-tighter leading-[1]">
                 Every missed call is <br />
-                <span className="text-gradient-gold">lost revenue.</span>
+                <span className="text-gradient-premium">lost revenue.</span>
               </h1>
 
-              <p className="text-lg text-white/70 max-w-xl leading-relaxed">
-                TalkByte AI answers every call instantly, takes orders with human-parity accuracy, sends SMS payment links, and syncs directly into your POS. Never put a customer on hold again.
+              <p className="text-lg md:text-xl text-white/60 max-w-xl leading-relaxed font-light">
+                TalkByte AI answers every call instantly, takes orders with human-parity accuracy, sends SMS payment links, and syncs directly into your Point of Sale.
               </p>
 
               <div className="flex flex-wrap gap-4 pt-4">
-                <Link href="#demo" className="glow-btn px-8 py-4 rounded-full font-bold text-sm uppercase tracking-wide flex items-center gap-2">
+                <Link href="#demo" className="glow-btn px-8 py-4 rounded-full font-bold text-sm uppercase tracking-wider flex items-center gap-2">
                   <Phone size={18} /> Hear it in action
                 </Link>
-                <Link href="#use-cases" className="px-8 py-4 rounded-full border border-white/20 hover:bg-white/5 transition-colors font-bold text-sm uppercase tracking-wide flex items-center gap-2 text-white">
-                  See Use Cases <ChevronRight size={18} />
+                <Link href="#how-it-works" className="px-8 py-4 rounded-full glass-panel hover:bg-white/5 transition-colors font-bold text-sm uppercase tracking-wider flex items-center gap-2 text-white">
+                  See The Pipeline
                 </Link>
+              </div>
+
+              <div className="pt-8 flex items-center gap-8 border-t border-[var(--gold)]/10">
+                 <div>
+                   <div className="text-3xl font-black text-white">487<span className="text-[var(--gold)] text-lg">ms</span></div>
+                   <div className="text-xs text-white/40 uppercase tracking-widest font-semibold mt-1">Response Latency</div>
+                 </div>
+                 <div className="w-px h-12 bg-[var(--gold)]/10"></div>
+                 <div>
+                   <div className="text-3xl font-black text-emerald-400">94<span className="text-emerald-500/50 text-lg">%</span></div>
+                   <div className="text-xs text-white/40 uppercase tracking-widest font-semibold mt-1">Order Accuracy</div>
+                 </div>
               </div>
             </motion.div>
 
-            {/* Glowing Globe / 3D Element Abstract Representation */}
+            {/* Premium Gold Globe Component */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="relative aspect-square flex items-center justify-center lg:justify-end"
+              transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
+              className="relative z-10"
             >
-              <div className="relative w-full max-w-[500px] aspect-square rounded-full border border-[var(--gold)]/20 animate-[spin_60s_linear_infinite] flex items-center justify-center">
-                <div className="absolute inset-4 rounded-full border border-[var(--gold)]/30 animate-[spin_40s_linear_infinite_reverse]" />
-                <div className="absolute inset-12 rounded-full border border-[var(--violet)]/30 animate-[spin_20s_linear_infinite]" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--gold)_0%,transparent_50%)] opacity-20 blur-3xl mix-blend-screen" />
-                <Globe2 size={120} className="text-[var(--gold)]/50 absolute" />
-              </div>
-
-              {/* Floating Stat Card */}
-              <motion.div
-                animate={{ y: [0, -20, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute bottom-10 left-0 glass-card p-4 rounded-2xl flex items-center gap-4 shadow-2xl shadow-[var(--gold)]/10"
-              >
-                <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                  <Zap className="text-emerald-400" size={24} />
-                </div>
-                <div>
-                  <div className="text-sm text-white/50 font-medium">Ring to POS</div>
-                  <div className="text-2xl font-black text-white">487<span className="text-sm font-medium text-[var(--gold)]">ms</span></div>
-                </div>
-              </motion.div>
+              <GoldGlobe />
             </motion.div>
+          </div>
+        </section>
 
+        {/* DATA VISUALIZATION SECTION */}
+        <section id="analytics" className="py-32 relative z-10 border-y border-[var(--gold)]/10 bg-black/40">
+           <div className="max-w-7xl mx-auto px-6">
+             <div className="grid lg:grid-cols-2 gap-16 items-center">
+               <motion.div
+                 initial={{ opacity: 0, y: 40 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ once: true, margin: "-100px" }}
+               >
+                 <AnimatedGraph />
+               </motion.div>
+               <div className="space-y-6">
+                 <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Capture the <span className="text-gradient-premium">Friday Rush.</span></h2>
+                 <p className="text-lg text-white/60 leading-relaxed">
+                   When your venue peaks at 7 PM, human staff put callers on hold, leading to a 30% abandonment rate. TalkByte's infinite concurrency means every caller is greeted instantly, capturing revenue you didn't know you were losing.
+                 </p>
+                 <ul className="space-y-4 pt-4">
+                   <li className="flex items-center gap-4 text-sm font-medium text-white/80 glass-panel p-4 rounded-xl">
+                     <Activity className="text-[var(--gold)]" /> Real-time Analytics Sync
+                   </li>
+                   <li className="flex items-center gap-4 text-sm font-medium text-white/80 glass-panel p-4 rounded-xl">
+                     <Store className="text-emerald-400" /> Direct POS Menu Injection
+                   </li>
+                 </ul>
+               </div>
+             </div>
+           </div>
+        </section>
+
+        {/* HOW IT WORKS / NODE NETWORK */}
+        <section id="how-it-works" className="py-32 relative z-10 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-24">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">A unified <span className="text-gradient-premium">AI Pipeline.</span></h2>
+              <p className="text-white/60 text-lg max-w-2xl mx-auto">Not just an answering machine. An entire automated workflow spanning telephony, speech-to-text, LLM routing, and payment gateways.</p>
+            </div>
+
+            <div className="relative">
+              <NodeNetwork />
+            </div>
           </div>
         </section>
 
         {/* INTERACTIVE DEMO */}
-        <section id="demo" className="py-32 relative z-10">
+        <section id="demo" className="py-32 relative z-10 border-t border-[var(--gold)]/10 bg-black/40">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">The exact sound of <span className="text-gradient-gold">efficiency.</span></h2>
-              <p className="text-white/60 text-lg max-w-2xl mx-auto">Our AI is trained on thousands of Australian hospitality calls. It handles thick accents, complex modifications, and payment friction automatically.</p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">Hear a <span className="text-gradient-premium">real call.</span></h2>
+              <p className="text-white/60 text-lg max-w-2xl mx-auto">Trained on thousands of real-world interactions. It handles thick accents, complex modifications, and payment friction automatically.</p>
             </div>
 
-            <div className="max-w-3xl mx-auto glass-card rounded-3xl p-8 border border-[var(--gold)]/20 shadow-[0_0_50px_rgba(212,175,55,0.05)] relative overflow-hidden">
+            <div className="max-w-3xl mx-auto glass-panel rounded-3xl p-8 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent opacity-50" />
 
               <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-[var(--violet)]/20 flex items-center justify-center text-[var(--violet)] font-bold text-xl">
+                    <div className="w-12 h-12 rounded-full bg-[var(--violet)]/20 border border-[var(--violet)]/30 flex items-center justify-center text-[var(--violet)] font-bold text-xl shadow-[0_0_15px_rgba(124,58,237,0.3)]">
                       TB
                     </div>
                     <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#050505]" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">TalkByte Agent</h3>
-                    <p className="text-xs text-white/50 font-mono tracking-widest uppercase">Live Transcript</p>
+                    <h3 className="font-bold text-lg text-white">TalkByte Agent</h3>
+                    <p className="text-xs text-[var(--gold)] font-mono tracking-widest uppercase">Live Transcript</p>
                   </div>
                 </div>
-                <div className="text-emerald-400 font-mono flex items-center gap-2">
+                <div className="text-emerald-400 font-mono flex items-center gap-2 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   01:24
                 </div>
               </div>
 
               <div className="space-y-6 font-medium text-[15px]">
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-[var(--violet)]/20 shrink-0 flex items-center justify-center text-xs">AI</div>
-                  <div className="bg-white/5 rounded-2xl rounded-tl-none p-4 text-white/90">
-                    Hi! Thanks for calling Mama\Mama'sapos;s Pizzeria. Would you like to place an order for pickup or delivery?
-                  </div>
-                </div>
-                <div className="flex gap-4 flex-row-reverse">
-                  <div className="w-8 h-8 rounded-full bg-[var(--gold)]/20 shrink-0 flex items-center justify-center text-xs">You</div>
-                  <div className="bg-[var(--gold)]/10 border border-[var(--gold)]/20 rounded-2xl rounded-tr-none p-4 text-white">
-                    Yeah, pickup please. Can I get a large Margherita but add olives? And a garlic bread.
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-[var(--violet)]/20 shrink-0 flex items-center justify-center text-xs">AI</div>
-                  <div className="bg-white/5 rounded-2xl rounded-tl-none p-4 text-white/90">
-                    One large Margherita with olives, and one garlic bread. That comes to $32.50. I\I'veapos;ve just sent a payment link to your phone. We'll have that ready in 15 minutes!
-                  </div>
-                </div>
+                {[
+                  { role: 'AI', text: "Hi! Thanks for calling Mama\Mama'sapos;s Pizzeria. What can I get you?", bg: "bg-[var(--violet)]/10 border-[var(--violet)]/20 text-white/90" },
+                  { role: 'You', text: "Large Margherita and garlic bread please.", bg: "bg-[var(--gold)]/10 border-[var(--gold)]/20 text-white", reverse: true },
+                  { role: 'AI', text: "One large Margherita, garlic bread! Anything else?", bg: "bg-[var(--violet)]/10 border-[var(--violet)]/20 text-white/90" },
+                  { role: 'You', text: "A Coke as well.", bg: "bg-[var(--gold)]/10 border-[var(--gold)]/20 text-white", reverse: true },
+                  { role: 'AI', text: "$32.50 total. Confirming your order now and sending a payment link to your phone!", bg: "bg-[var(--violet)]/10 border-[var(--violet)]/20 text-white/90" }
+                ].map((msg, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.2 }}
+                    className={`flex gap-4 ${msg.reverse ? 'flex-row-reverse' : ''}`}
+                  >
+                    <div className={`w-8 h-8 rounded-full ${msg.reverse ? 'bg-[var(--gold)]/20 text-[var(--gold)]' : 'bg-[var(--violet)]/20 text-[var(--violet)]'} shrink-0 flex items-center justify-center text-xs font-bold border border-white/5`}>
+                      {msg.role}
+                    </div>
+                    <div className={`border rounded-2xl p-4 shadow-lg ${msg.reverse ? 'rounded-tr-none' : 'rounded-tl-none'} ${msg.bg}`}>
+                      {msg.text}
+                    </div>
+                  </motion.div>
+                ))}
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* HOW IT WORKS */}
-        <section id="how-it-works" className="py-32 relative z-10">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-20">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">How It <span className="text-gradient-gold">Works.</span></h2>
-              <p className="text-white/60 text-lg">From ring to receipt in under 487ms.</p>
-            </div>
-            <div className="grid md:grid-cols-4 gap-8 text-center relative">
-              <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-[var(--gold)] to-[var(--violet)] opacity-30 -translate-y-1/2 -z-10"></div>
-              {[
-                { step: "1", title: "Phone Rings", desc: "Customer calls your Telnyx number." },
-                { step: "2", title: "AI Answers", desc: "LiveKit agent picks up instantly." },
-                { step: "3", title: "Order Taken", desc: "GPT-4.1 processes the natural conversation." },
-                { step: "4", title: "POS Synced", desc: "Payment link sent, order fires to Square." }
-              ].map((hw, i) => (
-                <div key={i} className="glass-card p-6 rounded-3xl relative hover:scale-105 transition-transform duration-300">
-                  <div className="w-12 h-12 mx-auto rounded-full bg-[var(--gold)] text-black font-bold flex items-center justify-center mb-4 text-xl border-4 border-[#050505] shadow-[0_0_20px_rgba(212,175,55,0.4)]">
-                    {hw.step}
-                  </div>
-                  <h3 className="text-lg font-bold mb-2 text-white">{hw.title}</h3>
-                  <p className="text-sm text-white/60">{hw.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* USE CASES / VERTICALS */}
-        <section id="use-cases" className="py-32 bg-black/40 border-y border-white/5 relative z-10">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-20">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">Built for every <span className="text-gradient-gold">vertical.</span></h2>
-              <p className="text-white/60 text-lg">Whether you run a fast-paced takeaway or a high-end franchise, we adapt to your flow.</p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  icon: <UtensilsCrossed size={32} />,
-                  title: "QSR & Takeaway",
-                  desc: "Handle the Friday night rush. Answer 50 simultaneous calls, instantly process payments, and inject orders directly into the kitchen display system.",
-                  features: ["Infinite Concurrency", "Zero Hold Times", "Automatic Upselling"]
-                },
-                {
-                  icon: <Globe2 size={32} />,
-                  title: "Fine Dining",
-                  desc: "Provide a premium concierge experience. The AI handles FAQs about parking, dress codes, and reservations, freeing up your front-of-house staff.",
-                  features: ["Natural Conversational Tone", "FAQ Handling", "Staff Liberation"]
-                },
-                {
-                  icon: <Store size={32} />,
-                  title: "Franchise Networks",
-                  desc: "Maintain perfect brand consistency across hundreds of locations. Roll out menu updates instantly worldwide and analyze sentiment centrally.",
-                  features: ["Global Menu Sync", "Centralized Analytics", "Brand Consistency"]
-                }
-              ].map((uc, i) => (
-                <div key={i} className="glass-card p-8 rounded-3xl hover:border-[var(--gold)]/30 transition-colors group">
-                  <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-[var(--gold)] mb-6 group-hover:scale-110 transition-transform">
-                    {uc.icon}
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 text-white">{uc.title}</h3>
-                  <p className="text-white/60 leading-relaxed mb-8">{uc.desc}</p>
-                  <ul className="space-y-3">
-                    {uc.features.map((f, j) => (
-                      <li key={j} className="flex items-center gap-3 text-sm text-white/80">
-                        <CheckCircle2 size={16} className="text-[var(--gold)]" /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
             </div>
           </div>
         </section>
@@ -218,35 +189,41 @@ export default function Home() {
         <section id="pricing" className="py-32 relative z-10">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-20">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">Simple, honest <span className="text-gradient-gold">pricing.</span></h2>
-              <p className="text-white/60 text-lg max-w-xl mx-auto">Stop paying 30% to delivery apps for phone orders. Pay a flat rate for unlimited intelligence.</p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">Transparent <span className="text-gradient-premium">Pricing.</span></h2>
+              <p className="text-white/60 text-lg max-w-xl mx-auto">Stop paying 30% to delivery apps for phone orders. Flat rates, infinite scale.</p>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {[
-                { plan: "Starter", price: "149", desc: "For single-location independents.", feats: ["Unlimited AI calls", "Square POS sync", "SMS confirmations", "Restaurant dashboard"], pop: false },
-                { plan: "Growth", price: "199", desc: "For busy venues doing high volume.", feats: ["Everything in Starter", "Up to 3 locations", "Stripe phone payments", "Advanced analytics"], pop: true },
-                { plan: "Enterprise", price: "299", desc: "For franchises and hospitality groups.", feats: ["Everything in Growth", "Unlimited locations", "Custom voice cloning", "Dedicated Account Manager"], pop: false }
+                { plan: "Starter", price: "149", desc: "per month · 1 location", feats: ["Unlimited AI calls", "Square POS sync", "SMS confirmations", "Restaurant dashboard"], pop: false },
+                { plan: "Growth", price: "199", desc: "per month · 3 locations", feats: ["Everything in Starter", "Up to 3 locations", "Stripe phone payments", "Analytics & reporting"], pop: true },
+                { plan: "Enterprise", price: "299", desc: "per month · unlimited", feats: ["Everything in Growth", "Unlimited locations", "Custom voice & script", "Dedicated AM"], pop: false }
               ].map((p, i) => (
-                <div key={i} className={`glass-card p-8 rounded-3xl relative flex flex-col ${p.pop ? 'border-[var(--gold)]/50 shadow-[0_0_30px_rgba(212,175,55,0.15)] scale-105 z-10' : ''}`}>
-                  {p.pop && <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[var(--gold)] text-black text-xs font-bold uppercase tracking-wider">Most Popular</div>}
-                  <h3 className="text-xl font-bold mb-2">{p.plan}</h3>
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  key={i}
+                  className={`glass-panel p-8 rounded-3xl relative flex flex-col transition-all duration-300 ${p.pop ? 'gold-glow scale-105 z-10 border-[var(--gold)]/40' : 'hover:border-[var(--gold)]/20'}`}
+                >
+                  {p.pop && <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-1.5 rounded-full bg-[var(--gold)] text-black text-xs font-black uppercase tracking-widest shadow-[0_0_15px_rgba(212,175,55,0.4)]">Most Popular</div>}
+                  <h3 className="text-xl font-bold mb-2 text-white">{p.plan}</h3>
                   <p className="text-white/50 text-sm mb-6">{p.desc}</p>
                   <div className="mb-8">
-                    <span className="text-5xl font-black">${p.price}</span>
-                    <span className="text-white/50">/mo</span>
+                    <span className="text-5xl font-black text-white">${p.price}</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
                     {p.feats.map((f, j) => (
-                      <li key={j} className="flex items-center gap-3 text-sm">
+                      <li key={j} className="flex items-center gap-3 text-sm text-white/80">
                         <CheckCircle2 size={18} className="text-[var(--gold)] shrink-0" /> {f}
                       </li>
                     ))}
                   </ul>
-                  <button className={`w-full py-4 rounded-xl font-bold text-sm tracking-wide uppercase transition-all ${p.pop ? 'glow-btn' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>
+                  <button className={`w-full py-4 rounded-xl font-bold text-sm tracking-widest uppercase transition-all ${p.pop ? 'glow-btn' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>
                     {p.pop ? 'Start Free Trial' : 'Get Started'}
                   </button>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -254,15 +231,22 @@ export default function Home() {
 
       </main>
 
-      {/* FOOTER */}
-      <footer className="border-t border-white/10 bg-[#020202] py-12 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3 opacity-50">
+      {/* FINAL CTA & FOOTER */}
+      <footer className="border-t border-[var(--gold)]/10 bg-[#020202] pt-24 pb-12 relative z-10 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[200px] bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.1)_0%,transparent_70%)]" />
+        <div className="max-w-7xl mx-auto px-6 text-center mb-24 relative z-10">
+           <h2 className="text-4xl md:text-5xl font-bold mb-6">Setup in 15 min · <span className="text-gradient-premium">No credit card.</span></h2>
+           <Link href="/signup" className="glow-btn inline-block px-12 py-5 rounded-full font-bold text-sm uppercase tracking-wider mt-4">
+              Start Your Trial
+           </Link>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/5 pt-8 relative z-10">
+          <div className="flex items-center gap-3 opacity-50 hover:opacity-100 transition-opacity">
             <div className="w-8 h-8 rounded-lg bg-[var(--gold)] flex items-center justify-center text-black font-black text-sm">TB</div>
-            <span className="font-bold">TalkByte AI</span>
+            <span className="font-bold text-white">TalkByte AI</span>
           </div>
-          <div className="text-white/30 text-sm">
-            © 2026 TalkByte AI. Built for global hospitality.
+          <div className="text-white/30 text-sm font-medium">
+            © 2026 TalkByte AI. The Voice Commerce Standard.
           </div>
         </div>
       </footer>
