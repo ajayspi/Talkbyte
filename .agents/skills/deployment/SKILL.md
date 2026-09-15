@@ -54,3 +54,8 @@ When updating static files (like `public/landing.html`) that are baked into the 
 When programmatically updating raw HTML prototypes (e.g., swapping CSS themes):
 - Never blindly replace `<style>` blocks with regex, as you may delete structural Flexbox/grid layouts.
 - Always assume raw prototypes might be missing closing tags like `</body>` or `</html>`. When injecting scripts (like Three.js), append them to the absolute end of the file rather than doing string replacement on closing tags.
+
+## Server Architecture (Nginx + Docker)
+The live server uses Nginx as a reverse proxy on port 80 to route traffic.
+- **Nginx Config**: Routes `/api/` to `http://127.0.0.1:8001` (FastAPI) and `/` to `http://127.0.0.1:3000` (Next.js).
+- **Docker Ports**: Containers in `docker-compose.yml` MUST bind to `127.0.0.1` (e.g., `127.0.0.1:3000:3000`) instead of exposing ports publicly (e.g., `80:3000` or `0.0.0.0:8001`). Exposing ports publicly will bypass Nginx or cause port conflicts.
