@@ -53,7 +53,7 @@ export default function Home() {
                 <Link href="#demo" className="glow-btn px-8 py-4 rounded-full font-bold text-sm uppercase tracking-wider flex items-center gap-2">
                   <Phone size={18} /> Hear it in action
                 </Link>
-                <Link href="#how-it-works" className="px-8 py-4 rounded-full glass-panel hover:bg-white/5 transition-colors font-bold text-sm uppercase tracking-wider flex items-center gap-2 text-white">
+                <Link href="/features" className="px-8 py-4 rounded-full glass-panel hover:bg-white/5 transition-colors font-bold text-sm uppercase tracking-wider flex items-center gap-2 text-white">
                   See The Pipeline
                 </Link>
               </div>
@@ -185,49 +185,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* PRICING */}
-        <section id="pricing" className="py-32 relative z-10">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-20">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">Transparent <span className="text-gradient-premium">Pricing.</span></h2>
-              <p className="text-white/60 text-lg max-w-xl mx-auto">Stop paying 30% to delivery apps for phone orders. Flat rates, infinite scale.</p>
-            </div>
-
-            <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {[
-                { plan: "Starter", price: "149", desc: "per month · 1 location", feats: ["Unlimited AI calls", "Square POS sync", "SMS confirmations", "Restaurant dashboard"], pop: false },
-                { plan: "Growth", price: "199", desc: "per month · 3 locations", feats: ["Everything in Starter", "Up to 3 locations", "Stripe phone payments", "Analytics & reporting"], pop: true },
-                { plan: "Enterprise", price: "299", desc: "per month · unlimited", feats: ["Everything in Growth", "Unlimited locations", "Custom voice & script", "Dedicated AM"], pop: false }
-              ].map((p, i) => (
-                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  key={i}
-                  className={`glass-panel p-8 rounded-3xl relative flex flex-col transition-all duration-300 ${p.pop ? 'gold-glow scale-105 z-10 border-[var(--gold)]/40' : 'hover:border-[var(--gold)]/20'}`}
-                >
-                  {p.pop && <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-1.5 rounded-full bg-[var(--gold)] text-black text-xs font-black uppercase tracking-widest shadow-[0_0_15px_rgba(212,175,55,0.4)]">Most Popular</div>}
-                  <h3 className="text-xl font-bold mb-2 text-white">{p.plan}</h3>
-                  <p className="text-white/50 text-sm mb-6">{p.desc}</p>
-                  <div className="mb-8">
-                    <span className="text-5xl font-black text-white">${p.price}</span>
-                  </div>
-                  <ul className="space-y-4 mb-8 flex-1">
-                    {p.feats.map((f, j) => (
-                      <li key={j} className="flex items-center gap-3 text-sm text-white/80">
-                        <CheckCircle2 size={18} className="text-[var(--gold)] shrink-0" /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <button className={`w-full py-4 rounded-xl font-bold text-sm tracking-widest uppercase transition-all ${p.pop ? 'glow-btn' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>
-                    {p.pop ? 'Start Free Trial' : 'Get Started'}
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
 
       </main>
 

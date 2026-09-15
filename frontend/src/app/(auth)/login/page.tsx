@@ -83,7 +83,7 @@ export default function LoginPage() {
       </form>
 
       <div className="mt-6 text-center text-sm text-white/50">
-        Don't have an account? <Link href="/signup" className="text-[var(--gold)] hover:text-[var(--gold-light)] font-semibold transition-colors">Sign up</Link>
+        Don\Don'tapos;t have an account? <Link href="/signup" className="text-[var(--gold)] hover:text-[var(--gold-light)] font-semibold transition-colors">Sign up</Link>
       </div>
     </>
   );
