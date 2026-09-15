@@ -6,7 +6,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"
     environment:
       - SUPABASE_URL=http://172.236.176.251:8000
       - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlc3QiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTYwMDAwMDAwMCwiZXhwIjoxOTAwMDAwMDB9.test
@@ -33,9 +33,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "80:3000"
+      - "127.0.0.1:3000:3000"
     environment:
-      - NEXT_PUBLIC_BACKEND_URL=http://talkbyte.172.236.176.251.nip.io:8001
+      - NEXT_PUBLIC_BACKEND_URL=http://talkbyte.172.236.176.251.nip.io
       - NEXT_PUBLIC_SUPABASE_URL=http://talkbyte.172.236.176.251.nip.io:8000
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlc3QiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTYwMDAwMDAwMCwiZXhwIjoxOTAwMDAwMDB9.test
       - NEXT_PUBLIC_ENVIRONMENT=development
