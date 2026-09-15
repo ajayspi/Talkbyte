@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('Journey 1: Restaurant Owner Login', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock Supabase Auth endpoint to guarantee 100% resilient offline/CI execution
+    // Mock Supabase Auth and REST endpoints to guarantee 100% resilient offline/CI execution
     await page.route('**/auth/v1/**', async (route) => {
       await route.fulfill({
         status: 200,
@@ -33,6 +33,14 @@ test.describe('Journey 1: Restaurant Owner Login', () => {
             updated_at: '2026-01-01T00:00:00.000Z',
           },
         }),
+      });
+    });
+
+    await page.route('**/rest/v1/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
       });
     });
   });
@@ -69,14 +77,14 @@ test.describe('Journey 1: Restaurant Owner Login', () => {
     const venueName = page.locator('.venue-name');
     await expect(venueName).toContainText("Mama's Pizzeria");
 
-    // 7. Assert KPI cards are displayed
-    await expect(page.locator('text=Calls Today')).toBeVisible();
-    await expect(page.locator('text=Revenue Today')).toBeVisible();
+    // 7. Assert KPI cards are displayed (using exact match & .first() to prevent strict mode collision with 'Calls Today (by hour)')
+    await expect(page.getByText('Calls Today', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('Revenue Today', { exact: true }).first()).toBeVisible();
 
     // 8. Assert Active Calls widget
-    await expect(page.locator('text=Active Calls')).toBeVisible();
+    await expect(page.getByText('Active Calls', { exact: true }).first()).toBeVisible();
 
     // 9. Assert Recent Orders widget
-    await expect(page.locator('text=Recent Orders')).toBeVisible();
+    await expect(page.getByText('Recent Orders', { exact: true }).first()).toBeVisible();
   });
 });

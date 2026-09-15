@@ -267,13 +267,13 @@ describe('Restaurant Dashboard Component Suites', () => {
       // Next billing alert
       expect(screen.getByText(/Next billing date: 1 October 2026/i)).toBeInTheDocument();
 
-      // Plans
-      expect(screen.getByText('Starter')).toBeInTheDocument();
-      expect(screen.getByText('Growth')).toBeInTheDocument();
+      // Plans (using getAllByText or regex to handle duplicate matches in plan cards vs billing history table)
+      expect(screen.getAllByText('Starter').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Growth').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('Enterprise')).toBeInTheDocument();
-      expect(screen.getByText('$149')).toBeInTheDocument();
-      expect(screen.getByText('$249')).toBeInTheDocument();
-      expect(screen.getByText('$499')).toBeInTheDocument();
+      expect(screen.getAllByText(/\$149/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/\$249/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText(/\$499/)).toBeInTheDocument();
       expect(screen.getByText('Current Plan')).toBeInTheDocument();
       expect(screen.getByText('Active Plan')).toBeInTheDocument();
 
@@ -300,8 +300,9 @@ describe('Restaurant Dashboard Component Suites', () => {
 
       expect(screen.getByText('Confirm Subscription Change')).toBeInTheDocument();
       expect(screen.getByText(/Starter includes up to 500 inbound calls/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Proceed to Stripe Checkout/i })).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('button', { name: /Proceed to Stripe Checkout|Confirm/i }));
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
       expect(screen.queryByText('Confirm Subscription Change')).not.toBeInTheDocument();
     });
   });

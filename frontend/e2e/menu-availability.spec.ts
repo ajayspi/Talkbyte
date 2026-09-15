@@ -56,7 +56,7 @@ test.describe('Journey 2: Menu Item Availability Toggle', () => {
     await expect(badge).toHaveClass(/badge-red/);
 
     // 6. Verify toast notification appears confirming AI voice agent sync
-    const toast = page.locator('text=Out of stock');
+    const toast = page.locator('text=Out of stock').first();
     await expect(toast).toBeVisible();
 
     // 7. Click the toggle switch again to flip back to Available
@@ -67,7 +67,7 @@ test.describe('Journey 2: Menu Item Availability Toggle', () => {
     await expect(badge).toHaveClass(/badge-green/);
 
     // 9. Verify toast notification reflects Available
-    const toastAvailable = page.locator('text=Available: AI voice agent synced');
+    const toastAvailable = page.locator('text=Available: AI voice agent synced').first();
     await expect(toastAvailable).toBeVisible();
   });
 });

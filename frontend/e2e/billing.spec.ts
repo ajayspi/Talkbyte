@@ -51,18 +51,18 @@ test.describe('Bonus Journey 4: SaaS Subscription Billing', () => {
     await expect(page.locator('.plan-price:has-text("$499")')).toBeVisible();
 
     // 4. Verify usage meters and billing history cards
-    await expect(page.locator('text=Usage This Month')).toBeVisible();
-    await expect(page.locator('text=Billing & Invoice History')).toBeVisible();
+    await expect(page.locator('text=Usage This Month').first()).toBeVisible();
+    await expect(page.locator('text=Billing & Invoice History').first()).toBeVisible();
 
     // 5. Click non-active plan (Starter) to open subscription change modal
-    const starterCard = page.locator('.plan-card').filter({ hasText: 'Starter' });
+    const starterCard = page.locator('.plan-card').filter({ hasText: 'Starter' }).first();
     await starterCard.click();
 
-    await expect(page.locator('text=Confirm Subscription Change')).toBeVisible();
-    await expect(page.locator('text=Starter includes up to 500 inbound calls/month')).toBeVisible();
+    await expect(page.locator('text=Confirm Subscription Change').first()).toBeVisible();
+    await expect(page.locator('text=Starter includes up to 500 inbound calls/month').first()).toBeVisible();
 
     // 6. Close modal via Cancel button
-    await page.locator('button:has-text("Cancel")').click();
+    await page.locator('button:has-text("Cancel")').first().click();
     await expect(page.locator('text=Confirm Subscription Change')).not.toBeVisible();
   });
 });

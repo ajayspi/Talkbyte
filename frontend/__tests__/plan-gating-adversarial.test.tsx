@@ -52,20 +52,24 @@ jest.mock('@/app/(restaurant)/layout', () => ({
 
 // Mock Supabase
 const mockToggleMenuItemAvailability = jest.fn().mockResolvedValue({ success: true });
-jest.mock('@/lib/supabase', () => ({
-  supabase: {
-    table: () => ({
-      select: () => ({
-        eq: () => ({
-          order: () => ({
-            limit: () => Promise.resolve({ data: [], error: null }),
-          }),
+jest.mock('@/lib/supabase', () => {
+  const queryChain = () => ({
+    select: () => ({
+      eq: () => ({
+        order: () => ({
+          limit: () => Promise.resolve({ data: [], error: null }),
         }),
       }),
     }),
-  },
-  toggleMenuItemAvailability: (...args: any[]) => mockToggleMenuItemAvailability(...args),
-}));
+  });
+  return {
+    supabase: {
+      from: queryChain,
+      table: queryChain,
+    },
+    toggleMenuItemAvailability: (...args: any[]) => mockToggleMenuItemAvailability(...args),
+  };
+});
 
 describe('Milestone M3: Plan Gating & Billing Routing Adversarial Suite', () => {
   beforeEach(() => {
@@ -296,14 +300,14 @@ describe('Milestone M3: Plan Gating & Billing Routing Adversarial Suite', () => 
       render(<BillingTab />);
 
       // Verify plan cards exist with exact pricing
-      expect(screen.getByText('Starter')).toBeInTheDocument();
-      expect(screen.getByText('$149')).toBeInTheDocument();
+      expect(screen.getAllByText('Starter').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/\$149/).length).toBeGreaterThanOrEqual(1);
 
-      expect(screen.getByText('Growth')).toBeInTheDocument();
-      expect(screen.getByText('$249')).toBeInTheDocument();
+      expect(screen.getAllByText('Growth').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/\$249/).length).toBeGreaterThanOrEqual(1);
 
       expect(screen.getByText('Enterprise')).toBeInTheDocument();
-      expect(screen.getByText('$499')).toBeInTheDocument();
+      expect(screen.getByText(/\$499/)).toBeInTheDocument();
 
       // Starter venue shows Starter as active plan
       expect(screen.getByText('Active Plan')).toBeInTheDocument();

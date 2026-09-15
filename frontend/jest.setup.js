@@ -1,16 +1,3 @@
-const fs = require('fs');
-const path = require('path');
-
-// Clean legacy conflicting route stubs if present
-['src/app/login', 'src/app/(admin)/admin/login'].forEach((dir) => {
-  try {
-    const fullPath = path.join(__dirname, dir);
-    if (fs.existsSync(fullPath)) {
-      fs.rmSync(fullPath, { recursive: true, force: true });
-    }
-  } catch {}
-});
-
 require('@testing-library/jest-dom');
 
 process.env.NEXT_PUBLIC_BACKEND_URL = 'http://localhost:8000';

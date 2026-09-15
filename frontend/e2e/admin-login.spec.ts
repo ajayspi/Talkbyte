@@ -58,22 +58,23 @@ test.describe('Journey 3: Operator Admin Login', () => {
     await page.waitForURL('**/admin**', { timeout: 10000 });
     await expect(page).toHaveURL(/\/admin/);
 
-    // 5. Navigate to Restaurants fleet view (via sidebar button or URL)
-    const restaurantsNavButton = page.locator('aside button:has-text("Restaurants")');
-    if (await restaurantsNavButton.isVisible()) {
+    // 5. Navigate to Restaurants fleet view (via sidebar button with fallback)
+    const restaurantsNavButton = page.locator('aside button:has-text("Restaurants")').first();
+    try {
+      await restaurantsNavButton.waitFor({ state: 'visible', timeout: 3000 });
       await restaurantsNavButton.click();
-    } else {
+    } catch {
       await page.goto('/admin?tab=restaurants');
     }
 
     // 6. Verify fleet table columns
-    await expect(page.locator('th:has-text("Calls/mo")')).toBeVisible();
-    await expect(page.locator('th:has-text("MRR")')).toBeVisible();
-    await expect(page.locator('th:has-text("Status")')).toBeVisible();
+    await expect(page.locator('th:has-text("Calls/mo")').first()).toBeVisible();
+    await expect(page.locator('th:has-text("MRR")').first()).toBeVisible();
+    await expect(page.locator('th:has-text("Status")').first()).toBeVisible();
 
     // 7. Verify fleet restaurant rows are displayed
-    await expect(page.locator('td:has-text("Mama\'s Pizzeria")')).toBeVisible();
-    await expect(page.locator('td:has-text("Thai Express")')).toBeVisible();
-    await expect(page.locator('td:has-text("Burger Palace")')).toBeVisible();
+    await expect(page.locator('td:has-text("Mama\'s Pizzeria")').first()).toBeVisible();
+    await expect(page.locator('td:has-text("Thai Express")').first()).toBeVisible();
+    await expect(page.locator('td:has-text("Burger Palace")').first()).toBeVisible();
   });
 });

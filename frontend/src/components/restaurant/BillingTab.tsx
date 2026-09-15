@@ -137,8 +137,8 @@ export const BillingTab: React.FC = () => {
     async function fetchBillingEvents() {
       if (!currentVenue?.id) return;
       try {
-        const { data, error } = await supabase
-          .table('billing_events')
+        const { data, error } = await (supabase as any)
+          .from('billing_events')
           .select('*')
           .eq('restaurant_id', currentVenue.id)
           .order('created_at', { ascending: false })

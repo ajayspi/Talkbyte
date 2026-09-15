@@ -21,7 +21,7 @@ const staggerContainer = {
 };
 
 export default function HomePage() {
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]

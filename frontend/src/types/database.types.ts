@@ -157,6 +157,18 @@ export interface Subscription {
   created_at: string;
 }
 
+export interface BillingEvent {
+  id: string;
+  restaurant_id: string;
+  event_type: string;
+  amount_cents: number | null;
+  plan_id: string | null;
+  stripe_invoice_id: string | null;
+  stripe_subscription_id: string | null;
+  status: string;
+  created_at: string;
+}
+
 export interface AuditLog {
   id: string;
   timestamp: string;
@@ -240,6 +252,11 @@ export interface Database {
         Row: AuditLog;
         Insert: Partial<AuditLog>;
         Update: Partial<AuditLog>;
+      };
+      billing_events: {
+        Row: BillingEvent;
+        Insert: Partial<BillingEvent>;
+        Update: Partial<BillingEvent>;
       };
     };
     Views: Record<string, never>;

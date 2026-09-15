@@ -4,12 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "predev": "node -e \"const fs=require('fs'); ['src/app/login', 'src/app/(admin)/admin/login'].forEach(p => fs.existsSync(p) && fs.rmSync(p, { recursive: true, force: true }));\"",
-    "prebuild": "node -e \"const fs=require('fs'); ['src/app/login', 'src/app/(admin)/admin/login'].forEach(p => fs.existsSync(p) && fs.rmSync(p, { recursive: true, force: true }));\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pretest": "node -e \"const fs=require('fs'); ['src/app/login', 'src/app/(admin)/admin/login'].forEach(p => fs.existsSync(p) && fs.rmSync(p, { recursive: true, force: true }));\"",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
