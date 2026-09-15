@@ -8,6 +8,7 @@ from app.services.rag import get_embedding
 log = structlog.get_logger()
 router = APIRouter()
 
+
 @router.get("/{restaurant_id}")
 async def get_restaurant(restaurant_id: str):
     rest = await get_restaurant_by_id(restaurant_id)
@@ -30,7 +31,7 @@ async def update_menu(restaurant_id: str, body: dict):
     # upsert menu_items, re-embed with text-embedding-3-small → pgvector
     db = get_db()
     items = body.get("items", [])
-    
+
     for item in items:
         # Generate embedding
         content_to_embed = f"{item['name']} - {item.get('description', '')}"
@@ -39,10 +40,10 @@ async def update_menu(restaurant_id: str, body: dict):
             item["embedding"] = embedding
         except Exception as e:
             log.error("menu.embedding.failed", error=str(e), item=item["name"])
-        
+
         item["restaurant_id"] = restaurant_id
-        
+
         # Upsert
         await db.table("menu_items").upsert(item).execute()
-        
+
     return {"status": "menu updated", "items_processed": len(items)}

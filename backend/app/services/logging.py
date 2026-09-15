@@ -2,6 +2,7 @@ import structlog
 import sys
 import logging as stdlib_logging
 
+
 def setup_logging(debug: bool = False):
     """Initialize structured logging with structlog."""
 

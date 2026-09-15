@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   BoltIcon,
   PhoneIcon,
@@ -64,8 +65,18 @@ const TAB_SUBS: Record<TabId, string> = {
   orders: '47 orders today · $1,284 revenue',
   menu: '24 items · Last synced 4 min ago',
   analytics: 'Last 7 days overview',
-  billing: 'Pro Plan · $1,500/mo',
+  billing: 'Growth Plan · $249/mo',
   settings: 'Account & AI configuration',
+};
+
+const getTabSubtitle = (tab: TabId, venue: Restaurant | null): string => {
+  if (tab === 'billing') {
+    const raw = (venue?.plan_id || 'growth').toLowerCase().trim();
+    if (raw === 'enterprise') return 'Enterprise Plan · $499/mo';
+    if (raw === 'starter') return 'Starter Plan · $149/mo';
+    return 'Growth Plan · $249/mo';
+  }
+  return TAB_SUBS[tab];
 };
 
 export default function RestaurantLayout({
@@ -73,6 +84,8 @@ export default function RestaurantLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const pathname = usePathname() || '';
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [currentVenue, setCurrentVenue] = useState<Restaurant | null>(null);
   const [venues, setVenues] = useState<Restaurant[]>([]);
@@ -80,8 +93,12 @@ export default function RestaurantLayout({
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
-  // Sync tab from URL param if available on client
+  // Sync tab from pathname or URL query param
   useEffect(() => {
+    if (pathname.includes('/dashboard/billing') || pathname === '/billing') {
+      setActiveTab('billing');
+      return;
+    }
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
@@ -94,7 +111,7 @@ export default function RestaurantLayout({
         setActiveTab(tabParam as TabId);
       }
     }
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     async function loadData() {
@@ -108,10 +125,18 @@ export default function RestaurantLayout({
 
   const handleSelectTab = (tab: TabId) => {
     setActiveTab(tab);
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.searchParams.set('tab', tab);
-      window.history.replaceState({}, '', url.toString());
+    if (tab === 'billing') {
+      if (pathname !== '/dashboard/billing') {
+        router.push('/dashboard/billing');
+      }
+    } else {
+      if (pathname === '/dashboard/billing' || pathname.startsWith('/billing')) {
+        router.push(`/dashboard?tab=${tab}`);
+      } else if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', tab);
+        window.history.replaceState({}, '', url.toString());
+      }
     }
   };
 
@@ -1048,7 +1073,7 @@ export default function RestaurantLayout({
                 {TAB_TITLES[activeTab]}
               </div>
               <div className="page-sub" id="page-sub">
-                {TAB_SUBS[activeTab]}
+                {getTabSubtitle(activeTab, currentVenue)}
               </div>
             </div>
 

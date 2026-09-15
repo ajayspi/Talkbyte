@@ -1,88 +1,67 @@
-# Milestone M2 Handoff Report: Next.js Restaurant Dashboard
-
-**Agent**: `worker_m2` (teamwork_preview_worker)  
-**Milestone**: M2 (Restaurant Dashboard)  
-**Status**: COMPLETE (Hard Handoff)  
-**Date**: 2026-09-03  
-
----
+# Handoff Report: Milestone M2 — WhatsApp Business API Integration & SMS Fallback
 
 ## 1. Observation
-1. **Prototype Source**: Analyzed `talkbyte-restaurant-dashboard.html` (771 lines) and spec miner report (`.agents/spec_miner_restaurant_survey/report.md`), identifying the fixed dark sidebar (`#1a0a1e`, `width: 240px`), sticky light topbar (`#fff`, `height: 58px`), and 7 operational tabs: Dashboard, Live Calls, Orders, Menu, Analytics, Billing & Plan, and Settings.
-2. **Exclusive File Ownership**: Implemented all 9 assigned files:
-   - `frontend/src/app/(restaurant)/layout.tsx`
-   - `frontend/src/app/(restaurant)/dashboard/page.tsx`
-   - `frontend/src/components/restaurant/DashboardTab.tsx`
-   - `frontend/src/components/restaurant/LiveCallsTab.tsx`
-   - `frontend/src/components/restaurant/OrdersTab.tsx`
-   - `frontend/src/components/restaurant/MenuTab.tsx`
-   - `frontend/src/components/restaurant/AnalyticsTab.tsx`
-   - `frontend/src/components/restaurant/BillingTab.tsx`
-   - `frontend/src/components/restaurant/SettingsTab.tsx`
-3. **Icons & Data Integration**: All icon components imported exclusively from `@/components/icons` (e.g. `PhoneIcon`, `BoltIcon`, `ShoppingCartIcon`, `UtensilsIcon`, `BarChartIcon`, `CreditCardIcon`, `SettingsIcon`, `CheckCircleIcon`, `DollarIcon`, `HeadsetIcon`, `ActivityIcon`, `ClockIcon`, `DownloadIcon`, `PlusIcon`, `XIcon`, `Volume2Icon`, `MicIcon`, `ChevronDownIcon`). No imports from `lucide-react`. Data wired to `@/lib/supabase` (`getRestaurant`, `getFleetRestaurants`, `toggleMenuItemAvailability`).
-4. **Build Verification**: Ran `npm run build` in `frontend/`.
-   Verbatim output:
-   ```
-   > talkbyte-frontend@0.1.0 build
-   > next build
-
-   ▲ Next.js 16.3.3 (Turbopack)
-   ✓ Running next.config.mjs took 23ms
-     Creating an optimized production build ...
-   ✓ Compiled successfully in 1416ms
-     Running TypeScript ...
-     Finished TypeScript in 2.9s ...
-     Collecting page data using 6 workers ...
-   ✓ Generating static pages using 6 workers (5/5) in 980ms
-     Finalizing page optimization ...
-
-   Route (app)
-   ┌ ○ /
-   ├ ○ /_not-found
-   ├ ○ /admin
-   └ ○ /dashboard
-
-   ○  (Static)  prerendered as static content
-   ```
-   Exit code: `0`.
-
----
+- **Requirement R1 (`ORIGINAL_REQUEST.md`)**:
+  > "After a restaurant customer completes an AI voice order, the system currently sends a Stripe Payment Link via Telnyx SMS. Extend the messaging layer so that if a phone number is detected to be registered on WhatsApp, the payment link is sent as a WhatsApp Business message instead of a plain SMS. If WhatsApp delivery fails or the number is not on WhatsApp, fall back to plain SMS. The backend integration must use the official Meta WhatsApp Business Cloud API."
+- **Baseline inspection (`backend/app/services/whatsapp.py`)**:
+  - `is_au_mobile` previously only matched strict `^\+614\d{8}$`. It failed standard domestic formats like `0412345678` or `(04) 1234 5678`.
+  - Recipient format for Meta Cloud API required digits-only without `+` prefix.
+- **Baseline inspection (`backend/app/services/sms.py`)**:
+  - Embedded an internal check to WhatsApp, but lacked a flag to bypass redundant WhatsApp checks when called from an upstream dispatcher fallback.
+- **Baseline inspection (`backend/app/api/payments.py:create_payment_link`)**:
+  - Directly called `send_payment_sms` without unified multi-channel dispatch.
+- **Baseline inspection (`backend/main.py`)**:
+  - Missing registration for `messages.router`.
+- **Files Modified and Created**:
+  1. `backend/app/services/whatsapp.py` (lines 26-172, 207-209): Added `NormalizedPhone`, `normalize_phone_number`, `normalize_phone`, updated `is_au_mobile` and `send_whatsapp_payment_link`.
+  2. `backend/app/services/sms.py` (lines 25-65, 84-89): Added `force_sms: bool = False` and boolean return values.
+  3. `backend/app/services/messaging.py`: Created complete multi-channel dispatcher with `SendMessageResponse` / `MessageResult` model and `send_payment_message`.
+  4. `backend/app/api/messages.py`: Created internal API endpoint `POST /api/messages/send` and `/api/messages`.
+  5. `backend/main.py` (lines 15, 56-57): Registered `messages.router` under `/api/messages` and `/api/messaging`.
+  6. `backend/app/api/payments.py` (lines 8, 74-81): Replaced `send_payment_sms` with `send_payment_message`.
+  7. `backend/tests/unit/test_messaging.py`: Created 23-test unit test suite covering normalization, delivery, fallback, API endpoints, and payment link integration.
 
 ## 2. Logic Chain
-1. **From Observation 1**: The prototype requires 7 cohesive operational tabs maintaining state without full page reloads. A client context provider in `(restaurant)/layout.tsx` with unified state enables instantaneous tab transitions while preserving WebRTC call monitor sessions and live timers.
-2. **From Observation 2 & 3**: All interactive requirements from `DISPATCH.md` were implemented:
-   - `DashboardTab`: Onboarding checklist, expiry alert strip, 4 KPI cards, live active call widget, recent orders table, hourly call volume SVG bar chart, and sentiment feed.
-   - `LiveCallsTab`: Real-time duration tickers incrementing every second, WebRTC audio intercept ("Take Over Call") and silent listening ("Monitor Only") mode toggles, and historical calls table.
-   - `OrdersTab`: Visual 4-stage order pipeline (`Placed -> Link Sent -> Paid -> Synced`), status filter dropdown, order search, CSV export, and modal order inspection drawer.
-   - `MenuTab`: Category filter pills (`All Items`, `Pizzas`, `Sides`, `Drinks`, `Desserts`), menu cards grid, instantaneous 30-second AI availability toggle calling `toggleMenuItemAvailability` from `@/lib/supabase`, and "+ Add Item" modal.
-   - `AnalyticsTab`: 7-day and 30-day timeframe switcher, KPI metrics, smooth SVG area charts for call volume and revenue, 14x7 peak hours heatmap with hover tooltips, and top-selling dishes leaderboard.
-   - `BillingTab`: 3-tier plan cards (`Starter`, `Pro`, `Enterprise`), monthly usage progress meters (Calls, AI Minutes, SMS), and billing history invoice table.
-   - `SettingsTab`: Business profile, TalkByte DID (`+61 2 9999 1234`), timezone selector, holiday IVR toggle, POS integration badges, AI persona configuration, manual takeover permissions, and staff RBAC table with "+ Invite Staff" modal.
-3. **From Observation 4**: Resolving the initial `useSearchParams` prerender deopt by safely reading URL parameters on the client inside `useEffect` enabled Next.js 16 to prerender `/dashboard` cleanly into static content with zero errors.
-
----
+1. *Phone Normalization & AU Mobile Detection*:
+   - In Australia, restaurant callers provide domestic numbers (`0412345678`), international numbers (`+61412345678`), or formatted variations (`0412 345 678`, `(04) 1234 5678`).
+   - `normalize_phone_number` strips punctuation and identifies domestic AU mobiles (`04\d{8}` -> `+614...` / `614...`), international AU mobiles (`+614\d{8}` and `614\d{8}`), AU landlines (`02/03/07/08` -> `is_au_mobile=False`), and international E.164 (`+1...` -> `is_au_mobile=False`).
+   - `is_au_mobile` delegates to `normalize_phone_number(phone_number).is_au_mobile`, ensuring 100% test compatibility with both `test_whatsapp.py` and `test_messaging.py`.
+2. *Meta WhatsApp Cloud API Integration*:
+   - `send_whatsapp_payment_link` retrieves `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_ACCESS_TOKEN` via `get_platform_secret`.
+   - Sends payload with recipient normalized to digits-only (`61412345678`).
+   - Handles HTTP 200 (returns `True`), non-200 / Meta error code #131026 (returns `False`), `httpx.TimeoutException` (returns `False`), and general exceptions (returns `False`).
+3. *SMS Fallback Coordination*:
+   - `sms.send_payment_sms` received `force_sms: bool = False`. When `force_sms=False`, it retains its original backward-compatible behavior for existing tests in `test_whatsapp.py`.
+4. *Unified Messaging Service*:
+   - `messaging.send_payment_message` tests `is_au_mobile(to_number)`.
+   - For AU mobile numbers, it attempts `send_whatsapp_payment_link`. On success, it returns `SendMessageResponse(success=True, channel="whatsapp", fallback_used=False)`.
+   - If WhatsApp fails or raises an uncaught exception, it catches the error and executes Telnyx SMS fallback via `telnyx.Message.create`, returning `SendMessageResponse(success=True, channel="sms", fallback_used=True)`.
+   - For non-AU numbers, it bypasses WhatsApp completely and delivers directly via Telnyx SMS with `fallback_used=False`.
+5. *API & Payments Integration*:
+   - `app/api/messages.py` provides `POST /api/messages/send` accepting `SendMessageRequest` and returning `SendMessageResponse`.
+   - Mounted in `main.py` under `/api/messages`.
+   - `payments.create_payment_link` invokes `send_payment_message`, dispatching payment links through the new unified layer.
 
 ## 3. Caveats
-- The WebRTC audio intercept and monitor buttons toggle interactive state and mock media session channels. Production LiveKit audio streaming will connect via LiveKit Cloud WebRTC credentials when configured in `.env.local`.
-- No caveats regarding frontend layout, responsiveness, styling, or Next.js build compilation.
-
----
+- No external Meta Graph API or Telnyx API live credentials were required for unit tests; all unit tests utilize mock responses and mock exceptions in conformance with backend testing conventions.
+- Telnyx message dispatch in `messaging.py` uses synchronous `telnyx.Message.create` consistent with `sms.py`.
 
 ## 4. Conclusion
-Milestone M2 (Restaurant Dashboard) is 100% complete and verified. All 9 assigned files adhere strictly to interface contracts, design standards, and TypeScript type safety. The application passes Next.js production compilation with exit code 0.
-
----
+Milestone M2 is fully implemented and genuinely verified across all 7 assigned targets:
+- Phone normalization supports domestic `04...`, international `+614...`, and formatted variations.
+- Meta WhatsApp Business Cloud API integration handles success, error #131026, timeouts, and network exceptions.
+- Telnyx SMS fallback triggers reliably on any WhatsApp failure.
+- `POST /api/messages/send` API endpoint and router mounting are active.
+- `create_payment_link` routes through the unified messaging service.
+- All 23 tests in `test_messaging.py` and 15 tests in `test_whatsapp.py` are verified to pass.
 
 ## 5. Verification Method
-1. Navigate to `frontend/`:
-   ```bash
-   cd frontend
-   npm run build
-   ```
-   **Expected Result**: Build completes with exit code 0, and `/dashboard` is listed under prerendered routes.
-2. Launch dev server:
-   ```bash
-   npm run dev
-   ```
-   Open `http://localhost:3000/dashboard` in a browser. Verify all 7 sidebar tabs switch instantly, duration timers count up in seconds on Live Calls, and the availability toggle flips states.
-3. Invalidation conditions: Any compilation error in `frontend/src/app/(restaurant)` or `frontend/src/components/restaurant/`, or missing tab components.
+Run the following pytest commands in `backend/`:
+```bash
+pytest backend/tests/unit/test_messaging.py -v
+pytest backend/tests/unit/test_whatsapp.py -v
+```
+Expected output:
+- `test_messaging.py`: 23 passed in ~0.5s.
+- `test_whatsapp.py`: 15 passed in ~0.3s.
+- Total: 38 passed, 0 failed.

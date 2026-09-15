@@ -7,6 +7,8 @@ import {
   ActivityIcon,
   ClockIcon,
 } from '@/components/icons';
+import { usePlanGating, FeatureKey } from '@/lib/planGating';
+import { PlanGate, LockIcon, PlanUpgradeModal } from '@/components/ui/PlanGate';
 
 export const AnalyticsTab: React.FC = () => {
   const [timeframe, setTimeframe] = useState<'7d' | '30d' | 'custom'>('7d');
@@ -15,6 +17,20 @@ export const AnalyticsTab: React.FC = () => {
     hour: string;
     calls: number;
   } | null>(null);
+  const { canAccess, navigateToBilling } = usePlanGating();
+  const [upgradeModalFeature, setUpgradeModalFeature] = useState<FeatureKey | null>(null);
+
+  const handleSelectTimeframe = (target: '7d' | '30d' | 'custom') => {
+    if (target === '30d' && !canAccess('analytics:30d')) {
+      setUpgradeModalFeature('analytics:30d');
+      return;
+    }
+    if (target === 'custom' && !canAccess('analytics:custom_range')) {
+      setUpgradeModalFeature('analytics:custom_range');
+      return;
+    }
+    setTimeframe(target);
+  };
 
   // 7-day call volume data from prototype: [38, 42, 35, 51, 48, 62, 36]
   const callVolumeData = [
@@ -100,9 +116,9 @@ export const AnalyticsTab: React.FC = () => {
   return (
     <div className="section active space-y-6">
       {/* Timeframe Scope Switcher */}
-      <div className="flex gap-2.5">
+      <div className="flex gap-2.5 items-center">
         <button
-          onClick={() => setTimeframe('7d')}
+          onClick={() => handleSelectTimeframe('7d')}
           className={`topbar-btn text-xs ${
             timeframe === '7d' ? 'btn-primary' : 'btn-ghost'
           }`}
@@ -110,20 +126,30 @@ export const AnalyticsTab: React.FC = () => {
           7 Days
         </button>
         <button
-          onClick={() => setTimeframe('30d')}
-          className={`topbar-btn text-xs ${
+          onClick={() => handleSelectTimeframe('30d')}
+          className={`topbar-btn text-xs flex items-center gap-1.5 ${
             timeframe === '30d' ? 'btn-primary' : 'btn-ghost'
           }`}
         >
-          30 Days
+          <span>30 Days</span>
+          {!canAccess('analytics:30d') && (
+            <span className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold flex items-center gap-0.5">
+              <LockIcon size={9} /> PRO
+            </span>
+          )}
         </button>
         <button
-          onClick={() => setTimeframe('custom')}
-          className={`topbar-btn text-xs ${
+          onClick={() => handleSelectTimeframe('custom')}
+          className={`topbar-btn text-xs flex items-center gap-1.5 ${
             timeframe === 'custom' ? 'btn-primary' : 'btn-ghost'
           }`}
         >
-          Custom
+          <span>Custom</span>
+          {!canAccess('analytics:custom_range') && (
+            <span className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-bold flex items-center gap-0.5">
+              <LockIcon size={9} /> PRO
+            </span>
+          )}
         </button>
       </div>
 
@@ -280,80 +306,82 @@ export const AnalyticsTab: React.FC = () => {
       {/* Heatmap and Top Items */}
       <div className="two-col">
         {/* Peak Hours Heatmap */}
-        <div className="card">
-          <div className="card-header flex items-center justify-between">
-            <span className="card-title">Peak Hours Heatmap</span>
-            {hoveredHeatmapCell && (
-              <span className="text-xs text-purple-700 font-semibold bg-purple-50 px-2 py-0.5 rounded">
-                {hoveredHeatmapCell.day} {hoveredHeatmapCell.hour}: {hoveredHeatmapCell.calls} calls
-              </span>
-            )}
-          </div>
-          <div className="card-body">
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '40px repeat(14, 1fr)',
-                gap: '3px',
-                fontSize: '10px',
-                color: 'var(--muted)',
-              }}
-            >
-              {/* Header row with hour labels */}
-              <div />
-              {hours.map((h, i) => (
-                <div
-                  key={i}
-                  style={{
-                    textAlign: 'center',
-                    color:
-                      h.includes('pm') || ['12pm', '2', '6pm', '7', '8', '9'].includes(h)
-                        ? 'var(--text)'
-                        : 'var(--muted)',
-                    fontWeight:
-                      h.includes('pm') || ['12pm', '2', '6pm', '7', '8', '9'].includes(h)
-                        ? '600'
-                        : '400',
-                  }}
-                >
-                  {h}
-                </div>
-              ))}
+        <PlanGate feature="analytics:peak_hours_heatmap">
+          <div className="card">
+            <div className="card-header flex items-center justify-between">
+              <span className="card-title">Peak Hours Heatmap</span>
+              {hoveredHeatmapCell && (
+                <span className="text-xs text-purple-700 font-semibold bg-purple-50 px-2 py-0.5 rounded">
+                  {hoveredHeatmapCell.day} {hoveredHeatmapCell.hour}: {hoveredHeatmapCell.calls} calls
+                </span>
+              )}
+            </div>
+            <div className="card-body">
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '40px repeat(14, 1fr)',
+                  gap: '3px',
+                  fontSize: '10px',
+                  color: 'var(--muted)',
+                }}
+              >
+                {/* Header row with hour labels */}
+                <div />
+                {hours.map((h, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      textAlign: 'center',
+                      color:
+                        h.includes('pm') || ['12pm', '2', '6pm', '7', '8', '9'].includes(h)
+                          ? 'var(--text)'
+                          : 'var(--muted)',
+                      fontWeight:
+                        h.includes('pm') || ['12pm', '2', '6pm', '7', '8', '9'].includes(h)
+                          ? '600'
+                          : '400',
+                    }}
+                  >
+                    {h}
+                  </div>
+                ))}
 
-              {/* Day rows with intensity blocks */}
-              {days.map((d) => (
-                <React.Fragment key={d}>
-                  <div style={{ fontWeight: 500, paddingTop: '4px' }}>{d}</div>
-                  {heatmapMatrix[d].map((v, idx) => {
-                    const intensity = (v / 24) * 0.85 + 0.05;
-                    return (
-                      <div
-                        key={idx}
-                        onMouseEnter={() =>
-                          setHoveredHeatmapCell({
-                            day: d,
-                            hour: hours[idx],
-                            calls: v,
-                          })
-                        }
-                        onMouseLeave={() => setHoveredHeatmapCell(null)}
-                        style={{
-                          height: '22px',
-                          borderRadius: '3px',
-                          backgroundColor: `rgba(124, 58, 237, ${intensity})`,
-                          cursor: 'pointer',
-                          transition: 'transform 0.1s',
-                        }}
-                        className="hover:scale-110 hover:ring-1 hover:ring-purple-400"
-                        title={`${d} ${hours[idx]}: ${v} calls`}
-                      />
-                    );
-                  })}
-                </React.Fragment>
-              ))}
+                {/* Day rows with intensity blocks */}
+                {days.map((d) => (
+                  <React.Fragment key={d}>
+                    <div style={{ fontWeight: 500, paddingTop: '4px' }}>{d}</div>
+                    {heatmapMatrix[d].map((v, idx) => {
+                      const intensity = (v / 24) * 0.85 + 0.05;
+                      return (
+                        <div
+                          key={idx}
+                          onMouseEnter={() =>
+                            setHoveredHeatmapCell({
+                              day: d,
+                              hour: hours[idx],
+                              calls: v,
+                            })
+                          }
+                          onMouseLeave={() => setHoveredHeatmapCell(null)}
+                          style={{
+                            height: '22px',
+                            borderRadius: '3px',
+                            backgroundColor: `rgba(124, 58, 237, ${intensity})`,
+                            cursor: 'pointer',
+                            transition: 'transform 0.1s',
+                          }}
+                          className="hover:scale-110 hover:ring-1 hover:ring-purple-400"
+                          title={`${d} ${hours[idx]}: ${v} calls`}
+                        />
+                      );
+                    })}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        </PlanGate>
 
         {/* Top Ordered Items Card */}
         <div className="card">
@@ -393,6 +421,17 @@ export const AnalyticsTab: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {upgradeModalFeature && (
+        <PlanUpgradeModal
+          feature={upgradeModalFeature}
+          onClose={() => setUpgradeModalFeature(null)}
+          onUpgrade={() => {
+            setUpgradeModalFeature(null);
+            navigateToBilling();
+          }}
+        />
+      )}
     </div>
   );
 };

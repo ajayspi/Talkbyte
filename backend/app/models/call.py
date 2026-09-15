@@ -9,18 +9,18 @@ from datetime import datetime, timezone
 
 
 class CallState(str, Enum):
-    GREETING       = "GREETING"
-    TAKING_ORDER   = "TAKING_ORDER"
-    CONFIRMING     = "CONFIRMING"
-    CONFIRMED      = "CONFIRMED"
-    PAYMENT_SENT   = "PAYMENT_SENT"
-    COMPLETE       = "COMPLETE"
+    GREETING = "GREETING"
+    TAKING_ORDER = "TAKING_ORDER"
+    CONFIRMING = "CONFIRMING"
+    CONFIRMED = "CONFIRMED"
+    PAYMENT_SENT = "PAYMENT_SENT"
+    COMPLETE = "COMPLETE"
 
     # Error / exit states
     TRANSFER_TO_HUMAN = "TRANSFER_TO_HUMAN"   # caller requests human / 3× mishear
-    CALL_DROPPED      = "CALL_DROPPED"         # WebSocket disconnect mid-call
-    POS_FAILED        = "POS_FAILED"           # Square push failed after retries
-    PAYMENT_EXPIRED   = "PAYMENT_EXPIRED"      # Stripe link not opened in 30min
+    CALL_DROPPED = "CALL_DROPPED"         # WebSocket disconnect mid-call
+    POS_FAILED = "POS_FAILED"           # Square push failed after retries
+    PAYMENT_EXPIRED = "PAYMENT_EXPIRED"      # Stripe link not opened in 30min
 
 
 VALID_TRANSITIONS: dict[CallState, list[CallState]] = {
@@ -46,7 +46,8 @@ class CallSession(BaseModel):
     mishear_count: int = 0
     # default_factory, not `= datetime.utcnow()`: a bare default is evaluated
     # once at import, giving every call in the process the same start time.
-    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc))
     transcript: list[dict] = Field(default_factory=list)
 
     # ── Redis serialisation ──────────────────────────────────────────────

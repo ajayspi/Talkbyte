@@ -1,7 +1,7 @@
-# BRIEFING — 2026-09-03T06:54:00Z
+# BRIEFING — 2026-09-14T01:00:00Z
 
 ## Mission
-Empirically verify build configs, Tailwind CSS v4 rules, and icon coverage for Milestone M1, issuing APPROVE or REQUEST_CHANGES.
+Adversarially challenge and stress-test the 4 auth pages (/login, /signup, /admin/login, /admin/signup) and callback route (auth/callback/route.ts), delivering an explicit gate verdict: APPROVE or REJECT.
 
 ## 🔒 My Identity
 - Archetype: EMPIRICAL CHALLENGER
@@ -16,42 +16,51 @@ Empirically verify build configs, Tailwind CSS v4 rules, and icon coverage for M
 - Run verification code yourself — do NOT trust worker claims or logs
 - Empirical reproduction required for bug claims
 - No source or test files inside .agents/ — .agents/ holds only agent metadata
-- Deliverables: report.md and handoff.md, message to parent when done
+- Deliverables: analysis.md and handoff.md, message to parent when done
 
 ## Current Parent
-- Conversation ID: 2f1fa4e2-ff2c-4958-be1e-7fd459e382ce
-- Updated: not yet
+- Conversation ID: 9281b606-e3c1-464c-a4e3-c977084143c5
+- Updated: 2026-09-14T01:00:00Z
 
 ## Review Scope
-- **Files to review**: `frontend/tsconfig.json`, `frontend/next.config.mjs`, `frontend/postcss.config.mjs`, `frontend/package.json`, `frontend/app/globals.css`, `frontend/components/icons.tsx`, and all frontend component imports
-- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`, `worker_m1/handoff.md`
-- **Review criteria**: Next.js 16 / React 19 compatibility, Tailwind v4 configuration, Lucide icon imports and edge cases, zero missing imports
+- **Files to review**:
+  - `frontend/src/app/(auth)/login/page.tsx`
+  - `frontend/src/app/(auth)/signup/page.tsx`
+  - `frontend/src/app/(auth)/admin/login/page.tsx`
+  - `frontend/src/app/(auth)/admin/signup/page.tsx`
+  - `frontend/src/app/auth/callback/route.ts`
+  - Auth helper libs (`src/lib/supabase-browser.ts`, `src/lib/supabase-server.ts`, `src/lib/supabase-middleware.ts`, `src/proxy.ts`)
+- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`
+- **Review criteria**: Form validation, boundary handling, offline demo redirects, callback parameter omission / malformed tokens, error recovery, security / open redirect vulnerabilities.
 
 ## Key Decisions Made
-- Initialized briefing and dispatch tracking
-- Conducted deep static, structural, and edge-case empirical audit of build configs, Tailwind v4 rules, and icon system
-- Verified complete absence of `lucide-react` across the codebase (0 grep hits)
-- Verified all 39 icon exports in `frontend/src/components/icons.tsx`
-- Verified default props and prop precedence in `icons.tsx` (size defaults to 20, className defaults to '', rest props override default attributes)
-- Verified Tailwind CSS v4 CSS-first configuration (`@import "tailwindcss";`, `@theme`, `@tailwindcss/postcss`)
-- Formulated verdict: APPROVE
+- Executed empirical build verification (`npm.cmd run build`), reproducing 2 fatal route collisions.
+- Identified Open Redirect vulnerability (CWE-601) in `src/app/auth/callback/route.ts`.
+- Identified uncaught exception / HTTP 500 crash on malformed `next` in `route.ts`.
+- Identified dead error UI state across all 4 auth pages due to unconditional offline fallback redirect.
+- Formulated and delivered explicit gate verdict: **REJECT**.
+- Documented findings in `analysis.md` and `handoff.md`.
 
 ## Artifact Index
 - `.agents/challenger_m1_2/DISPATCH.md` — Dispatch log
 - `.agents/challenger_m1_2/progress.md` — Liveness and progress tracker
-- `.agents/challenger_m1_2/report.md` — Empirical evaluation and challenge report
-- `.agents/challenger_m1_2/handoff.md` — 5-component handoff report
+- `.agents/challenger_m1_2/analysis.md` — In-depth adversarial stress test analysis
+- `.agents/challenger_m1_2/handoff.md` — 5-component handoff report with gate verdict
 
 ## Attack Surface
 - **Hypotheses tested**:
-  1. `tsconfig.json` compatibility with Next.js 16 bundler and `@/*` path mapping: Confirmed valid.
-  2. `next.config.mjs` image unoptimized & strict typecheck behavior: Confirmed valid.
-  3. `postcss.config.mjs` Tailwind v4 `@tailwindcss/postcss` plugin compatibility without deprecated `autoprefixer`: Confirmed valid.
-  4. `globals.css` Tailwind v4 `@theme` and custom variable definitions: Confirmed valid.
-  5. Icon edge cases in `icons.tsx` (omitted size, custom size, omitted className, Tailwind class overriding, rest prop spreading): Confirmed valid.
-  6. Detection of missing imports or references to `lucide-react`: Confirmed 0 missing imports.
-- **Vulnerabilities found**: None. Zero blocking issues.
-- **Untested angles**: Runtime browser rendering with LiveKit WebRTC audio streams (deferred to M2 live calls).
+  1. Production build validity: FAILED (Exit code 1, parallel route collisions between `/(auth)/login` vs `/login` and `/(auth)/admin/login` vs `/(admin)/admin/login`).
+  2. Callback route parameter omission: Missing `code` safely handled, missing `next` defaults to `/dashboard`.
+  3. Callback route URL validation: FAILED (Open redirect on external URLs, crash to 500 on malformed URLs).
+  4. Form error state propagation: FAILED (Dead error state in UI; errors swallowed with redirect to `/dashboard` or `/admin`).
+  5. Operator admin RBAC: FAILED (No role verification in `/admin/login`; no `middleware.ts` guarding `/admin`).
+- **Vulnerabilities found**:
+  - Critical: Turbopack parallel page route collision blocking `next build`.
+  - High: Open Redirect in `auth/callback/route.ts` (CWE-601).
+  - Medium: Unhandled TypeError (500 crash) on malformed URL in `auth/callback/route.ts`.
+  - Medium: Dead error state / uncommunicated auth failure across all 4 auth pages.
+- **Untested angles**:
+  - Live Supabase session refresh via cookies in actual browser runtime (offline environment).
 
 ## Loaded Skills
 None provided in dispatch.

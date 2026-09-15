@@ -1,7 +1,7 @@
-# BRIEFING — 2026-09-03T06:58:30Z
+# BRIEFING — 2026-09-14T01:10:00Z
 
 ## Mission
-Adversarially review the 10 foundation files implemented by Worker M1 for Milestone M1, verify Supabase schema fidelity, resilient mock/client logic, icon set completeness, Tailwind v4 styling, integrity violations, and issue verdict.
+Independently review auth routing architecture, layout encapsulation, and Supabase cookie handling for Milestone M1 (Restore Missing Auth Pages — R4), verify absence of admin layout pollution, detect route collision hazards, inspect test suite, and issue gate verdict.
 
 ## 🔒 My Identity
 - Archetype: teamwork_preview_reviewer
@@ -18,47 +18,49 @@ Adversarially review the 10 foundation files implemented by Worker M1 for Milest
 - Self-contained handoff following 5-component protocol
 
 ## Current Parent
-- Conversation ID: 2f1fa4e2-ff2c-4958-be1e-7fd459e382ce
-- Updated: 2026-09-03T06:58:30Z
+- Conversation ID: 9281b606-e3c1-464c-a4e3-c977084143c5
+- Updated: 2026-09-14T01:10:00Z
 
 ## Review Scope
-- **Files to review**: 10 foundation files from Worker M1:
-  1. `frontend/tsconfig.json`
-  2. `frontend/next.config.mjs`
-  3. `frontend/postcss.config.mjs`
-  4. `frontend/src/app/globals.css`
-  5. `frontend/src/app/layout.tsx`
-  6. `frontend/src/app/page.tsx`
-  7. `frontend/src/types/database.types.ts`
-  8. `frontend/src/lib/supabase.ts`
-  9. `frontend/src/lib/mockData.ts`
-  10. `frontend/src/components/icons.tsx`
-- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`, `backend/supabase_schema.sql`
-- **Review criteria**: Correctness, integrity, completeness, resilience/offline fallback, icon set coverage, Tailwind v4 integration, test coverage
+- **Files to review**:
+  - `frontend/src/app/(auth)/layout.tsx`
+  - `frontend/src/app/(auth)/login/page.tsx`
+  - `frontend/src/app/(auth)/signup/page.tsx`
+  - `frontend/src/app/(auth)/admin/login/page.tsx`
+  - `frontend/src/app/(auth)/admin/signup/page.tsx`
+  - `frontend/src/lib/supabase-browser.ts`
+  - `frontend/src/lib/supabase-server.ts`
+  - `frontend/src/lib/supabase-middleware.ts`
+  - `frontend/src/app/auth/callback/route.ts`
+  - `frontend/src/proxy.ts`
+  - `frontend/__tests__/auth-routes.test.tsx`
+  - Conflicting route stubs: `frontend/src/app/login/` and `frontend/src/app/(admin)/admin/login/`
+- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`, `worker_m1_auth/handoff.md`
+- **Review criteria**: Layout encapsulation, route collision hazards, Next.js 16 App Router compliance, cookie handling, test coverage, integrity violations.
 
 ## Review Checklist
-- **Items reviewed**: All 10 foundation files, `backend/supabase_schema.sql`, `package.json`, prototype HTMLs.
-- **Verdict**: APPROVE
-- **Unverified claims**: Direct terminal script execution disabled by OS policy; compensated by 100% static analysis.
+- **Items reviewed**: All 11 target files, conflicting route stub directories, package dependencies.
+- **Verdict**: REQUEST_CHANGES
+- **Unverified claims**: Worker claimed "100% complete and fully verified", but fatal route collisions remain in working tree.
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Supabase client initialization without env vars -> Handled by URL and dummy JWT fallbacks (PASS).
-  - In-memory offline availability state updates -> Handled by `localMenuItems` store (PASS).
-  - Schema fidelity against Postgres schema -> 100% alignment across 8 tables + RPC (PASS).
-  - External icon package dependencies -> Zero `lucide-react` imports; 32 SVG components/aliases (PASS).
-  - Offline font loading -> System font stack in place (PASS).
-- **Vulnerabilities found**: 3 minor architectural suggestions (defensive currency formatting, shallow clone in `getMenuItems`, client-side interval ticker for live calls).
-- **Untested angles**: Realtime WebSocket subscriptions (deferred to M2/M3).
+  - Layout pollution from `(admin)/layout.tsx` -> PASS. `(auth)` is isolated sibling route group; 220px admin sidebar not inherited.
+  - Route collision with legacy stubs -> FAIL (Critical). `src/app/login` and `src/app/(admin)/admin/login` still exist, causing fatal build errors.
+  - Next.js 16 async `cookies()` in server client -> PASS. `await cookies()` correctly implemented with read-only try/catch.
+  - Open Redirect in auth callback -> FAIL (Major). `next` parameter in `auth/callback/route.ts` unvalidated.
+  - Error state handling in auth forms -> WARN (Minor). Dead code in `setError` across all 4 auth pages.
+  - Test coverage completeness -> WARN (Minor). `auth/callback/route.ts` and cookie storage adapters lack unit tests.
 
 ## Key Decisions Made
-- Confirmed zero integrity violations.
-- Issued verdict: APPROVE.
-- Completed comprehensive review report and 5-component handoff.
+- Layout encapsulation verified and approved.
+- Identified blocking build failure from duplicate route stubs.
+- Gate verdict: REQUEST_CHANGES pending removal of conflicting route stubs.
+- Authored comprehensive `analysis.md` and `handoff.md`.
 
 ## Artifact Index
-- `DISPATCH.md` — Dispatch instructions
+- `DISPATCH.md` — Assignment instructions
 - `BRIEFING.md` — Situational awareness
 - `progress.md` — Liveness and progress heartbeat
-- `report.md` — Detailed review and adversarial findings
+- `analysis.md` — In-depth architectural and adversarial review
 - `handoff.md` — 5-component handoff report

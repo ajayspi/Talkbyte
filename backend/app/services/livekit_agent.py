@@ -8,7 +8,7 @@ Reference: https://docs.livekit.io/agents/quickstart/
 import logging
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
 from livekit.agents.voice_assistant import VoiceAssistant
-from livekit.plugins import deepgram, openai, elevenlabs, silero
+from livekit.plugins import deepgram, openai, elevenlabs, silero, cartesia
 from app.services.llm import build_system_prompt
 from app.models.call import CallSession, CallState
 from app.db.redis import get_session, save_session
@@ -38,7 +38,18 @@ async def entrypoint(ctx: JobContext):
             return
 
         session = CallSession.from_redis(session_data)
-        logger.info(f"[{ctx.room.name}] Session loaded: {session.call_id}, state={session.state}")
+        logger.info(
+            f"[{ctx.room.name}] Session loaded: {session.call_id}, state={session.state}")
+
+        # Fetch restaurant for dynamic STT language
+        restaurant = await get_restaurant_by_id(session.restaurant_id)
+        stt_language = "en-US" # Default
+        if restaurant and hasattr(restaurant, 'timezone'):
+            if "Australia" in restaurant.timezone:
+                stt_language = "en-AU"
+            elif "Europe" in restaurant.timezone or "London" in restaurant.timezone:
+                stt_language = "en-GB"
+
 
         # Load VAD (Voice Activity Detection)
         try:
@@ -75,7 +86,8 @@ async def entrypoint(ctx: JobContext):
                 items = remove_item(items, name, qty)
                 session.order_items = [item.model_dump() for item in items]
                 await save_session(session.to_redis(), ttl=1800)
-                logger.info(f"[{ctx.room.name}] Removed from order: {qty}x {name}")
+                logger.info(
+                    f"[{ctx.room.name}] Removed from order: {qty}x {name}")
                 return "Successfully removed from order."
             except Exception as e:
                 return f"Failed to remove: {e}"
@@ -85,41 +97,72 @@ async def entrypoint(ctx: JobContext):
             logger.info(f"[{ctx.room.name}] Order confirmed by AI")
             session.transition(CallState.CONFIRMED)
             await save_session(session.to_redis(), ttl=1800)
-            from app.db.supabase import update_call_state
+            from app.db.supabase import update_call_state, get_restaurant_by_id
             await update_call_state(session.call_id, CallState.CONFIRMED)
             # TODO Sprint 2: Push to POS, send payment SMS
             return "Order confirmed. Proceed to inform the customer about payment via SMS."
 
         from app.db.supabase import get_platform_secret
         import os
-        
+
         deepgram_key = await get_platform_secret("DEEPGRAM_API_KEY")
         openai_key = await get_platform_secret("OPENAI_API_KEY")
+        # Determine TTS provider dynamically based on restaurant config
+        tts_provider_name = getattr(restaurant, "tts_provider", "elevenlabs") if restaurant else "elevenlabs"
+        voice_id = getattr(restaurant, "voice_id", None) if restaurant else None
+
+        # Fetch keys
+        cartesia_key = await get_platform_secret("CARTESIA_API_KEY")
         elevenlabs_key = await get_platform_secret("ELEVENLABS_API_KEY")
-        
+        fallback_provider = os.getenv("TTS_FALLBACK_PROVIDER", "elevenlabs")
+
+        try:
+            if tts_provider_name == "cartesia" and cartesia_key:
+                cartesia_voice_id = voice_id if voice_id else "a0e99841-438c-4a64-b679-ae501e7d6091"
+                tts_plugin = cartesia.TTS(voice=cartesia_voice_id, api_key=cartesia_key)
+                logger.info(f"[{ctx.room.name}] Using Cartesia TTS (voice={cartesia_voice_id})")
+            else:
+                raise ValueError("Cartesia selected but no key available, falling back")
+        except Exception as e:
+            logger.warning(f"[{ctx.room.name}] Primary TTS failed/unavailable ({e}). Routing to fallback: {fallback_provider}")
+            if fallback_provider == "elevenlabs" and elevenlabs_key:
+                eleven_voice_id = ELEVENLABS_VOICE_ID # Safe default fallback
+                tts_plugin = elevenlabs.TTS(voice_id=eleven_voice_id, api_key=elevenlabs_key)
+            else:
+                logger.error("No valid TTS fallback available.")
+                raise
+
         # Initialize VoiceAssistant
+        # Using LiteLLM Proxy (http://litellm:4000) for cross-provider LLM failover (OpenAI -> Anthropic)
+        # and unified spend tracking across tenants.
+        litellm_base_url = os.getenv("LITELLM_BASE_URL", "http://litellm:4000/v1")
         assistant = VoiceAssistant(
             vad=vad,
-            stt=deepgram.STT(model="nova-3", language="en-AU", api_key=deepgram_key),
-            llm=openai.LLM(model="gpt-4.1", system_prompt=system_prompt, api_key=openai_key),
-            tts=elevenlabs.TTS(voice_id=ELEVENLABS_VOICE_ID, api_key=elevenlabs_key),
+            stt=deepgram.STT(model="nova-3", language=stt_language, api_key=deepgram_key),
+            llm=openai.LLM(model="gpt-4o-mini", system_prompt=system_prompt, api_key=openai_key, base_url=litellm_base_url),
+            tts=tts_plugin,
             fnc_ctx=fnc_ctx,
         )
+
 
         # Event: user speech committed → save to transcript
         @assistant.on("user_speech_committed")
         async def on_user_speech(message: llm.ChatMessage):
             """User message received and committed."""
-            logger.info(f"[{ctx.room.name}] User speech: {message.content[:100]}")
-            session.transcript.append({"role": "user", "content": message.content})
+            logger.info(
+                f"[{ctx.room.name}] User speech: {message.content[:100]}")
+            session.transcript.append(
+                {"role": "user", "content": message.content})
             await save_session(session.to_redis(), ttl=1800)
 
         # Event: assistant response → save to transcript and update state if needed
         @assistant.on("agent_speech_committed")
         async def on_agent_speech(message: llm.ChatMessage):
             """Agent message committed."""
-            logger.info(f"[{ctx.room.name}] Agent speech: {message.content[:100]}")
-            session.transcript.append({"role": "assistant", "content": message.content})
+            logger.info(
+                f"[{ctx.room.name}] Agent speech: {message.content[:100]}")
+            session.transcript.append(
+                {"role": "assistant", "content": message.content})
             await save_session(session.to_redis(), ttl=1800)
 
         # Start the voice assistant
@@ -131,7 +174,8 @@ async def entrypoint(ctx: JobContext):
         logger.info(f"[{ctx.room.name}] Call ended, session cleaned up")
 
     except Exception as e:
-        logger.error(f"[{ctx.room.name}] Agent error: {type(e).__name__}: {e}", exc_info=True)
+        logger.error(
+            f"[{ctx.room.name}] Agent error: {type(e).__name__}: {e}", exc_info=True)
         raise
 
 
@@ -139,15 +183,16 @@ def _run_with_creds():
     import asyncio
     import os
     from app.db.supabase import get_platform_secret, init_supabase
-    
+
     async def fetch_creds():
         await init_supabase()
         os.environ["LIVEKIT_URL"] = await get_platform_secret("LIVEKIT_URL")
         os.environ["LIVEKIT_API_KEY"] = await get_platform_secret("LIVEKIT_API_KEY")
         os.environ["LIVEKIT_API_SECRET"] = await get_platform_secret("LIVEKIT_API_SECRET")
-        
+
     asyncio.run(fetch_creds())
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+
 
 if __name__ == "__main__":
     logging.basicConfig(

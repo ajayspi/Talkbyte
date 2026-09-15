@@ -37,11 +37,26 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
  */
 export async function isSupabaseConnected(): Promise<boolean> {
   try {
-    const { error } = await supabase.from('restaurants').select('id').limit(1);
+    // Add a short timeout so tests don't hang if Supabase is inaccessible
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const { error } = await supabase.from('restaurants').select('id').limit(1).abortSignal(controller.signal);
+    clearTimeout(timeoutId);
     return !error;
   } catch {
     return false;
   }
+}
+
+// Add a helper wrapper for queries to have a timeout
+async function withTimeout<T>(queryPromise: PromiseLike<T>, timeoutMs = 2000): Promise<T> {
+  let timeoutHandle: NodeJS.Timeout;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error('Query timeout')), timeoutMs);
+  });
+  return Promise.race([queryPromise, timeoutPromise]).finally(() => {
+    clearTimeout(timeoutHandle);
+  });
 }
 
 // In-memory store for local updates when offline or during demo
@@ -50,11 +65,11 @@ let localMenuItems: MenuItem[] = [...MOCK_MENU_ITEMS];
 export async function getRestaurant(id?: string): Promise<Restaurant> {
   try {
     if (id) {
-      const { data, error } = await supabase
+      const { data, error } = await withTimeout(supabase
         .from('restaurants')
         .select('*')
         .eq('id', id)
-        .single();
+        .single());
       if (!error && data) return data as unknown as Restaurant;
     }
   } catch {
@@ -65,10 +80,10 @@ export async function getRestaurant(id?: string): Promise<Restaurant> {
 
 export async function getFleetRestaurants(): Promise<Restaurant[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await withTimeout(supabase
       .from('restaurants')
       .select('*')
-      .order('name');
+      .order('name'));
     if (!error && data && data.length > 0) return data as unknown as Restaurant[];
   } catch {
     // Fall back to mock
@@ -80,7 +95,7 @@ export async function getMenuItems(restaurantId?: string): Promise<MenuItem[]> {
   try {
     const query = supabase.from('menu_items').select('*');
     if (restaurantId) query.eq('restaurant_id', restaurantId);
-    const { data, error } = await query.order('category');
+    const { data, error } = await withTimeout(query.order('category'));
     if (!error && data && data.length > 0) return data as unknown as MenuItem[];
   } catch {
     // Fall back to mock
@@ -93,9 +108,9 @@ export async function toggleMenuItemAvailability(
   available: boolean
 ): Promise<boolean> {
   try {
-    const { error } = await (supabase.from('menu_items') as any)
+    const { error } = await withTimeout((supabase.from('menu_items') as any)
       .update({ available })
-      .eq('id', itemId);
+      .eq('id', itemId)) as { error: unknown };
     if (!error) {
       localMenuItems = localMenuItems.map((item) =>
         item.id === itemId ? { ...item, available } : item
@@ -115,9 +130,9 @@ export async function getLiveCalls(restaurantId?: string): Promise<Call[]> {
   try {
     const query = supabase.from('calls').select('*');
     if (restaurantId) query.eq('restaurant_id', restaurantId);
-    const { data, error } = await query.order('started_at', {
+    const { data, error } = await withTimeout(query.order('started_at', {
       ascending: false,
-    });
+    }));
     if (!error && data && data.length > 0) return data as unknown as Call[];
   } catch {
     // Fall back to mock
@@ -132,9 +147,9 @@ export async function getRecentOrders(
   try {
     const query = supabase.from('orders').select('*');
     if (restaurantId) query.eq('restaurant_id', restaurantId);
-    const { data, error } = await query
+    const { data, error } = await withTimeout(query
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .limit(limit));
     if (!error && data && data.length > 0) return data as unknown as Order[];
   } catch {
     // Fall back to mock
@@ -152,11 +167,11 @@ export async function getInfraServices(): Promise<InfraService[]> {
 
 export async function getAuditLogs(limit: number = 50): Promise<AuditLog[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await withTimeout(supabase
       .from('audit_logs')
       .select('*')
       .order('timestamp', { ascending: false })
-      .limit(limit);
+      .limit(limit));
     if (!error && data && data.length > 0) return data as unknown as AuditLog[];
   } catch {
     // Fall back to mock
@@ -166,10 +181,10 @@ export async function getAuditLogs(limit: number = 50): Promise<AuditLog[]> {
 
 export async function getSubscriptions(): Promise<Subscription[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await withTimeout(supabase
       .from('subscriptions')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }));
     if (!error && data && data.length > 0) return data as unknown as Subscription[];
   } catch {
     // Fall back to mock
@@ -179,10 +194,10 @@ export async function getSubscriptions(): Promise<Subscription[]> {
 
 export async function getUsers(): Promise<RestaurantUser[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await withTimeout(supabase
       .from('restaurant_users')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }));
     if (!error && data && data.length > 0) return data as unknown as RestaurantUser[];
   } catch {
     // Fall back to mock

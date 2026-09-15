@@ -1,19 +1,22 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
-import type { Engine } from '@tsparticles/engine';
+import { tsParticles } from '@tsparticles/engine';
 
 export default function ParticlesBackground() {
-  const particlesInit = useCallback(async (engine: Engine) => {
-    await loadSlim(engine);
+  const initialized = useRef(false);
+
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    loadSlim(tsParticles).catch(console.error);
   }, []);
 
   return (
     <Particles
       id="tsparticles"
-      init={particlesInit}
       className="absolute inset-0 z-0"
       options={{
         background: { color: { value: 'transparent' } },

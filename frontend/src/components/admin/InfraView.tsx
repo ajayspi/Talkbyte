@@ -263,6 +263,143 @@ export default function InfraView() {
           );
         })}
       </div>
+
+      {/* API Integrations & Fallback Routing Matrix */}
+      <div className="mt-8 border-t border-[#e5e7eb] pt-8">
+        <div className="mb-5">
+          <h2 className="text-[18px] font-bold text-[#111827]">API Quotas & Fallback Routing</h2>
+          <div className="text-[12px] text-[#6b7280]">
+            Manage multi-API routing configurations, monitor active quotas, and configure automatic failovers.
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Cartesia Card */}
+          <div className="bg-white rounded-xl border border-[#e5e7eb] p-5 shadow-2xs">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-bold text-[15px] text-[#111827]">Cartesia (Primary TTS)</h3>
+                <span className="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-800 text-[11px] font-bold rounded">Active Routing</span>
+              </div>
+              <div className="text-right">
+                <div className="text-[13px] text-[#6b7280]">Quota Usage</div>
+                <div className="font-bold text-[14px]">82%</div>
+              </div>
+            </div>
+            <div className="w-full bg-[#e5e7eb] rounded-full h-2 mb-4">
+              <div className="bg-blue-600 h-2 rounded-full" style={{ width: '82%' }}></div>
+            </div>
+            <div className="space-y-2 text-[12px]">
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Rate Limit</span>
+                <span className="font-semibold text-[#111827]">45/50 req/sec</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Monthly Spend</span>
+                <span className="font-semibold text-[#111827]">$124.50 / $500.00</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Fallback Target</span>
+                <span className="font-semibold text-[#111827]">ElevenLabs</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ElevenLabs Card */}
+          <div className="bg-white rounded-xl border border-[#e5e7eb] p-5 shadow-2xs">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-bold text-[15px] text-[#111827]">ElevenLabs (Fallback TTS)</h3>
+                <span className="inline-block mt-1 px-2 py-0.5 bg-yellow-100 text-yellow-800 text-[11px] font-bold rounded">Standby</span>
+              </div>
+              <div className="text-right">
+                <div className="text-[13px] text-[#6b7280]">Quota Usage</div>
+                <div className="font-bold text-[14px]">12%</div>
+              </div>
+            </div>
+            <div className="w-full bg-[#e5e7eb] rounded-full h-2 mb-4">
+              <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '12%' }}></div>
+            </div>
+            <div className="space-y-2 text-[12px]">
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Rate Limit</span>
+                <span className="font-semibold text-[#111827]">2/10 req/sec</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Monthly Spend</span>
+                <span className="font-semibold text-[#111827]">$45.00 / $200.00</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Fallback Target</span>
+                <span className="font-semibold text-red-600">None (Exhausted = Fail)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* OpenAI Card */}
+          <div className="bg-white rounded-xl border border-[#e5e7eb] p-5 shadow-2xs">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-bold text-[15px] text-[#111827]">OpenAI (LLM Core)</h3>
+                <span className="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-800 text-[11px] font-bold rounded">Active Routing</span>
+              </div>
+              <div className="text-right">
+                <div className="text-[13px] text-[#6b7280]">Quota Usage</div>
+                <div className="font-bold text-[14px]">45%</div>
+              </div>
+            </div>
+            <div className="w-full bg-[#e5e7eb] rounded-full h-2 mb-4">
+              <div className="bg-green-500 h-2 rounded-full" style={{ width: '45%' }}></div>
+            </div>
+            <div className="space-y-2 text-[12px]">
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Rate Limit</span>
+                <span className="font-semibold text-[#111827]">500/1000 RPM</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Monthly Spend</span>
+                <span className="font-semibold text-[#111827]">$450.00 / $1000.00</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Fallback Target</span>
+                <span className="font-semibold text-[#111827]">Anthropic Claude</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Anthropic Card */}
+          <div className="bg-white rounded-xl border border-[#e5e7eb] p-5 shadow-2xs">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-bold text-[15px] text-[#111827]">Anthropic (Fallback LLM)</h3>
+                <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-gray-800 text-[11px] font-bold rounded">Inactive</span>
+              </div>
+              <div className="text-right">
+                <div className="text-[13px] text-[#6b7280]">Quota Usage</div>
+                <div className="font-bold text-[14px]">0%</div>
+              </div>
+            </div>
+            <div className="w-full bg-[#e5e7eb] rounded-full h-2 mb-4">
+              <div className="bg-gray-300 h-2 rounded-full" style={{ width: '0%' }}></div>
+            </div>
+            <div className="space-y-2 text-[12px]">
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Rate Limit</span>
+                <span className="font-semibold text-[#111827]">0/500 RPM</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Monthly Spend</span>
+                <span className="font-semibold text-[#111827]">$0.00 / $500.00</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#6b7280]">Fallback Target</span>
+                <span className="font-semibold text-red-600">None</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

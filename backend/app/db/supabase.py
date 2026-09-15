@@ -24,8 +24,10 @@ async def init_supabase() -> None:
 
 def get_db() -> AsyncClient:
     if _supabase is None:
-        raise RuntimeError("Supabase not initialised — call init_supabase() at startup")
+        raise RuntimeError(
+            "Supabase not initialised — call init_supabase() at startup")
     return _supabase
+
 
 async def get_platform_secret(secret_name: str) -> str:
     """Fetch API keys dynamically from the database (e.g. platform_secrets table)."""
@@ -66,6 +68,8 @@ def _row_to_restaurant(row: dict) -> Restaurant:
         active=row.get("active", False),
         ai_instructions=row.get("ai_instructions"),
         timezone=row.get("timezone", "Australia/Sydney"),
+        tts_provider=row.get("tts_provider", "elevenlabs"),
+        voice_id=row.get("voice_id"),
         created_at=row["created_at"],
     )
 

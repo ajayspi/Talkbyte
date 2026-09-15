@@ -53,11 +53,11 @@ TalkByte AI platform frontend built with Next.js 16 (App Router), React 19, Tail
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Frontend Foundation & Data Layer | Config files (`tsconfig`, `next.config`, `postcss`), `globals.css`, root `layout.tsx`, `page.tsx`, `database.types.ts`, `src/lib/supabase.ts`, `icons.tsx` | None | DONE |
-| M2 | Next.js Restaurant Dashboard (R1) | `src/app/(restaurant)` App Router routes, 7 tabs, interactive components, Supabase data fetching and availability mutation | M1 | DONE |
-| M3 | Next.js Operator Admin Panel (R2) | `src/app/(admin)` App Router routes, 9 views, system metrics, infrastructure telemetry, fleet tables, audit logs | M1 | DONE |
-| M4 | E2E Test Suite & Build Verification | Complete test suite, `npm test` passing, `npm run build` passing with exit code 0 | M2, M3 | DONE |
-| M5 | Documentation & Version Control (R3, R4) | Update `CLAUDE.md` (Sprint 3 & 4 complete), commit all changes, push to origin | M4 | DONE |
+| M1 | Restore Missing Auth Pages (R4) | Restore deleted files from commits `0cb9c98` and `f211cdf`: `frontend/src/app/(auth)/`, `src/lib/supabase-browser.ts`, `src/lib/supabase-server.ts`, `src/lib/supabase-middleware.ts`, `src/app/auth/callback/route.ts`, and `src/proxy.ts`. Ensure `/login`, `/signup`, `/admin/login`, `/admin/signup` return HTTP 200. | None | DONE |
+| M2 | WhatsApp Business API Integration & SMS Fallback (R1) | Implement `backend/app/services/whatsapp.py` (AU normalization, Meta Cloud API), `backend/app/services/messaging.py`, `backend/app/api/messages.py`, update `payments.py`, and comprehensive unit tests in `backend/tests/unit/test_messaging.py`. | None | DONE |
+| M3 | SaaS Subscription Billing for Restaurants (R2) | `/dashboard/billing` page returning 200, dynamic tier selection in `BillingTab.tsx`, Stripe checkout session trigger, Stripe Webhook updating `restaurants.plan_id`, and plan feature gating (`planGating.ts`, `PlanGate.tsx`). | M1 | DONE |
+| M4 | Playwright End-to-End Testing Suite (R3) | Setup `@playwright/test` and `playwright.config.ts`, implement 3 user journey tests in `frontend/e2e/`, runnable via `npx playwright test` with exit code 0. | M1, M2, M3 | IN_PROGRESS |
+| M5 | Full Verification, Build & Git Remote Push | Verify `npm run build` exits 0, `pip install -r requirements.txt` exits 0, clean git status, commit and push to `origin/claude/talkbyte-project-integration-fad989`. | M1, M2, M3, M4 | PLANNED |
 
 ---
 

@@ -20,6 +20,8 @@ export const MOCK_RESTAURANT: Restaurant = {
   ai_instructions:
     'Warm Italian greeting. Recommend Truffle Mushroom pizza and Tiramisu. Offer sparkling or still water for drinks.',
   timezone: 'Australia/Sydney',
+  tts_provider: 'cartesia',
+  voice_id: 'a0e99841-438c-4a64-b679-ae501e7d6091',
   health_score: 98,
   pos_provider: 'Square POS',
   pos_status: 'connected',
