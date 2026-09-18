@@ -33,3 +33,4 @@ Thumbs.db
 # Logs
 *.log
 celerybeat-schedule
+backend/.coverage
