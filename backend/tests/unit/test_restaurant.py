@@ -131,3 +131,29 @@ def test_find_menu_item_returns_none_when_absent():
 def test_find_menu_item_ignores_unavailable_items():
     """Matching an 86'd item would let it onto the order at a real price."""
     assert find_menu_item([_item(available=False)], "Margherita Pizza") is None
+
+def test_find_menu_item_ignores_leading_and_trailing_whitespace_in_query():
+    found = find_menu_item([_item(name="Margherita Pizza")], "  Margherita Pizza   ")
+    assert found is not None
+    assert found.name == "Margherita Pizza"
+
+
+def test_find_menu_item_ignores_leading_and_trailing_whitespace_in_item_name():
+    found = find_menu_item([_item(name="  Margherita Pizza  ")], "Margherita Pizza")
+    assert found is not None
+    assert found.name == "  Margherita Pizza  "
+
+
+def test_find_menu_item_returns_first_match_among_multiple_items():
+    items = [
+        _item(name="Coke", price_cents=200),
+        _item(name="Coke", price_cents=250), # Large size perhaps
+    ]
+    found = find_menu_item(items, "Coke")
+    assert found is not None
+    assert found.price_cents == 200
+
+def test_find_menu_item_handles_mixed_case_in_query():
+    found = find_menu_item([_item(name="Margherita Pizza")], "mArGhErItA pIzZa")
+    assert found is not None
+    assert found.name == "Margherita Pizza"
