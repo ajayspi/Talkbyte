@@ -1,6 +1,6 @@
 """Stripe webhook + payment link generation — Sprint 2"""
 
-from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Request, HTTPException
 import stripe
 from config import config
 from app.db.supabase import get_order, update_order_state, get_call, get_platform_secret
