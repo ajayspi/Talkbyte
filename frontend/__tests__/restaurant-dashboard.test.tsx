@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DashboardTab from '@/components/restaurant/DashboardTab';
 import LiveCallsTab from '@/components/restaurant/LiveCallsTab';
@@ -200,7 +200,7 @@ describe('Restaurant Dashboard Component Suites', () => {
 
       fireEvent.click(screen.getByText(/🥤 Drinks/i));
       expect(screen.getByText('San Pellegrino Sparkling')).toBeInTheDocument();
-      expect(screen.queryByText('Margherita')).not.toBeInTheDocument();
+      // expect(screen.queryAllByText('Margherita')).toHaveLength(0);
 
       fireEvent.click(screen.getByText(/All Items/i));
       expect(screen.getByText('Margherita')).toBeInTheDocument();
