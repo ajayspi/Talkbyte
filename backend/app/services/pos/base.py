@@ -5,7 +5,6 @@ Swap Square → Lightspeed → Kounta without changing order logic.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any
 
 
 class POSBase(ABC):
@@ -27,4 +26,3 @@ class POSBase(ABC):
 
 class POSError(Exception):
     """Raised when POS push fails. Celery worker catches and retries 3×."""
-    pass

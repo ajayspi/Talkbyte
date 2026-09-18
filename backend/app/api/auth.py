@@ -4,7 +4,9 @@ from app.db.supabase import get_db
 
 security = HTTPBearer()
 
-async def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(security)):
+
+async def verify_jwt(
+        credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Verify Supabase JWT."""
     token = credentials.credentials
     try:
@@ -13,11 +15,13 @@ async def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(securit
         if not user_resp or not user_resp.user:
             raise HTTPException(status_code=401, detail="Invalid token")
         return user_resp.user
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
+
 
 def get_restaurant_id_from_request(request: Request) -> str | None:
     return request.path_params.get("restaurant_id")
+
 
 async def verify_restaurant_access(
     request: Request,

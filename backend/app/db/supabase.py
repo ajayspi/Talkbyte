@@ -24,8 +24,10 @@ async def init_supabase() -> None:
 
 def get_db() -> AsyncClient:
     if _supabase is None:
-        raise RuntimeError("Supabase not initialised — call init_supabase() at startup")
+        raise RuntimeError(
+            "Supabase not initialised — call init_supabase() at startup")
     return _supabase
+
 
 async def get_platform_secret(secret_name: str) -> str:
     """Fetch API keys dynamically from the database (e.g. platform_secrets table)."""
@@ -40,9 +42,10 @@ async def get_platform_secret(secret_name: str) -> str:
     return os.environ.get(secret_name.upper(), "")
 
 
-# ── Restaurants ───────────────────────────────────────────────────────────────
+# ── Restaurants ─────────────────────────────────────────────────────────
 
-async def get_restaurant_by_telnyx_number(telnyx_number: str) -> Restaurant | None:
+async def get_restaurant_by_telnyx_number(
+        telnyx_number: str) -> Restaurant | None:
     result = await get_db().table("restaurants").select("*").eq("telnyx_number", telnyx_number).maybe_single().execute()
     if result.data is None:
         return None
@@ -70,7 +73,7 @@ def _row_to_restaurant(row: dict) -> Restaurant:
     )
 
 
-# ── Menu ──────────────────────────────────────────────────────────────────────
+# ── Menu ────────────────────────────────────────────────────────────────
 
 async def get_menu_items_by_restaurant(restaurant_id: str) -> list[MenuItem]:
     result = (
@@ -113,7 +116,7 @@ def _row_to_menu_item(row: dict) -> MenuItem:
     )
 
 
-# ── Calls ─────────────────────────────────────────────────────────────────────
+# ── Calls ───────────────────────────────────────────────────────────────
 
 async def save_call(call: CallSession) -> None:
     await get_db().table("calls").upsert(
@@ -148,7 +151,7 @@ async def get_call(call_id: str) -> CallSession | None:
     )
 
 
-# ── Orders ────────────────────────────────────────────────────────────────────
+# ── Orders ──────────────────────────────────────────────────────────────
 
 async def save_order(order: Order) -> None:
     row: dict = {
@@ -189,7 +192,7 @@ async def get_order(order_id: str) -> Order | None:
     )
 
 
-# ── Payment events ────────────────────────────────────────────────────────────
+# ── Payment events ──────────────────────────────────────────────────────
 
 async def save_payment_event(event: dict) -> None:
     await get_db().table("payment_events").insert(event).execute()
