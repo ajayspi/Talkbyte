@@ -131,3 +131,47 @@ def test_find_menu_item_returns_none_when_absent():
 def test_find_menu_item_ignores_unavailable_items():
     """Matching an 86'd item would let it onto the order at a real price."""
     assert find_menu_item([_item(available=False)], "Margherita Pizza") is None
+
+def test_format_menu_handles_category_none_or_empty():
+    rendered_none = format_menu_for_prompt([_item(category=None)])
+    assert "\nOther:" in rendered_none
+
+    rendered_empty = format_menu_for_prompt([_item(category="")])
+    assert "\nOther:" in rendered_empty
+
+def test_format_menu_groups_multiple_items_in_same_category():
+    items = [
+        _item(name="Margherita Pizza", category="Pizza"),
+        _item(name="Pepperoni Pizza", category="Pizza"),
+        _item(name="Garlic Bread", category="Sides"),
+    ]
+    rendered = format_menu_for_prompt(items)
+
+    assert rendered.count("\nPizza:") == 1
+    assert "Margherita Pizza" in rendered
+    assert "Pepperoni Pizza" in rendered
+
+    # Assert pizza items are grouped together before the Sides category
+    pizza_idx = rendered.index("Pizza:")
+    sides_idx = rendered.index("Sides:")
+    assert pizza_idx < rendered.index("Margherita Pizza") < sides_idx
+    assert pizza_idx < rendered.index("Pepperoni Pizza") < sides_idx
+
+def test_format_menu_retains_first_seen_category_order():
+    items = [
+        _item(name="Coke", category="Drinks"),
+        _item(name="Margherita Pizza", category="Pizza"),
+        _item(name="Water", category="Drinks"),
+    ]
+    rendered = format_menu_for_prompt(items)
+    assert rendered.index("Drinks:") < rendered.index("Pizza:")
+
+def test_format_menu_formats_prices_correctly():
+    rendered_zero = format_menu_for_prompt([_item(price_cents=0)])
+    assert "$0.00" in rendered_zero
+
+    rendered_cents = format_menu_for_prompt([_item(price_cents=5)])
+    assert "$0.05" in rendered_cents
+
+    rendered_large = format_menu_for_prompt([_item(price_cents=1234567)])
+    assert "$12345.67" in rendered_large
