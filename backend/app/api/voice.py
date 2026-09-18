@@ -11,7 +11,6 @@ from app.models.call import CallSession, CallState
 from app.db.redis import save_session
 from app.db.supabase import save_call, update_call_state, get_platform_secret
 from config import config
-import uuid
 from datetime import datetime, timezone
 
 log = structlog.get_logger()
