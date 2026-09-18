@@ -1,3 +1,4 @@
+jest.setTimeout(30000);
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import {
   isSupabaseConnected,

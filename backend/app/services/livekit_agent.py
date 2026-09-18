@@ -1,3 +1,4 @@
+import os
 """
 LiveKit Agents pipeline — Sprint 1, Tasks 6–10
 Wires: Deepgram Flux STT → GPT-4.1 → ElevenLabs TTS
@@ -12,7 +13,6 @@ from livekit.plugins import deepgram, openai, elevenlabs, silero
 from app.services.llm import build_system_prompt
 from app.models.call import CallSession, CallState
 from app.db.redis import get_session, save_session
-from config import config
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,8 @@ async def entrypoint(ctx: JobContext):
             return
 
         session = CallSession.from_redis(session_data)
-        logger.info(f"[{ctx.room.name}] Session loaded: {session.call_id}, state={session.state}")
+        logger.info(
+            f"[{ctx.room.name}] Session loaded: {session.call_id}, state={session.state}")
 
         # Load VAD (Voice Activity Detection)
         try:
@@ -47,7 +48,8 @@ async def entrypoint(ctx: JobContext):
             logger.error(f"[{ctx.room.name}] VAD.load() failed: {e}")
             raise
 
-        # Build system prompt with restaurant context (no menu RAG yet in Sprint 1)
+        # Build system prompt with restaurant context (no menu RAG yet in
+        # Sprint 1)
         system_prompt = build_system_prompt(session)
         logger.debug(f"[{ctx.room.name}] System prompt:\n{system_prompt}")
 
@@ -75,12 +77,14 @@ async def entrypoint(ctx: JobContext):
                 items = remove_item(items, name, qty)
                 session.order_items = [item.model_dump() for item in items]
                 await save_session(session.to_redis(), ttl=1800)
-                logger.info(f"[{ctx.room.name}] Removed from order: {qty}x {name}")
+                logger.info(
+                    f"[{ctx.room.name}] Removed from order: {qty}x {name}")
                 return "Successfully removed from order."
             except Exception as e:
                 return f"Failed to remove: {e}"
 
-        @fnc_ctx.ai_callable(description="Confirm the complete order and proceed to payment")
+        @fnc_ctx.ai_callable(
+            description="Confirm the complete order and proceed to payment")
         async def confirm_order():
             logger.info(f"[{ctx.room.name}] Order confirmed by AI")
             session.transition(CallState.CONFIRMED)
@@ -91,18 +95,25 @@ async def entrypoint(ctx: JobContext):
             return "Order confirmed. Proceed to inform the customer about payment via SMS."
 
         from app.db.supabase import get_platform_secret
-        import os
-        
+
         deepgram_key = await get_platform_secret("DEEPGRAM_API_KEY")
         openai_key = await get_platform_secret("OPENAI_API_KEY")
         elevenlabs_key = await get_platform_secret("ELEVENLABS_API_KEY")
-        
+
         # Initialize VoiceAssistant
         assistant = VoiceAssistant(
             vad=vad,
-            stt=deepgram.STT(model="nova-3", language="en-AU", api_key=deepgram_key),
-            llm=openai.LLM(model="gpt-4.1", system_prompt=system_prompt, api_key=openai_key),
-            tts=elevenlabs.TTS(voice_id=ELEVENLABS_VOICE_ID, api_key=elevenlabs_key),
+            stt=deepgram.STT(
+                model="nova-3",
+                language="en-AU",
+                api_key=deepgram_key),
+            llm=openai.LLM(
+                model="gpt-4.1",
+                system_prompt=system_prompt,
+                api_key=openai_key),
+            tts=elevenlabs.TTS(
+                voice_id=ELEVENLABS_VOICE_ID,
+                api_key=elevenlabs_key),
             fnc_ctx=fnc_ctx,
         )
 
@@ -110,16 +121,21 @@ async def entrypoint(ctx: JobContext):
         @assistant.on("user_speech_committed")
         async def on_user_speech(message: llm.ChatMessage):
             """User message received and committed."""
-            logger.info(f"[{ctx.room.name}] User speech: {message.content[:100]}")
-            session.transcript.append({"role": "user", "content": message.content})
+            logger.info(
+                f"[{ctx.room.name}] User speech: {message.content[:100]}")
+            session.transcript.append(
+                {"role": "user", "content": message.content})
             await save_session(session.to_redis(), ttl=1800)
 
-        # Event: assistant response → save to transcript and update state if needed
+        # Event: assistant response → save to transcript and update state if
+        # needed
         @assistant.on("agent_speech_committed")
         async def on_agent_speech(message: llm.ChatMessage):
             """Agent message committed."""
-            logger.info(f"[{ctx.room.name}] Agent speech: {message.content[:100]}")
-            session.transcript.append({"role": "assistant", "content": message.content})
+            logger.info(
+                f"[{ctx.room.name}] Agent speech: {message.content[:100]}")
+            session.transcript.append(
+                {"role": "assistant", "content": message.content})
             await save_session(session.to_redis(), ttl=1800)
 
         # Start the voice assistant
@@ -131,23 +147,24 @@ async def entrypoint(ctx: JobContext):
         logger.info(f"[{ctx.room.name}] Call ended, session cleaned up")
 
     except Exception as e:
-        logger.error(f"[{ctx.room.name}] Agent error: {type(e).__name__}: {e}", exc_info=True)
+        logger.error(
+            f"[{ctx.room.name}] Agent error: {type(e).__name__}: {e}", exc_info=True)
         raise
 
 
 def _run_with_creds():
     import asyncio
-    import os
     from app.db.supabase import get_platform_secret, init_supabase
-    
+
     async def fetch_creds():
         await init_supabase()
         os.environ["LIVEKIT_URL"] = await get_platform_secret("LIVEKIT_URL")
         os.environ["LIVEKIT_API_KEY"] = await get_platform_secret("LIVEKIT_API_KEY")
         os.environ["LIVEKIT_API_SECRET"] = await get_platform_secret("LIVEKIT_API_SECRET")
-        
+
     asyncio.run(fetch_creds())
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+
 
 if __name__ == "__main__":
     logging.basicConfig(

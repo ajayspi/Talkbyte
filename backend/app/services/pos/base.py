@@ -5,7 +5,6 @@ Swap Square → Lightspeed → Kounta without changing order logic.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any
 
 
 class POSBase(ABC):

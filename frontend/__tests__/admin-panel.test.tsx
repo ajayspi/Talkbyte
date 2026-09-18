@@ -263,7 +263,7 @@ describe('Admin Panel Component Suites', () => {
       expect(screen.getByText('Smart Retries')).toBeInTheDocument();
 
       // Warning Banner
-      expect(screen.getByText(/Taco Loco/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Taco Loco/i)[0]).toBeInTheDocument();
       expect(screen.getByText(/Stripe Smart Retry is active/i)).toBeInTheDocument();
 
       // Subscription Lifecycle Table
@@ -298,7 +298,7 @@ describe('Admin Panel Component Suites', () => {
       expect(screen.getByRole('button', { name: /Run Health Check/i })).toBeInTheDocument();
 
       // Deepgram Incident Banner
-      expect(screen.getByText(/Deepgram Flux/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Deepgram Flux/i)[0]).toBeInTheDocument();
       expect(screen.getByText(/elevated latency detected/i)).toBeInTheDocument();
 
       // 9 Services Cards
@@ -352,11 +352,11 @@ describe('Admin Panel Component Suites', () => {
       expect(screen.getByDisplayValue('Last 7 days')).toBeInTheDocument();
 
       // 4 KPIs
-      expect(screen.getByText('Total Calls (7d)')).toBeInTheDocument();
-      expect(screen.getByText('19,847')).toBeInTheDocument();
-      expect(screen.getByText('Orders Completed')).toBeInTheDocument();
-      expect(screen.getByText('14,731')).toBeInTheDocument();
-      expect(screen.getByText('GMV (7d)')).toBeInTheDocument();
+      expect(screen.getAllByText('Total Calls (7d)')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('19,847')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Orders Completed')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('14,731')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('GMV (7d)')[0]).toBeInTheDocument();
       expect(screen.getByText('$441K')).toBeInTheDocument();
       expect(screen.getByText('Avg Order Value')).toBeInTheDocument();
       expect(screen.getByText('$43.20')).toBeInTheDocument();

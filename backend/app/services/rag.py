@@ -5,9 +5,9 @@ Menu RAG search using OpenAI text-embedding-3-small and Supabase pgvector.
 from openai import AsyncOpenAI
 from app.db.supabase import search_menu_by_embedding, get_platform_secret
 from app.models.restaurant import MenuItem
-from config import config
 
 _client: AsyncOpenAI | None = None
+
 
 async def get_openai_client() -> AsyncOpenAI:
     global _client
@@ -15,6 +15,7 @@ async def get_openai_client() -> AsyncOpenAI:
         key = await get_platform_secret("OPENAI_API_KEY")
         _client = AsyncOpenAI(api_key=key)
     return _client
+
 
 async def get_embedding(text: str) -> list[float]:
     """Generate embedding for a given text."""
@@ -26,7 +27,11 @@ async def get_embedding(text: str) -> list[float]:
     )
     return response.data[0].embedding
 
-async def search_menu_items(restaurant_id: str, query: str, top_k: int = 5) -> list[MenuItem]:
+
+async def search_menu_items(
+        restaurant_id: str,
+        query: str,
+        top_k: int = 5) -> list[MenuItem]:
     """
     Search menu items using semantic similarity.
     """

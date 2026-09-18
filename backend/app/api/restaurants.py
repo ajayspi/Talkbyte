@@ -39,7 +39,10 @@ async def create_restaurant(body: dict, user=Depends(get_current_user)):
 
 
 @router.put("/{restaurant_id}/menu")
-async def update_menu(restaurant_id: str, body: dict, access=Depends(verify_restaurant_access)):
+async def update_menu(
+        restaurant_id: str,
+        body: dict,
+        access=Depends(verify_restaurant_access)):
     # upsert menu_items, re-embed with text-embedding-3-small → pgvector
     db = get_db()
     items = body.get("items", [])

@@ -24,7 +24,8 @@ def register_exception_handlers(app: FastAPI):
     """Register global exception handlers."""
 
     @app.exception_handler(TalkByteException)
-    async def talkbyte_exception_handler(request: Request, exc: TalkByteException):
+    async def talkbyte_exception_handler(
+            request: Request, exc: TalkByteException):
         log.error(
             "talkbyte_exception",
             code=exc.code,
