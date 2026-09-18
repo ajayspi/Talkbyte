@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
 import stripe
-from config import config
+
 from app.db.supabase import get_order, update_order_state, get_call, get_platform_secret
 from app.models.order import OrderState
 from app.services.sms import send_payment_sms
