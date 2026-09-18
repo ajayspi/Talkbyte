@@ -1,0 +1,7 @@
+🔒 [Security Fix] Missing Authorization on Order Endpoints
+
+🎯 **What:** The `/restaurant/{restaurant_id}` endpoint in `backend/app/api/orders.py` lacked authorization checks, allowing unauthenticated users to access order data.
+
+⚠️ **Risk:** Potential for unauthorized data access and data leakage of order details.
+
+🛡️ **Solution:** Implemented `verify_restaurant_access` and `verify_jwt` dependencies in a new `backend/app/api/auth.py` file, utilizing the `restaurant_users` table to enforce access control based on user authentication. Applied the new dependency to the `/restaurant/{restaurant_id}` route to secure it. Wrote corresponding unit tests in `backend/tests/unit/test_order_api.py`.
