@@ -3,7 +3,6 @@ SMS service via Telnyx.
 """
 
 import telnyx
-from config import config
 import structlog
 from app.db.supabase import get_platform_secret
 
