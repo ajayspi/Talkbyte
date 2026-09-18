@@ -13,7 +13,12 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "@supabase/supabase-js": "^2.47.0",
+    "@supabase/auth-js": "^2.116.0",
+    "@supabase/functions-js": "^2.116.0",
+    "@supabase/postgrest-js": "^2.116.0",
+    "@supabase/realtime-js": "^2.116.0",
+    "@supabase/storage-js": "^2.116.0",
+    "@supabase/supabase-js": "^2.116.0",
     "@tanstack/react-query": "^5.62.0",
     "@tsparticles/react": "^4.4.0",
     "@tsparticles/slim": "^4.4.0",
@@ -30,6 +35,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
+    "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.0",
     "@types/jest": "^29.5.0",

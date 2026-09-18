@@ -64,6 +64,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       const urlParams = new URLSearchParams(window.location.search);
       const tabParam = urlParams.get('tab') as AdminTab | null;
       if (tabParam && PAGE_TITLES[tabParam]) {
+// eslint-disable-next-line react-hooks/set-state-in-effect
         setActiveTab(tabParam);
       } else if (window.location.hash) {
         const hash = window.location.hash.replace('#', '') as AdminTab;

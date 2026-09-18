@@ -70,6 +70,7 @@ export default function OverviewView() {
   const [alertDismissed, setAlertDismissed] = useState(false);
 
   useEffect(() => {
+// eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
     getPlatformStats().then(setStats);
   }, []);

@@ -91,6 +91,7 @@ export default function RestaurantLayout({
           tabParam
         )
       ) {
+// eslint-disable-next-line react-hooks/set-state-in-effect
         setActiveTab(tabParam as TabId);
       }
     }

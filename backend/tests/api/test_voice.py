@@ -1,23 +1,34 @@
-import pytest
+from livekit.protocol.models import Room
+from livekit.protocol.webhook import WebhookEvent
+from app.api.voice import router
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
 
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.insert(
+    0,
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '../../')))
 
-from fastapi import FastAPI
-from app.api.voice import router
 
 app = FastAPI()
 app.include_router(router)
 
 client = TestClient(app)
 
+
 def test_livekit_agent_start_missing_auth():
-    response = client.post("/livekit-agent-start", json={"room_name": "test_room"})
+    response = client.post(
+        "/livekit-agent-start",
+        json={
+            "room_name": "test_room"})
     assert response.status_code == 401
     assert response.json() == {"detail": "Unauthorized"}
+
 
 @patch("app.api.voice.get_platform_secret", new_callable=AsyncMock)
 def test_livekit_agent_start_invalid_auth(mock_get_secret):
@@ -31,9 +42,6 @@ def test_livekit_agent_start_invalid_auth(mock_get_secret):
     assert response.status_code == 401
     assert response.json() == {"detail": "Unauthorized"}
 
-
-from livekit.protocol.webhook import WebhookEvent
-from livekit.protocol.models import Room
 
 @patch("app.api.voice.get_platform_secret", new_callable=AsyncMock)
 @patch("livekit.api.webhook.WebhookReceiver.receive")
