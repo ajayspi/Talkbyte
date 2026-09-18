@@ -5,7 +5,6 @@ Menu RAG search using OpenAI text-embedding-3-small and Supabase pgvector.
 from openai import AsyncOpenAI
 from app.db.supabase import search_menu_by_embedding, get_platform_secret
 from app.models.restaurant import MenuItem
-from config import config
 
 _client: AsyncOpenAI | None = None
 
