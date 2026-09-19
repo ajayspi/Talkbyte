@@ -15,6 +15,7 @@ import {
 } from '@/lib/supabase';
 
 describe('Supabase Integration & Mock Fallback Layer', () => {
+  jest.setTimeout(30000);
   it('should return connection status boolean', async () => {
     const connected = await isSupabaseConnected();
     expect(typeof connected).toBe('boolean');

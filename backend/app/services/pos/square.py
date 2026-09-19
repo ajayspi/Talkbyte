@@ -53,7 +53,7 @@ class SquarePOS(POSBase):
         except Exception as e:
             log.error("square.push_order.exception", error=str(e))
             raise POSError(f"Exception: {str(e)}")
-            
+
         raise POSError("Unknown error during Square push")
 
     async def check_status(self, pos_order_id: str) -> str:
