@@ -243,6 +243,14 @@ export const SettingsTab: React.FC = () => {
               </div>
               <div className="card-body">
                 <div className="input-group">
+                  <div className="input-label">TTS Provider (Text-to-Speech)</div>
+                  <select defaultValue="cartesia">
+                    <option value="cartesia">Cartesia Sonic (Ultra-low Latency)</option>
+                    <option value="elevenlabs">ElevenLabs (High Quality)</option>
+                  </select>
+                </div>
+
+                <div className="input-group">
                   <div className="input-label">Voice Persona Name</div>
                   <input
                     type="text"
