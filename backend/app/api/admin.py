@@ -7,7 +7,6 @@ router = APIRouter()
 
 @router.get("/stats")
 async def platform_stats():
-    db = get_db()
     # Mocking MRR, calls today for this sprint
     return {"mrr": 5000, "calls_today": 120, "active_restaurants": 15}
 

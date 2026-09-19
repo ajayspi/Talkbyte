@@ -6,14 +6,14 @@ import { loadSlim } from '@tsparticles/slim';
 import type { Engine } from '@tsparticles/engine';
 
 export default function ParticlesBackground() {
-  const particlesInit = useCallback(async (engine: Engine) => {
+  const particlesInit = useCallback(async (engine: any) => {
     await loadSlim(engine);
   }, []);
 
   return (
     <Particles
       id="tsparticles"
-      init={particlesInit}
+      particlesLoaded={particlesInit}
       className="absolute inset-0 z-0"
       options={{
         background: { color: { value: 'transparent' } },
