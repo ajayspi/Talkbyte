@@ -47,7 +47,8 @@ Never make up items — only take orders from the menu provided.
 Do not discuss pricing or discounts not listed on the menu."""
 
     # Layer 2 — restaurant context.
-    menu = format_menu_for_prompt(menu_items) if menu_items is not None else SPRINT1_TEST_MENU
+    menu = format_menu_for_prompt(
+        menu_items) if menu_items is not None else SPRINT1_TEST_MENU
 
     context = menu
     if restaurant and restaurant.ai_instructions:
@@ -55,7 +56,8 @@ Do not discuss pricing or discounts not listed on the menu."""
 
     # Layer 3 — dynamic call state, rewritten every turn.
     items_str = (
-        ", ".join(f"{item['name']} x{item['qty']}" for item in session.order_items)
+        ", ".join(
+            f"{item['name']} x{item['qty']}" for item in session.order_items)
         if session.order_items
         else "none yet"
     )

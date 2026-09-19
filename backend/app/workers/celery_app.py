@@ -54,15 +54,16 @@ def push_order_to_pos(self, order_id: str, restaurant_id: str):
 
         restaurant = await get_restaurant_by_id(restaurant_id)
         if not restaurant:
-            log.error("celery.push_order.restaurant_not_found", restaurant_id=restaurant_id)
+            log.error("celery.push_order.restaurant_not_found",
+                      restaurant_id=restaurant_id)
             return
 
         try:
             from app.db.supabase import get_platform_secret
             access_token = await get_platform_secret("SQUARE_ACCESS_TOKEN")
             location_id = await get_platform_secret("SQUARE_LOCATION_ID")
-            
-            # We assume config has square token per restaurant, but for now use generic env var 
+
+            # We assume config has square token per restaurant, but for now use generic env var
             # Or store in restaurant table. (We'll use generic config for now)
             pos = SquarePOS(
                 access_token=access_token,
@@ -99,7 +100,8 @@ def expire_payment_link(order_id: str):
         if order and order.state == OrderState.CONFIRMED:
             # If not paid/pushed, expire it
             # wait, payment state might be tracked separately.
-            await update_order_state(order_id, OrderState.CANCELLED) # or PAYMENT_EXPIRED
+            # or PAYMENT_EXPIRED
+            await update_order_state(order_id, OrderState.CANCELLED)
             log.info("celery.expire_payment_link", order_id=order_id)
 
     asyncio.run(_do_expire())

@@ -160,10 +160,10 @@ export const MenuTab: React.FC<MenuTabProps> = ({
   // Filter items by category
   const filteredItems = items.filter((item) => {
     if (activeCategory === 'All Items') return true;
-    if (activeCategory.includes('Pizzas') && item.category === 'Pizzas') return true;
-    if (activeCategory.includes('Sides') && item.category === 'Sides') return true;
-    if (activeCategory.includes('Drinks') && item.category === 'Drinks') return true;
-    if (activeCategory.includes('Desserts') && item.category === 'Desserts') return true;
+    if (activeCategory === 'Pizzas' && item.category === 'Pizzas') return true;
+    if (activeCategory === 'Sides' && item.category === 'Sides') return true;
+    if (activeCategory === 'Drinks' && item.category === 'Drinks') return true;
+    if (activeCategory === 'Desserts' && item.category === 'Desserts') return true;
     return false;
   });
 
