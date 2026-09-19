@@ -15,6 +15,15 @@ from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
 
+class RestaurantCreate(BaseModel):
+    model_config = {"extra": "forbid"}
+    """Fields allowed when creating a new restaurant."""
+
+    name: str
+    phone_number: str | None = None
+    timezone: str = "Australia/Sydney"
+
+
 class Restaurant(BaseModel):
     """Matches the restaurants table. Defaults mirror supabase_schema.sql."""
 
@@ -26,7 +35,9 @@ class Restaurant(BaseModel):
     active: bool = False
     ai_instructions: str | None = None   # injected into the system prompt
     timezone: str = "Australia/Sydney"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
 
 
 class MenuItem(BaseModel):
