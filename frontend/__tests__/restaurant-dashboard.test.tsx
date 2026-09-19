@@ -74,6 +74,13 @@ describe('Restaurant Dashboard Component Suites', () => {
     });
 
 
+      fireEvent.click(screen.getByText(/🥤 Drinks/i));
+      expect(screen.getByText('San Pellegrino Sparkling')).toBeInTheDocument();
+      expect(screen.queryAllByText('Margherita').length).toBeGreaterThanOrEqual(0);
+
+      fireEvent.click(screen.getByText(/All Items/i));
+      expect(screen.getByText('Margherita')).toBeInTheDocument();
+    });
 
     it('opens Add Menu Item modal', () => {
       render(<MenuTab />);

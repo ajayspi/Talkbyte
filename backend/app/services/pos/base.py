@@ -26,4 +26,3 @@ class POSBase(ABC):
 
 class POSError(Exception):
     """Raised when POS push fails. Celery worker catches and retries 3×."""
-    pass
