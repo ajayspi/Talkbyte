@@ -1,133 +1,90 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@/lib/supabase-browser';
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ShieldIcon } from "lucide-react";
+import { createBrowserClient } from "@supabase/ssr";
 
-/**
- * Restaurant portal login page at /login.
- * Unauthenticated users are directed here before accessing /dashboard.
- */
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key'
+  );
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const form = e.target as HTMLFormElement;
+    const email = (form.elements[0] as HTMLInputElement).value;
+    const password = (form.elements[1] as HTMLInputElement).value;
 
-    try {
-      const supabase = createBrowserClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        setError(signInError.message || 'Authentication failed');
-        return;
-      }
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err?.message || 'Authentication failed');
-    } finally {
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) {
+      setError(signInError.message);
       setLoading(false);
+    } else {
+      router.push("/dashboard");
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 w-full">
-      {/* Brand */}
+    <>
       <div className="text-center mb-8">
-        <h1 className="text-[28px] font-extrabold tracking-tight text-[#111827]">
-          Talk<span className="text-[#14b8a6]">Byte</span>
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Restaurant portal — sign in to continue
-        </p>
+        <h1 className="text-2xl font-bold text-white mb-2">Welcome Back</h1>
+        <p className="text-white/50 text-sm">Sign in to your restaurant dashboard</p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">
+        <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} aria-label="Login form">
-        <div className="mb-4">
-          <label
-            htmlFor="email"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
-            Email
-          </label>
+      <form onSubmit={handleLogin} className="space-y-5">
+        <div>
+          <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">Email</label>
           <input
-            id="email"
             type="email"
-            name="email"
-            autoComplete="email"
             required
-            placeholder="you@restaurant.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#7c3aed] transition-colors"
+            placeholder="manager@restaurant.com"
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--gold)]/50 focus:ring-1 focus:ring-[var(--gold)]/50 transition-all"
           />
         </div>
 
-        <div className="mb-6">
-          <label
-            htmlFor="password"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
-            Password
-          </label>
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider">Password</label>
+            <Link href="#" className="text-xs text-[var(--gold)] hover:text-[var(--gold-light)] transition-colors">Forgot?</Link>
+          </div>
           <input
-            id="password"
             type="password"
-            name="password"
-            autoComplete="current-password"
             required
             placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#7c3aed] transition-colors"
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--gold)]/50 focus:ring-1 focus:ring-[var(--gold)]/50 transition-all"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#7c3aed] text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-[#6d28d9] transition-colors disabled:opacity-50"
+          className="w-full glow-btn rounded-xl py-3.5 font-bold uppercase tracking-wide text-sm mt-4 flex items-center justify-center gap-2"
         >
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? (
+            <span className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+          ) : (
+            <>Sign In <ShieldIcon size={16} /></>
+          )}
         </button>
       </form>
 
-      <div className="mt-6 pt-6 border-t border-gray-100 text-center text-xs text-gray-500 space-y-2">
-        <p>
-          Don&apos;t have an account?{' '}
-          <Link
-            href="/signup"
-            className="text-[#7c3aed] font-semibold hover:underline"
-          >
-            Sign up
-          </Link>
-        </p>
-        <p>
-          Operator Admin?{' '}
-          <Link
-            href="/admin/login"
-            className="text-[#4A0E4E] font-semibold hover:underline"
-          >
-            Sign in here
-          </Link>
-        </p>
+      <div className="mt-6 text-center text-sm text-white/50">
+        Don\Don'tapos;t have an account? <Link href="/signup" className="text-[var(--gold)] hover:text-[var(--gold-light)] font-semibold transition-colors">Sign up</Link>
       </div>
-    </div>
+    </>
   );
 }

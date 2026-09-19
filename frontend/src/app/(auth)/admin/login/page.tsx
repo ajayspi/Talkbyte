@@ -1,133 +1,85 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@/lib/supabase-browser';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ShieldAlert } from "lucide-react";
+import { createBrowserClient } from "@supabase/ssr";
 
-/**
- * Admin portal login page at /admin/login.
- * Operator admins sign in here to access the TalkByte platform admin panel.
- */
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key'
+  );
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const form = e.target as HTMLFormElement;
+    const email = (form.elements[0] as HTMLInputElement).value;
+    const password = (form.elements[1] as HTMLInputElement).value;
 
-    try {
-      const supabase = createBrowserClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        setError(signInError.message || 'Authentication failed');
-        return;
-      }
-      router.push('/admin');
-    } catch (err: any) {
-      setError(err?.message || 'Authentication failed');
-    } finally {
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) {
+      setError(signInError.message);
       setLoading(false);
+    } else {
+      router.push("/admin");
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 w-full">
-      {/* Brand */}
-      <div className="text-center mb-8">
-        <h1 className="text-[28px] font-extrabold tracking-tight text-[#4A0E4E]">
-          Talk<span className="text-[#14b8a6]">Byte</span>
+    <>
+      <div className="text-center mb-8 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-red-500/20 blur-xl rounded-full" />
+        <h1 className="text-2xl font-bold text-white mb-2 relative flex justify-center items-center gap-2">
+          Operator Access <ShieldAlert size={20} className="text-red-400" />
         </h1>
-        <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest font-semibold">
-          Operator Admin Panel — Restricted Access
-        </p>
+        <p className="text-white/50 text-sm">System administration portal</p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">
+        <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center relative z-10">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} aria-label="Admin login form">
-        <div className="mb-4">
-          <label
-            htmlFor="admin-email"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
-            Operator Email
-          </label>
+      <form onSubmit={handleLogin} className="space-y-5 relative z-10">
+        <div>
+          <label className="block text-xs font-semibold text-red-400/80 uppercase tracking-wider mb-2">Operator ID</label>
           <input
-            id="admin-email"
-            type="email"
-            name="email"
-            autoComplete="email"
+            type="text"
             required
-            placeholder="operator@talkbyte.io"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#4A0E4E] transition-colors"
+            placeholder="admin@talkbyte.ai"
+            className="w-full bg-black/40 border border-red-500/20 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all"
           />
         </div>
 
-        <div className="mb-6">
-          <label
-            htmlFor="admin-password"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
-            Password
-          </label>
+        <div>
+          <label className="block text-xs font-semibold text-red-400/80 uppercase tracking-wider mb-2">Security Key</label>
           <input
-            id="admin-password"
             type="password"
-            name="password"
-            autoComplete="current-password"
             required
             placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#4A0E4E] transition-colors"
+            className="w-full bg-black/40 border border-red-500/20 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#4A0E4E] text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-[#3a0a3d] transition-colors disabled:opacity-50"
+          className="w-full bg-red-500 hover:bg-red-400 text-white rounded-xl py-3.5 font-bold uppercase tracking-wide text-sm mt-4 flex items-center justify-center transition-colors shadow-[0_0_20px_rgba(239,68,68,0.2)]"
         >
-          {loading ? 'Authenticating...' : 'Sign In as Admin'}
+          {loading ? (
+            <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          ) : (
+            "Authenticate"
+          )}
         </button>
       </form>
-
-      <div className="mt-6 pt-6 border-t border-gray-100 text-center text-xs text-gray-500 space-y-2">
-        <p>
-          Need access credentials?{' '}
-          <Link
-            href="/admin/signup"
-            className="text-[#4A0E4E] font-semibold hover:underline"
-          >
-            Request Operator Credentials
-          </Link>
-        </p>
-        <p>
-          Restaurant Owner?{' '}
-          <Link
-            href="/login"
-            className="text-[#7c3aed] font-semibold hover:underline"
-          >
-            Return to Restaurant Portal
-          </Link>
-        </p>
-      </div>
-    </div>
+    </>
   );
 }

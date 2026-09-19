@@ -1,18 +1,21 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import Particles from '@tsparticles/react';
+import { useEffect, useState } from 'react';
+import Particles, { initParticlesEngine } from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
-import { tsParticles } from '@tsparticles/engine';
 
 export default function ParticlesBackground() {
-  const initialized = useRef(false);
+  const [init, setInit] = useState(false);
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-    loadSlim(tsParticles).catch(console.error);
+    initParticlesEngine(async (engine) => {
+      await loadSlim(engine);
+    }).then(() => {
+      setInit(true);
+    });
   }, []);
+
+  if (!init) return null;
 
   return (
     <Particles

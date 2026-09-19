@@ -1,150 +1,97 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@/lib/supabase-browser';
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { StoreIcon } from "lucide-react";
+import { createBrowserClient } from "@supabase/ssr";
 
-/**
- * Restaurant portal signup page at /signup.
- * New restaurant operators register their venue account here.
- */
 export default function SignupPage() {
   const router = useRouter();
-  const [restaurantName, setRestaurantName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key'
+  );
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const form = e.target as HTMLFormElement;
+    const email = (form.elements[1] as HTMLInputElement).value;
+    const password = (form.elements[2] as HTMLInputElement).value;
 
-    try {
-      const supabase = createBrowserClient();
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            restaurant_name: restaurantName,
-          },
-        },
-      });
-
-      if (signUpError) {
-        setError(signUpError.message || 'Registration failed');
-        return;
-      }
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err?.message || 'Registration failed');
-    } finally {
+    const { error: signUpError } = await supabase.auth.signUp({ email, password });
+    if (signUpError) {
+      setError(signUpError.message);
       setLoading(false);
+    } else {
+      router.push("/dashboard");
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 w-full">
-      {/* Brand */}
+    <>
       <div className="text-center mb-8">
-        <h1 className="text-[28px] font-extrabold tracking-tight text-[#111827]">
-          Talk<span className="text-[#14b8a6]">Byte</span>
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Create your restaurant voice AI account
-        </p>
+        <h1 className="text-2xl font-bold text-white mb-2">Create Account</h1>
+        <p className="text-white/50 text-sm">Automate your restaurant\restaurant'sapos;s phone orders</p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">
+        <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} aria-label="Restaurant signup form">
-        <div className="mb-4">
-          <label
-            htmlFor="restaurantName"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
-            Restaurant Name
-          </label>
+      <form onSubmit={handleSignup} className="space-y-5">
+        <div>
+          <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">Restaurant Name</label>
           <input
-            id="restaurantName"
             type="text"
-            name="restaurantName"
             required
-            placeholder="Mama's Pizzeria"
-            value={restaurantName}
-            onChange={(e) => setRestaurantName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#7c3aed] transition-colors"
+            placeholder="Mama\Mama'sapos;s Pizzeria"
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--gold)]/50 focus:ring-1 focus:ring-[var(--gold)]/50 transition-all"
           />
         </div>
 
-        <div className="mb-4">
-          <label
-            htmlFor="email"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
-            Owner Email
-          </label>
+        <div>
+          <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">Email</label>
           <input
-            id="email"
             type="email"
-            name="email"
-            autoComplete="email"
             required
-            placeholder="owner@restaurant.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#7c3aed] transition-colors"
+            placeholder="manager@restaurant.com"
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--gold)]/50 focus:ring-1 focus:ring-[var(--gold)]/50 transition-all"
           />
         </div>
 
-        <div className="mb-6">
-          <label
-            htmlFor="password"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
-            Password
-          </label>
+        <div>
+          <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">Password</label>
           <input
-            id="password"
             type="password"
-            name="password"
-            autoComplete="new-password"
             required
-            minLength={8}
-            placeholder="At least 8 characters"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 outline-none focus:border-[#7c3aed] transition-colors"
+            placeholder="••••••••"
+            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--gold)]/50 focus:ring-1 focus:ring-[var(--gold)]/50 transition-all"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#7c3aed] text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-[#6d28d9] transition-colors disabled:opacity-50"
+          className="w-full glow-btn rounded-xl py-3.5 font-bold uppercase tracking-wide text-sm mt-4 flex items-center justify-center gap-2"
         >
-          {loading ? 'Creating account...' : 'Create Restaurant Account'}
+          {loading ? (
+            <span className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+          ) : (
+            <>Get Started <StoreIcon size={16} /></>
+          )}
         </button>
       </form>
 
-      <div className="mt-6 pt-6 border-t border-gray-100 text-center text-xs text-gray-500">
-        <p>
-          Already have an account?{' '}
-          <Link
-            href="/login"
-            className="text-[#7c3aed] font-semibold hover:underline"
-          >
-            Sign in
-          </Link>
-        </p>
+      <div className="mt-6 text-center text-sm text-white/50">
+        Already have an account? <Link href="/login" className="text-[var(--gold)] hover:text-[var(--gold-light)] font-semibold transition-colors">Sign in</Link>
       </div>
-    </div>
+    </>
   );
 }
