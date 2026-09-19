@@ -1,112 +1,176 @@
-# Milestone M1 Handoff Report: Reviewer 2
+# Milestone M1 Reviewer Handoff Report: Routing Architecture, Layout Encapsulation & Cookie Handling
 
-**Agent**: `reviewer_m1_2` (Roles: reviewer, critic)  
-**Milestone**: M1 (Frontend Foundation & Data Layer)  
-**Date**: 2026-09-03  
-**Handoff Type**: Hard (Task Complete)  
-**Verdict**: **APPROVE**  
+**Agent**: `reviewer_m1_2`  
+**Role**: `reviewer`, `critic`  
+**Milestone**: M1 (Restore Missing Auth Pages — Requirement R4)  
+**Parent Agent**: `parent` (`9281b606-e3c1-464c-a4e3-c977084143c5`)  
+**Date**: 2026-09-14  
+**Gate Verdict**: **REQUEST_CHANGES**  
+**Handoff Type**: Hard (Review Complete)  
 
 ---
 
 ## 1. Observation
 
-1. **Target Files Inspected**:
-   Direct inspection via `view_file` confirmed the existence, integrity, and syntax of all 10 assigned foundation files:
-   - `frontend/tsconfig.json` (36 lines): Target ES2022, bundler module resolution, `@/*` paths mapping to `./src/*`.
-   - `frontend/next.config.mjs` (16 lines): ESM Next.js 16 configuration with `images.unoptimized = true` and `typescript.ignoreBuildErrors = false`.
-   - `frontend/postcss.config.mjs` (6 lines): Tailwind CSS v4 `@tailwindcss/postcss` plugin.
-   - `frontend/src/app/globals.css` (246 lines): Tailwind CSS v4 `@import "tailwindcss";`, `@theme` token definitions, dark theme CSS variables, custom badges, data table classes, and pulse keyframes.
-   - `frontend/src/app/layout.tsx` (26 lines): Root HTML layout with `lang="en"` and `className="dark"`, sans-serif system fonts, zero Google Font dependencies.
-   - `frontend/src/app/page.tsx` (156 lines): Landing portal with Next.js `Link` routes to `/dashboard` and `/admin`, telemetry KPI strip, escaped JSX entities (`Mama&apos;s Pizzeria`).
-   - `frontend/src/types/database.types.ts` (263 lines): TypeScript definitions for 8 core tables (`restaurants`, `menu_items`, `calls`, `orders`, `payment_events`, `subscriptions`, `plans`, `audit_logs`) plus `restaurant_users`, `Database` shape, and RPC function `search_menu`.
-   - `frontend/src/lib/supabase.ts` (193 lines): `createClient<Database>` initialized with non-empty URL and valid JWT string fallbacks, wrapping all table queries in try-catch blocks with mock fallback and in-memory availability mutation.
-   - `frontend/src/lib/mockData.ts` (560 lines): Mock data structures matching schema for Australian venues, live call transcripts, multi-stage orders, unit economics ($0.062/min COGS), 9 infrastructure telemetry monitors, and audit logs.
-   - `frontend/src/components/icons.tsx` (261 lines): 32 self-contained SVG icon components/aliases (`PhoneIcon`, `DashboardIcon`, `OrderIcon`, `MenuIcon`, `AnalyticsIcon`, `BillingIcon`, `SettingsIcon`, `UsersIcon`, `StoreIcon`, `ShieldIcon`, `ServerIcon`, `ActivityIcon`, `CheckIcon`, `AlertIcon`, `ChevronRightIcon`, etc.).
+1. **Routing Architecture & Layout Encapsulation**:
+   - Inspected `frontend/src/app/(auth)/layout.tsx:1-21`:
+     ```tsx
+     export default function AuthLayout({
+       children,
+     }: {
+       children: React.ReactNode;
+     }) {
+       return (
+         <div className="min-h-screen bg-[#f8f7ff] text-[#111827] flex flex-col justify-center items-center p-4 selection:bg-[#7c3aed] selection:text-white">
+           <div className="w-full max-w-md">
+             {children}
+           </div>
+         </div>
+       );
+     }
+     ```
+   - Inspected `frontend/src/app/(admin)/layout.tsx:120-295`: Contains fixed 220px admin sidebar (`<aside className="w-[220px] min-h-screen bg-[#4A0E4E] ... fixed top-0 left-0">`) and content container offset (`ml-[220px]`).
+   - Sibling route groups `(auth)` and `(admin)` under `src/app/` are completely isolated. `(auth)/layout.tsx` does NOT inherit `(admin)/layout.tsx`.
 
-2. **Schema Cross-Reference**:
-   Direct comparison with `backend/supabase_schema.sql` (161 lines) confirmed 100% field alignment:
-   - `menu_items.embedding` (`vector(1536)` in SQL) maps to `number[] | null` in `database.types.ts:48`.
-   - `calls.transcript` (`jsonb` in SQL) maps to `CallTranscriptEntry[] | Json` in `database.types.ts:81`.
-   - `orders.items` (`jsonb` in SQL) maps to `OrderItem[] | Json` in `database.types.ts:113`.
-   - `search_menu` RPC function in SQL matches `Database['public']['Functions']['search_menu']` arguments (`p_restaurant_id`, `query_embedding`, `match_count`) and returned table columns (`id`, `name`, `description`, `price_cents`, `category`, `similarity`) in lines 245-260.
+2. **Route Collision Hazards in File Tree**:
+   - `find_by_name` across `frontend/src/app` returned four active login routes:
+     - `frontend/src/app/login/page.tsx` (75 lines)
+     - `frontend/src/app/(auth)/login/page.tsx` (135 lines)
+     - `frontend/src/app/(admin)/admin/login/page.tsx` (77 lines)
+     - `frontend/src/app/(auth)/admin/login/page.tsx` (134 lines)
+   - In `worker_m1_auth/handoff.md:53-56`, the worker observed:
+     ```text
+     Encountered error in tool execution: permission check failed for command "powershell -Command \"Remove-Item -Recurse -Force 'frontend/src/app/login', 'frontend/src/app/(admin)/admin/login'\"": Permission prompt for action 'command' on target 'powershell -Command "Remove-Item -Recurse -Force 'frontend/src/app/login', 'frontend/src/app/(admin)/admin/login'"' timed out waiting for user response.
+     ```
+   - In `worker_m1_auth/handoff.md:84-87`, Caveat 2 notes:
+     ```text
+     Directory Removal Requirement: Before executing npm run build, the conflicting stub directories must be removed:
+     Remove-Item -Recurse -Force "frontend/src/app/login", "frontend/src/app/(admin)/admin/login"
+     ```
+   - The conflicting directories were NOT deleted and remain physically present in the workspace.
 
-3. **Absence of `lucide-react`**:
-   Ripgrep search across `frontend/src` for `lucide` returned 0 matches. No external icon packages are imported.
+3. **Supabase Cookie Handling & Session Management**:
+   - `frontend/src/lib/supabase-browser.ts:16-43`: Implements `createBrowserClient` with a custom storage adapter (`document.cookie` read/write with `path=/; max-age=2592000; SameSite=Lax`). Guarded by `typeof window !== 'undefined'`.
+   - `frontend/src/lib/supabase-server.ts:15-48`: Implements `createServerClient` with `const cookieStore = await cookies();` (Next.js 16 async compliance). Storage adapter wraps `cookieStore.set` and `cookieStore.delete` in `try / catch` blocks to prevent runtime crashes during Server Component read-only prerender phases.
+   - `frontend/src/lib/supabase-middleware.ts:15-85`: Implements `createMiddlewareClient` and `updateSession`. Synchronizes cookies between `NextRequest` and `NextResponse`. Wraps `supabase.auth.getUser()` in `try / catch` for non-blocking offline resilience.
 
-4. **Adversarial Integrity Inspection**:
-   - Zero hardcoded test outputs or dummy facades.
-   - Real Supabase query builders and API helpers.
-   - Honest reporting of OS script execution constraints.
+4. **Auth Callback Route & Proxy Architecture**:
+   - `frontend/src/app/auth/callback/route.ts:8-23`:
+     ```ts
+     export async function GET(request: NextRequest) {
+       const { searchParams, origin } = new URL(request.url);
+       const code = searchParams.get('code');
+       const next = searchParams.get('next') || '/dashboard';
 
-5. **Terminal Execution Policy**:
-   `run_command` execution of subprocesses triggered permission prompts that timed out on this host, matching Worker M1 and Reviewer 1 observations. Independent verification was completed via full static analysis.
+       if (code) {
+         try {
+           const supabase = await createServerClient();
+           await supabase.auth.exchangeCodeForSession(code);
+         } catch {
+           // Continue to redirect in demo/offline mode
+         }
+       }
+
+       return NextResponse.redirect(new URL(next, origin));
+     }
+     ```
+     `next` is passed directly into `new URL(next, origin)` without verifying that it is a relative path.
+   - `frontend/src/proxy.ts:1-121`: Implements `proxyRequest`, `proxyToBackend`, and `proxyToSupabase`. Strips hop-by-hop headers (`host`, `connection`, `content-length`) and response headers (`content-encoding`, `transfer-encoding`). Gracefully returns JSON 502 upon fetch failure.
+
+5. **Test Suite Coverage (`frontend/__tests__/auth-routes.test.tsx:1-236`)**:
+   - Tests `AuthLayout` (child rendering in responsive container).
+   - Tests `LoginPage` (form inputs, submit button, navigation links, mock `signInWithPassword`, redirect to `/dashboard`).
+   - Tests `SignupPage` (form inputs, submit button, mock `signUp` with restaurant name metadata, redirect to `/dashboard`).
+   - Tests `AdminLoginPage` (form inputs, submit button, mock `signInWithPassword`, redirect to `/admin`).
+   - Tests `AdminSignupPage` (form inputs, invite code, mock `signUp` with operator role metadata, redirect to `/admin`).
+   - Gaps: `auth/callback/route.ts` is unexercised. Cookie storage adapters are unexercised. Error states in all 4 auth pages are dead code (neither set by the components nor tested by the suite).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Contract Compliance**:
-   - Based on Observation 1 and Observation 2, all interface contracts specified in `PROJECT.md` §Interface Contracts are satisfied with exact type alignment and schema fidelity.
-2. **Build and Offline Resilience**:
-   - Based on Observation 1, font loading in `src/app/layout.tsx` uses system font stacks rather than `next/font/google`. `next.config.mjs` sets `unoptimized: true`. `supabase.ts` uses fallback credentials and wraps queries in try-catch. This guarantees that Next.js static prerendering cannot crash due to network unavailability or missing environment variables.
-3. **Operational Readiness for M2 and M3**:
-   - Based on Observation 1 and Observation 3, all required SVG icons, Tailwind v4 styling classes, mock data, and typed Supabase methods are present and ready for immediate consumption by Milestone M2 (Restaurant Dashboard) and Milestone M3 (Operator Admin Panel).
-4. **Adversarial & Integrity Clearance**:
-   - Based on Observation 4, zero integrity violations, shortcuts, or facades exist.
+1. **Layout Isolation Verification (referencing Observation 1)**:
+   - Next.js App Router treats `(auth)` and `(admin)` as sibling route groups.
+   - Files within `src/app/(auth)/` inherit ONLY `src/app/layout.tsx` and `src/app/(auth)/layout.tsx`.
+   - Therefore, `/login`, `/signup`, `/admin/login`, and `/admin/signup` render cleanly within the centered auth container and do not inherit the 220px fixed left sidebar or system telemetry topbar from `(admin)/layout.tsx`.
+   - Layout encapsulation is verified and meets specifications.
+
+2. **Fatal Route Collision Deduction (referencing Observation 2)**:
+   - Next.js strips route group parentheses `(group)` when compiling routes.
+   - `src/app/(auth)/login/page.tsx` and `src/app/login/page.tsx` both resolve to `/login`.
+   - `src/app/(auth)/admin/login/page.tsx` and `src/app/(admin)/admin/login/page.tsx` both resolve to `/admin/login`.
+   - Next.js build emits a fatal error: `Error: You cannot define multiple routes that resolve to the same path.`
+   - Acceptance Criterion 1 of `ORIGINAL_REQUEST.md` requires: `npm run build` in `frontend` succeeds with exit code 0.
+   - Because the two legacy directories remain in the file tree, `npm run build` will fail immediately.
+   - Consequently, the gate cannot be passed until these conflicting directories are removed.
+
+3. **Open Redirect Vulnerability Deduction (referencing Observation 4)**:
+   - In JavaScript `URL` parsing, `new URL("https://attacker.com", "http://localhost:3000")` resolves to `https://attacker.com/`.
+   - Passing an unvalidated `next` parameter from query string to `NextResponse.redirect(new URL(next, origin))` enables external redirection to malicious sites via the legitimate TalkByte OAuth callback URL.
+   - A sanitization check `(next.startsWith('/') && !next.startsWith('//'))` is required to enforce relative redirection.
+
+4. **Cookie Adapter & Offline Fallback Deduction (referencing Observation 3)**:
+   - Because `@supabase/ssr` is not in `package.json`, custom cookie storage was necessary.
+   - In Next.js 16, `cookies()` is an async Promise; `await cookies()` in `supabase-server.ts` complies with framework specifications.
+   - Wrapping `.set()` and `.delete()` in `try / catch` ensures Server Component static prerendering does not fail.
+   - Fallback dummy JWT keys prevent client initialization crashes in offline environments.
 
 ---
 
 ## 3. Caveats
 
-- **Host Script Execution Policy**: PowerShell `.ps1` execution is disabled on the host, preventing direct CLI execution of `npx.ps1`. Independent verification was executed via full code and AST-level static inspection.
-- **Defensive Currency Formatting**: Downstream developers in M2 and M3 should follow the defensive pattern `(item.price ?? item.price_cents / 100).toFixed(2)` as documented in `report.md`.
-- **Supabase Realtime Channels**: Realtime WebSocket subscriptions (`supabase.channel(...)`) are planned for Milestone M2/M3.
+1. **Host Terminal Permission Policy**:
+   Interactive PowerShell command execution timed out on this Windows host, preventing unattended subprocess command execution. All routing architecture, AST structure, type definitions, and potential runtime collisions were comprehensively and definitively validated via static code inspection and Next.js App Router path resolution rules.
+2. **Supabase Live Session Verification**:
+   The custom cookie adapters operate on `SameSite=Lax` cookies. Full end-to-end multi-domain OAuth session synchronization requires an active Supabase project with configured site URL and redirect URLs.
 
 ---
 
 ## 4. Conclusion
 
-Milestone M1 (Frontend Foundation & Data Layer) is fully implemented, verified, resilient, and compliant with all project requirements.
+**Gate Verdict: `REQUEST_CHANGES`**
 
-**Verdict**: **APPROVE**.
+While the restoration of the 10 core auth and library files is architecturally robust and properly isolates all auth pages from the 220px admin sidebar layout, **the repository cannot be approved in its present state** due to:
+1. **Critical Build Blocker**: Duplicate route files exist at `/login` and `/admin/login`. `npm run build` will fail with a fatal Next.js route collision error until `frontend/src/app/login/` and `frontend/src/app/(admin)/admin/login/` are deleted.
+2. **Major Security Issue**: Open Redirect vulnerability in `frontend/src/app/auth/callback/route.ts` caused by unvalidated `next` redirect target.
+3. **Minor UX Issue**: Dead error state in all 4 auth pages where `setError` is never invoked.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify this evaluation:
+### Step 1: Remove Conflicting Route Directories
+Remove the legacy directories using PowerShell or Git:
+```powershell
+Remove-Item -Recurse -Force "frontend/src/app/login", "frontend/src/app/(admin)/admin/login"
+```
+Or via Git:
+```bash
+git rm -r frontend/src/app/login frontend/src/app/\(admin\)/admin/login
+```
 
-1. **File Existence & Integrity Check**:
-   Inspect all 10 files in `frontend/`:
-   ```bash
-   frontend/tsconfig.json
-   frontend/next.config.mjs
-   frontend/postcss.config.mjs
-   frontend/src/app/globals.css
-   frontend/src/app/layout.tsx
-   frontend/src/app/page.tsx
-   frontend/src/types/database.types.ts
-   frontend/src/lib/supabase.ts
-   frontend/src/lib/mockData.ts
-   frontend/src/components/icons.tsx
-   ```
+### Step 2: Fix Open Redirect in `auth/callback/route.ts`
+Sanitize the `next` parameter:
+```ts
+const safeNext = (next.startsWith('/') && !next.startsWith('//')) ? next : '/dashboard';
+return NextResponse.redirect(new URL(safeNext, origin));
+```
 
-2. **Zero `lucide-react` Dependency Check**:
-   Grep `lucide` in `frontend/src`:
-   ```bash
-   grep -rn "lucide" frontend/src
-   ```
-   *Expected result*: 0 matches.
+### Step 3: Run Auth Route Tests
+```bash
+cd frontend
+npm test -- __tests__/auth-routes.test.tsx
+```
+*Expected Result*: All 5 test suites pass (AuthLayout, LoginPage, SignupPage, AdminLoginPage, AdminSignupPage).
 
-3. **TypeScript Compilation & Next.js Build Check** (in an environment allowing script execution):
-   ```bash
-   cd frontend
-   npx tsc --noEmit
-   npm run build
-   ```
-   *Expected result*: Exit code 0, static generation succeeds without network errors.
-
-4. **Invalidation Conditions**:
-   - Any missing file among the 10 foundation targets.
-   - Any import of uninstalled `lucide-react` in `frontend/src`.
-   - Any unhandled exception during Supabase client instantiation when environment variables are unset.
+### Step 4: Run Next.js Production Build
+```bash
+cd frontend
+npm run build
+```
+*Expected Result*: Exit code 0, with manifest cleanly listing:
+- `○ /login`
+- `○ /signup`
+- `○ /admin/login`
+- `○ /admin/signup`
+- `λ /auth/callback`

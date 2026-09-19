@@ -5,7 +5,7 @@
 ✓ Running next.config.mjs took 53ms
 npm warn exec The following package was not found and will be installed: next@16.3.4
 ⚠ `eslint` configuration in next.config.mjs is no longer supported. See more info here: https://nextjs.org/docs/app/api-reference/cli/next#next-lint-options
-⚠ Invalid next.config.mjs options detected:
+⚠ Invalid next.config.mjs options detected: 
 ⚠     Unrecognized key(s) in object: 'eslint'
 ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
 Error: Could not find a production build in the '.next' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id

@@ -27,7 +27,7 @@ light_tokens = """
   --t:      #1e1b4b;
   --ts:     #4c1d95;
   --tm:     #6d28d9;
-
+  
   --br:     8px;
   --bs:     -8px -8px 24px var(--fu), 8px 8px 24px var(--fd);
   --bsi:    inset -4px -4px 12px var(--fu), inset 4px 4px 12px var(--fd);

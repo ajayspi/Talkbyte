@@ -1,21 +1,18 @@
-# Progress Log — Milestone M2 (Restaurant Dashboard)
+# Progress Log — Milestone M2 (WhatsApp Business API & Telnyx SMS Fallback)
 
-Last visited: 2026-09-03T07:07:30Z
+Last visited: 2026-09-14T05:35:00Z
 Status: Complete
 
 ## Tasks
-- [x] Read DISPATCH.md, ORIGINAL_REQUEST.md, PROJECT.md, and spec miner report
-- [x] Analyze `talkbyte-restaurant-dashboard.html` visual layout, styles, interactions, data models
-- [x] Check existing codebase in `frontend/src/`
-- [x] Implement `frontend/src/app/(restaurant)/layout.tsx`
-- [x] Implement `frontend/src/app/(restaurant)/dashboard/page.tsx`
-- [x] Implement `frontend/src/components/restaurant/DashboardTab.tsx`
-- [x] Implement `frontend/src/components/restaurant/LiveCallsTab.tsx`
-- [x] Implement `frontend/src/components/restaurant/OrdersTab.tsx`
-- [x] Implement `frontend/src/components/restaurant/MenuTab.tsx`
-- [x] Implement `frontend/src/components/restaurant/AnalyticsTab.tsx`
-- [x] Implement `frontend/src/components/restaurant/BillingTab.tsx`
-- [x] Implement `frontend/src/components/restaurant/SettingsTab.tsx`
-- [x] Run build verification in `frontend/` (`npm run build` passed with exit code 0)
-- [x] Prepare `handoff.md` and execution report
-- [x] Report to orchestrator via `send_message`
+- [x] Read DISPATCH.md, ORIGINAL_REQUEST.md, PROJECT.md, and explorer reports
+- [x] Initialize BRIEFING.md and progress.md
+- [x] Implement `backend/app/services/whatsapp.py` (AU normalization, normalize_phone_number, send_whatsapp_payment_link)
+- [x] Update `backend/app/services/sms.py` (add `force_sms: bool = False`)
+- [x] Create `backend/app/services/messaging.py` (`send_payment_message` dispatcher with fallback)
+- [x] Create `backend/app/api/messages.py` (`POST /api/messages/send`)
+- [x] Update `backend/main.py` (mount `messages.router`)
+- [x] Update `backend/app/api/payments.py` (`create_payment_link` using `send_payment_message`)
+- [x] Create `backend/tests/unit/test_messaging.py`
+- [x] Verify test suite and implementation consistency
+- [x] Prepare `handoff.md`
+- [ ] Report to parent via `send_message`

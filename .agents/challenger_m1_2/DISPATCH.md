@@ -1,37 +1,34 @@
-# Milestone M1 Challenger 2 Dispatch
+# Task Assignment: Milestone M1 Challenger 2 (Auth Forms & Route Logic Stress Test)
 
-Read `ORIGINAL_REQUEST.md` at project root:
-c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\ORIGINAL_REQUEST.md
-Read `PROJECT.md` at project root:
-c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\PROJECT.md
-Read Worker M1 Handoff:
-c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\worker_m1\handoff.md
+**Role**: teamwork_preview_challenger
+**Working Directory**: c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\challenger_m1_2
+**Scope Document**: c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\PROJECT.md
+**Original Request**: c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\ORIGINAL_REQUEST.md
 
-Your task as Challenger 2:
-Empirically verify build configuration and style boundaries:
-1. Verify `frontend/tsconfig.json`, `frontend/next.config.mjs`, and `frontend/postcss.config.mjs` against Next.js 16 and Tailwind CSS v4 requirements.
-2. Verify that there are zero missing imports (especially `lucide-react`) across all files.
-3. Test edge cases in `icons.tsx` (missing size props, className inheritance).
-Issue a clear verdict: `APPROVE` or `REQUEST_CHANGES`.
-Write your report to `.agents/challenger_m1_2/report.md` and handoff to `.agents/challenger_m1_2/handoff.md`.
+## Objective
+Adversarially challenge and stress-test the authentication pages and callback route:
+1. Verify behavior of all 4 auth pages:
+   - `/login`: Empty inputs, invalid password, rate-limited auth response, network offline fallback.
+   - `/signup`: Missing restaurant name, short password, duplicate email.
+   - `/admin/login`: Non-operator credentials, invalid token.
+   - `/admin/signup`: Missing or malformed invite code.
+2. Verify `auth/callback/route.ts`:
+   - Missing `code` query param.
+   - Malformed `code`.
+   - Missing `next` query param (verifying default `/dashboard`).
+3. Render an explicit gate verdict: APPROVE or REJECT.
+Write your findings to `analysis.md` and `handoff.md` and notify orchestrator via `send_message`.
 
-## 2026-09-03T06:53:46Z
-You are a teamwork_preview_challenger subagent for Milestone M1.
+## 2026-09-14T00:53:00Z
+You are challenger_m1_2, a Challenger subagent for TalkByte.
 Working directory: c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\challenger_m1_2
+Read your assignment in c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\challenger_m1_2\DISPATCH.md.
+MANDATORY: Read the authoritative user request at c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\ORIGINAL_REQUEST.md before starting work.
+Also read c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\PROJECT.md.
 
-Read ORIGINAL_REQUEST.md at project root:
-c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\ORIGINAL_REQUEST.md
-Read PROJECT.md at project root:
-c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\PROJECT.md
-Read Worker M1 Handoff:
-c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\worker_m1\handoff.md
-Read your dispatch:
-c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\challenger_m1_2\DISPATCH.md
-
-Empirically verify build configs, Tailwind v4 rules, and icon coverage.
-Issue a clear verdict: APPROVE or REQUEST_CHANGES.
-Write your report and handoff to:
-c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\challenger_m1_2\report.md
-c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\challenger_m1_2\handoff.md
-Send a message to parent when done.
-
+Task:
+Adversarially test and challenge the 4 auth pages (/login, /signup, /admin/login, /admin/signup) and callback route:
+- Form boundary cases, invalid inputs, empty states, offline demo redirects.
+- Callback route parameter omission (missing code, missing next).
+Deliver an explicit gate verdict: APPROVE or REJECT.
+Write analysis.md and handoff.md in your working directory and notify the orchestrator via send_message.

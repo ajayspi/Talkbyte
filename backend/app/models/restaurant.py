@@ -37,7 +37,8 @@ class Restaurant(BaseModel):
     timezone: str = "Australia/Sydney"
     tts_provider: str = "elevenlabs"     # elevenlabs, cartesia
     voice_id: str | None = None          # ID for the chosen TTS provider
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc))
 
 
 class MenuItem(BaseModel):

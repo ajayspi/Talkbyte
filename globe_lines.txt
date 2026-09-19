@@ -1,0 +1,6 @@
+#globe-canvas{width:min(480px,90vw);height:min(480px,90vw);display:block;margin:48px auto 32px;border-radius:50%;filter:drop-shadow(0 0 50px rgba(124,58,237,.15))}
+<canvas id="globe-canvas" class="rv"></canvas>
+/* ── THREE.JS GLOBE ── */
+const gC=document.getElementById('globe-canvas');
+const globe=new THREE.Mesh(gGeo,gMat);gSc.add(globe);
+globe.rotation.y=gT;

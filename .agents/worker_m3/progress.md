@@ -1,22 +1,27 @@
-# Progress Log — Milestone M3 (Operator Admin Panel)
+# Progress Log — Milestone M3 (SaaS Subscription Billing)
 
 **Agent**: worker_m3
-**Last visited**: 2026-09-03T07:07:30Z
+**Last visited**: 2026-09-14T11:23:00+05:30
 **Status**: Complete
 
-## Tasks Completed
-- [x] Read and analyzed `ORIGINAL_REQUEST.md`, `PROJECT.md`, `talkbyte-admin-panel.html`, `spec_miner_admin_survey/report.md`, and `DISPATCH.md`.
-- [x] Initialized `DISPATCH.md`, `BRIEFING.md`, and `progress.md`.
-- [x] Implemented `frontend/src/app/(admin)/layout.tsx` with sidebar navigation across 9 views, live call ticker, AEST clock, and `AdminContext`.
-- [x] Implemented `frontend/src/app/(admin)/admin/page.tsx` rendering all 9 views dynamically.
-- [x] Implemented `frontend/src/components/admin/OverviewView.tsx` with 8 KPI cards, Recharts hourly volume chart, MRR growth chart, leaderboard, and at-risk triage table with action modal.
-- [x] Implemented `frontend/src/components/admin/LiveMonitorView.tsx` with real-time ticking timers, active call cards with pulsating border, filters, recent calls table, and call inspector modal.
-- [x] Implemented `frontend/src/components/admin/RestaurantsView.tsx` with 487-tenant directory, health score bars, search, filters, `+ Add Restaurant` modal, and POS debug modal.
-- [x] Implemented `frontend/src/components/admin/UsersView.tsx` with tenant user RBAC directory, role badges, search, and user invite modal.
-- [x] Implemented `frontend/src/components/admin/RevenueView.tsx` with financial KPIs, tier distribution, itemized per-minute unit economics breakdown ($0.062/min total cost, 31% margin), and dual-series monthly trend chart.
-- [x] Implemented `frontend/src/components/admin/BillingView.tsx` with Stripe subscription health, smart retries, invoice history, and status chips.
-- [x] Implemented `frontend/src/components/admin/InfraView.tsx` with 9 service cards, metrics, health bars, and Deepgram latency spike alert banner.
-- [x] Implemented `frontend/src/components/admin/AuditView.tsx` with multi-category event ledger, search, category filter, and CSV export.
-- [x] Implemented `frontend/src/components/admin/AnalyticsView.tsx` with performance KPIs, daily orders/calls chart, cuisine breakdown chart, top abandonment reasons table, and payment conversion funnel table.
-- [x] Verified TypeScript compilation with `cmd /c "npx tsc --noEmit"` passing with exit code 0.
-- [x] Completed `handoff.md` and prepared report for parent orchestrator.
+## Tasks Checklist
+- [x] Read DISPATCH.md, ORIGINAL_REQUEST.md, PROJECT.md, and explorer reports (`explorer_m3_1/analysis.md`, `explorer_m3_2/analysis.md`, `explorer_m3_3/analysis.md`).
+- [x] Initialized and updated DISPATCH.md and BRIEFING.md.
+- [x] Fixed `backend/app/api/billing.py`:
+  - [x] Added `subscription_data` with metadata in `stripe.checkout.Session.create`.
+  - [x] Supported Starter, Growth, Pro, Enterprise plan ID mapping (`PLAN_PRICE_IDS`, lowercase normalization, pro -> growth alias).
+  - [x] Ensured webhook handler updates `restaurants.plan_id` in Supabase upon `customer.subscription.updated` / `created`.
+  - [x] Handled `customer.subscription.deleted` downgrading to starter.
+  - [x] Webhook secret fallback (`STRIPE_BILLING_WEBHOOK_SECRET` or `STRIPE_WEBHOOK_SECRET`) and `billing_events` error isolation.
+- [x] Updated `backend/app/api/payments.py` with cross-webhook subscription delegation.
+- [x] Created `backend/tests/unit/test_billing.py` with 11 comprehensive unit tests for checkout creation and webhook processing.
+- [x] Created `frontend/src/app/(restaurant)/dashboard/billing/page.tsx` returning HTTP 200 and rendering BillingTab.
+- [x] Updated `frontend/src/components/restaurant/BillingTab.tsx` with SaaS plans ($149 Starter, $249 Growth, $499 Enterprise), Stripe Checkout trigger, usage metrics, and billing history.
+- [x] Updated `frontend/src/app/(restaurant)/layout.tsx` for clean billing navigation and dynamic topbar subtitle.
+- [x] Created `frontend/src/lib/planGating.ts` with tier hierarchy, feature keys, and `usePlanGating` hook.
+- [x] Created `frontend/src/components/ui/PlanGate.tsx` with overlay, inline mode, lock badge, and `PlanUpgradeModal`.
+- [x] Gated premium features in `AnalyticsTab.tsx` (30d, custom range, peak hours heatmap).
+- [x] Gated premium features in `SettingsTab.tsx` (ElevenLabs, manual takeover, Shopify POS, multi-staff).
+- [x] Gated premium features in `MenuTab.tsx` (web scraper, CSV upload) while keeping availability toggle UNGATED.
+- [x] Write `handoff.md` and report via `send_message`.
+
