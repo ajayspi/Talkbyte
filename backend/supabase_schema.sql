@@ -256,12 +256,11 @@ select
   ru.role,
   ru.created_at,
   ru.updated_at,
-  coalesce(pu.name, au.raw_user_meta_data->>'name', au.raw_user_meta_data->>'full_name', split_part(au.email, '@', 1)) as name,
-  coalesce(pu.email, au.email) as email,
+  coalesce(au.raw_user_meta_data->>'name', au.raw_user_meta_data->>'full_name', split_part(au.email, '@', 1)) as name,
+  au.email as email,
   au.last_sign_in_at as last_login
 from restaurant_users ru
-left join auth.users au on ru.user_id = au.id
-left join users pu on ru.user_id = pu.id;
+left join auth.users au on ru.user_id = au.id;
 
 grant select on restaurant_staff_view to authenticated, service_role, anon;
 
@@ -290,3 +289,27 @@ language sql stable as $$
   order by embedding <=> query_embedding
   limit match_count;
 $$;
+
+--  Billing Events 
+create table billing_events (
+  id                uuid primary key default gen_random_uuid(),
+  restaurant_id     uuid references restaurants(id) on delete cascade,
+  plan_id           text references plans(id),
+  amount_cents      int not null,
+  status            text default 'due', -- 'paid' | 'due' | 'failed'
+  stripe_invoice_id text,
+  created_at        timestamptz default now()
+);
+alter table billing_events enable row level security;
+
+--  Staff Invites 
+create table restaurant_invites (
+  id                uuid primary key default gen_random_uuid(),
+  restaurant_id     uuid references restaurants(id) on delete cascade,
+  email             text not null,
+  role              user_role default 'staff',
+  invited_by        uuid references auth.users(id),
+  status            text default 'pending', -- 'pending' | 'accepted' | 'expired'
+  created_at        timestamptz default now()
+);
+alter table restaurant_invites enable row level security;

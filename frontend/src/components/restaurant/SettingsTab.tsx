@@ -261,7 +261,12 @@ export const SettingsTab: React.FC = () => {
             name: businessName,
             phone_number: phoneNumber,
             timezone: timezone,
-            ai_instructions: greetingScript
+            ai_instructions: greetingScript,
+            holiday_closure_mode: holidayClosureMode,
+            tts_provider: ttsProvider,
+            voice_persona: voicePersona,
+            allow_manual_takeover: allowManualTakeover,
+            transfer_low_confidence: transferLowConfidence
           }).eq('id', userRest.restaurant_id);
         }
       }
