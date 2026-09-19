@@ -6,7 +6,6 @@ Sprint 1: fully implemented.
 from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
 import structlog
 import telnyx
-from livekit.api import WebhookReceiver, TokenVerifier
 from app.models.call import CallSession, CallState
 from app.db.redis import save_session
 from app.db.supabase import save_call, update_call_state, get_platform_secret
