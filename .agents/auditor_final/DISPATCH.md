@@ -1,32 +1,26 @@
-# DISPATCH: Final Forensic Auditor
+## 2026-09-19T23:03:21Z
 
-**Working Directory**: `c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\auditor_final`
-**Project Root**: `c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989`
-**Authoritative Request**: `c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\ORIGINAL_REQUEST.md`
-**Project Architecture**: `c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\PROJECT.md`
+You are auditor_final.
+Your working directory is: `c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\auditor_final`.
+Parent orchestrator conversation ID: `b87ce451-d3cf-4526-818f-49b010cd25db`.
 
-## Assignment: Final Forensic Integrity Audit
-You are assigned to perform an independent forensic integrity audit of the entire codebase and deliverables:
-1. Verify no dummy/facade implementations, no hardcoded cheating shortcuts, and that all 7 tabs of Restaurant Dashboard and 9 views of Admin Panel contain authentic React components, business logic, state management, and Supabase integration.
-2. Verify Next.js 16 build artifacts, TypeScript type safety, and test suites.
-3. Verify documentation in `CLAUDE.md` and `PROJECT.md`.
-4. Check for any integrity violations (static analysis, code patterns, authenticity).
-5. Write your forensic audit report to `.agents/auditor_final/handoff.md` with your verdict (CLEAN or INTEGRITY VIOLATION).
-6. Send a message to caller when complete.
+MANDATORY FIRST STEP: Read `c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\ORIGINAL_REQUEST.md` (specifically the section `Follow-up — 2026-09-19T20:52:08Z` and acceptance criteria).
+Also read:
+- `.agents/worker_m1_1/handoff.md`
+- `.agents/worker_m2_2/handoff.md`
+- `.agents/worker_m3_1/handoff.md`
+- `.agents/worker_remediation_1/handoff.md`
+- `.agents/orchestrator_9/GATE_STATUS.md`
 
-## 2026-09-03T09:43:31Z
-You are auditor_final (Role: Final Forensic Auditor).
-Working Directory: c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\auditor_final
-
-MANDATORY: Read these files first:
-1. ORIGINAL_REQUEST.md
-2. PROJECT.md
-3. DISPATCH.md
-
-Your tasks:
-1. Perform an independent forensic integrity audit of the entire codebase and deliverables:
-   - Check that implementations are authentic with genuine React components, state management, Recharts visualizations, and Supabase data layer. No dummy or facade stubs, no hardcoded shortcuts.
-   - Inspect build verification artifacts from worker_m4 (.agents/worker_m4/handoff.md, frontend/.next/BUILD_ID, prerender-manifest.json).
-   - Inspect documentation updates in CLAUDE.md and PROJECT.md.
-2. Write your forensic audit report to c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989\.agents\auditor_final\handoff.md with a clear verdict: CLEAN or INTEGRITY VIOLATION.
-3. Send a message to caller with summary when complete.
+OBJECTIVE:
+Perform the final Forensic Integrity Audit across the entire codebase:
+1. Verify Authenticity across all requirements:
+   - R0: `restaurant_integrations` and `restaurant_users` tables genuinely exist in Supabase DB `agafustlankeieewtvck` with real columns, constraints, and RLS policies.
+   - R1: Staff Management in `SettingsTab.tsx` and `backend/app/api/staff.py` genuinely connects to database and auth admin, without dummy hardcoded data.
+   - R2: Integrations modals and dedicated routes genuinely collect and store credentials in `restaurant_integrations` via `backend/app/api/integrations.py` with genuine key masking.
+   - R3: AI Greeting Script Generator in `backend/app/api/voice.py` genuinely calls `AsyncOpenAI` with prompt engineering, and has an authentic persona-tailored fallback, with real frontend loading state.
+   - Remediations: Confirm fixes made by `worker_remediation_1` are genuine and do not bypass or mock tests.
+2. Integrity Forensics checks:
+   - Check for hardcoded test results, facade implementations, or circumventing requirements.
+3. Issue a binary verdict: `CLEAN` or `INTEGRITY VIOLATION`.
+4. Write `report.md` and `handoff.md` in your working directory and report your verdict via `send_message` to parent `b87ce451-d3cf-4526-818f-49b010cd25db`.

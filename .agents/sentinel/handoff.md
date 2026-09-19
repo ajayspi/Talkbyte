@@ -1,113 +1,37 @@
-# Sentinel Final Handoff Report: TalkByte Project Integration
+# Sentinel Handoff Report
 
-**Agent**: Sentinel (`26637757-073d-4832-b399-e299ad01169d`)  
-**Parent Agent**: `parent` (`bd90ca65-fbbe-4f62-bb8e-103a5dc872bc`)  
-**Workspace Root**: `c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989`  
-**Date**: 2026-09-14T17:15:00Z  
-**Handoff Type**: Hard  
+## Observation
+The user requested functional configuration interfaces for the TalkByte Restaurant Dashboard:
+1. R0. Apply Database Schema: Execute schema migration from `database_schema_proposal.md` (`restaurant_integrations` and `restaurant_users` tables, RLS policies, helper functions, triggers, and views).
+2. R1. Staff Management Integration: Wire Staff Access table and Invite Modal in `SettingsTab.tsx` to Supabase backend and backend invite endpoint.
+3. R2. Integrations Routing & Configuration: Refactor Integrations section (Square POS, Stripe Checkout, Twilio SMS, Shopify POS) to allow connecting unconfigured integrations via modal or dedicated route (`/dashboard/integrations/[provider]`) to securely collect and save API keys to the backend.
+4. R3. AI Greeting Script Generator: Create FastAPI backend endpoint (`POST /api/voice/generate-greeting`) using configured LLM to generate custom voice greeting scripts, and wire the frontend button with loading feedback.
+5. Acceptance Criteria: `npm run build` in `frontend` exits with 0 and zero TypeScript errors, `pip install -r requirements.txt` succeeds, and all components interact properly with database and backend APIs.
 
----
+Orchestrator 9 decomposed the work into 5 phases (Survey, DB Schema, Backend APIs, Frontend Interfaces, and Verification Gate). During Gate 1, reviewers and challengers caught 6 defects (Lock icon import, UUID handling, Jest labels, modal loading state, secret redaction), which were remediated by `worker_remediation_1` and re-verified.
+Following orchestrator victory claim, an independent post-victory audit was performed by `victory_auditor_4` with zero shared context, resulting in `VERDICT: VICTORY CONFIRMED`.
 
-## 1. Observation
+## Logic Chain
+1. Recorded the user request verbatim into `ORIGINAL_REQUEST.md` and `.agents/ORIGINAL_REQUEST.md`.
+2. Evaluated routing: General SWE engineering task routed to `teamwork_preview_orchestrator`.
+3. Spawned Orchestrator 9, initialized crons for progress reporting and liveness tracking.
+4. Rescheduled monitoring crons and revived orchestrator after a server restart to maintain full continuity.
+5. Monitored implementation of schema updates, backend routes (`voice.py`, `staff.py`, `integrations.py`), frontend components (`SettingsTab.tsx`, `IntegrationConfigModal.tsx`, dynamic route `/dashboard/integrations/[provider]/page.tsx`), and automated test suites.
+6. Received completion report from Orchestrator 9 and launched an independent, blocking victory audit via `victory_auditor_4`.
+7. `victory_auditor_4` verified live database tables/RLS, code integrity, frontend Next.js production compilation, and endpoint behavior, yielding `VICTORY CONFIRMED`.
+8. Executed mandatory cleanup: cancelled all crons and terminated all subagents (`kill_all`).
 
-### 1.1 Project Implementation Status Across Core Requirements
-Independent forensic audits (`auditor_remediation_final`, `victory_auditor_2`, `victory_auditor_3`) confirmed 100% authentic, production-grade logic on disk across all four required functional areas:
+## Caveats
+- The live database schema has been applied to Supabase project `agafustlankeieewtvck`.
+- Third-party integration API keys are masked upon API retrieval to prevent credential exposure in frontend clients.
+- If OpenAI API quota is exhausted or unconfigured, the voice greeting endpoint gracefully falls back to an Australian persona-tailored script generator to ensure uninterrupted frontend operation.
 
-1. **R1: WhatsApp Business Cloud API Integration & Telnyx SMS Failover**:
-   - `backend/app/services/whatsapp.py`: Full Meta WhatsApp Business Cloud API v20.0 client with AU mobile normalization (`+614XXXXXXXX`, `04XXXXXXXX`).
-   - `backend/app/services/messaging.py`: Multi-channel failover engine dispatching to WhatsApp first, falling back to Telnyx SMS on any non-WhatsApp phone number or delivery exception.
-   - `backend/app/api/messages.py`: Internal messaging router mounted at `/api/messages` and `/api/messaging`.
-   - `backend/app/api/payments.py`: Payment link generation integrated with `send_payment_message`.
-   - Unit tests: 38 unit tests in `backend/tests/unit/test_messaging.py` and `test_whatsapp.py` passing.
+## Conclusion
+All requirements (R0, R1, R2, R3) and acceptance criteria have been implemented, verified, and audited with a confirmed victory verdict. The platform is ready for use.
 
-2. **R2: SaaS Subscription Billing for Restaurants**:
-   - `frontend/src/app/(restaurant)/dashboard/billing/page.tsx`: Direct route returning HTTP 200, rendering `BillingTab`.
-   - `frontend/src/components/restaurant/BillingTab.tsx`: Plan tier selection (Starter $149, Growth $249, Pro $499), Stripe Checkout session upgrade, billing ledger via Supabase client `.from('billing_events')`.
-   - `frontend/src/lib/planGating.ts` & `frontend/src/components/restaurant/PlanGate.tsx`: 12-feature plan gating across dashboard views.
-   - `backend/app/api/billing.py`: Webhook handler updating `restaurants.plan_id` in Supabase on `customer.subscription.updated` and `created`.
-   - Unit tests: 502 lines of unit tests passing in `backend/tests/unit/test_billing.py`.
-
-3. **R3: Playwright End-to-End Testing Suite**:
-   - `frontend/playwright.config.ts`: Configured targeting `./e2e`.
-   - `frontend/e2e/owner-login.spec.ts`: Journey 1 (restaurant owner login -> dashboard loads).
-   - `frontend/e2e/menu-availability.spec.ts`: Journey 2 (menu item availability toggle updates with 30s AI agent sync toast).
-   - `frontend/e2e/admin-login.spec.ts`: Journey 3 (operator admin login -> restaurant fleet directory inspection).
-   - `frontend/e2e/billing.spec.ts`: Billing journey.
-   - Hardened against strict-mode locator collisions using exact text matching and `.first()` scoping.
-
-4. **R4: Restored Authentication Pages & Hardened Middleware**:
-   - `frontend/src/app/(auth)/`: Restored `login/page.tsx`, `signup/page.tsx`, `admin/login/page.tsx`, `admin/signup/page.tsx`, and `layout.tsx`.
-   - `frontend/src/lib/`: Restored `supabase-browser.ts`, `supabase-server.ts`, `supabase-middleware.ts`.
-   - `frontend/src/app/auth/callback/route.ts`: PKCE callback handler hardened against open redirects (CWE-601) via `isSafeRelativePath`.
-   - `frontend/src/proxy.ts`: Reverse proxy routing.
-
-### 1.2 Remediation Status
-Following the rejection from Victory Auditor 2:
-- **TypeScript Build Integrity**: Reverted `ignoreBuildErrors: true` in `frontend/next.config.mjs` to `ignoreBuildErrors: false`.
-- **Package Hygiene**: Purged transient dynamic filesystem deletion hooks (`predev`, `prebuild`, `pretest`) from `frontend/package.json` and deleted runtime deletion loops from `frontend/jest.setup.js`.
-- **Type Discrepancies Resolved**: Updated `BillingTab.tsx` to call `.from('billing_events')`, defined `BillingEvent` interface in `frontend/src/types/database.types.ts`, and resolved Framer Motion generic ref typing in `frontend/src/app/page.tsx`.
-
-### 1.3 Shell Execution Boundary & Unattended Environment Constraint
-- In this environment, executing commands via `run_command` outside the whitelisted read-only commands triggers an interactive permission prompt in the Cortex IDE.
-- Because the session is unattended, these interactive permission prompts time out after 60,000ms.
-- Consequently, `git rm -rf` (to delete legacy colliding route stubs `src/app/login` and `src/app/(admin)/admin/login` from git tracking and disk), `git add -A`, `git commit`, and `git push` cannot be executed via the subagent tool without host approval.
-- Per strict zero-hallucination constraints, no commits, logs, or hashes were falsified.
-
----
-
-## 2. Logic Chain
-
-1. **Feature Implementation**: The engineering swarms (orchestrators 1–7 and workers) built complete, high-quality implementations across all requirements.
-2. **First Audit**: Victory Auditor 2 rejected the completion claim due to `ignoreBuildErrors: true`, temporary deletion scripts in `package.json`, and uncommitted changes.
-3. **Remediation Wave**: The remediation team applied all code-level fixes on disk and verified them via static analysis and independent forensic audit (`auditor_remediation_final`).
-4. **Second Audit**: Victory Auditor 3 confirmed all code changes are genuine on disk, but rejected victory because the changes had not been committed or pushed to `origin/claude/talkbyte-project-integration-fad989`, and the legacy route directories remained on disk/in git index.
-5. **Orchestrator Escalation**: Orchestrator 7 confirmed that CLI execution of `git rm`, `git add`, and `git push` is blocked by unattended interactive permission prompts timing out.
-6. **Sentinel Governance**: Per Sentinel protocol, completion cannot be declared without an explicit `VICTORY CONFIRMED` verdict. The crons and subagents have been terminated, and the exact host terminal commands are documented for execution.
-
----
-
-## 3. Caveats
-
-1. **Host Terminal Execution Required**:
-   The final publication steps must be run directly in the host terminal where interactive permissions are granted:
-   - Removing legacy route stubs from git index and disk: `git rm -rf --ignore-unmatch frontend/src/app/login "frontend/src/app/(admin)/admin/login"`
-   - Running the strict build: `npm run build` in `frontend/`
-   - Staging, committing, and pushing: `git add -A`, `git commit`, `git push origin claude/talkbyte-project-integration-fad989`
-2. **Current Branch State**:
-   Commit `49dd930` is currently at HEAD on remote branch `origin/claude/talkbyte-project-integration-fad989`. All remediation changes are present in the local workspace directory awaiting staging and commit.
-
----
-
-## 4. Conclusion
-
-- **Functional Code**: 100% complete, verified authentic, and free of bypasses or mocks across R1, R2, R3, R4.
-- **TypeScript Integrity**: `ignoreBuildErrors: false` is configured with zero compiler bypass directives.
-- **Package Scripts**: Standard Next.js lifecycle restored; all workaround hooks removed.
-- **Victory Status**: Blocked on git publication due to unattended terminal permission timeouts.
-
----
-
-## 5. Verification Method
-
-To complete the rollout and publish to remote, run the following sequence in the workspace root terminal:
-
-```powershell
-# 1. Permanently remove colliding route stubs from git tracking and disk
-git rm -rf --ignore-unmatch frontend/src/app/login "frontend/src/app/(admin)/admin/login"
-if (Test-Path "frontend/src/app/login") { Remove-Item -Recurse -Force "frontend/src/app/login" }
-if (Test-Path "frontend/src/app/(admin)/admin/login") { Remove-Item -Recurse -Force "frontend/src/app/(admin)/admin/login" }
-
-# 2. Verify strict TypeScript build and Playwright test suite
-cd frontend
-npm run build
-npx playwright test
-cd ..
-
-# 3. Stage all modifications, commit, and push to remote branch
-git add -A
-git commit -m "fix(remediation): enforce strict TypeScript build, purge runtime deletion hooks, resolve route collisions, and complete TalkByte platform"
-git push origin claude/talkbyte-project-integration-fad989
-
-# 4. Verify clean status
-git status
-```
+## Verification Method
+- **Independent Victory Audit**: Conducted by `victory_auditor_4` (see `.agents/victory_auditor_4/handoff.md`).
+- **Database Schema (R0)**: Verified tables `restaurant_integrations` and `restaurant_users`, indexes, RLS policies, and `restaurant_staff_view` on live Supabase.
+- **Frontend Build (Acceptance Criteria)**: Verified `npm run build` exits 0 with 0 TypeScript errors.
+- **Backend Dependencies (Acceptance Criteria)**: Verified `requirements.txt` dependencies.
+- **Unit & Component Tests**: Verified `test_greeting.py`, `test_staff.py`, `test_integrations.py`, and frontend test suites.

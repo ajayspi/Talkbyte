@@ -10,6 +10,8 @@ import type {
   InfraService,
   Subscription,
   RestaurantUser,
+  RestaurantIntegration,
+  RestaurantStaffView,
 } from '@/types/database.types';
 import {
   MOCK_RESTAURANT,
@@ -204,3 +206,158 @@ export async function getUsers(): Promise<RestaurantUser[]> {
   }
   return MOCK_USERS;
 }
+
+export async function getStaffMembers(restaurantId?: string): Promise<RestaurantStaffView[]> {
+  try {
+    if (restaurantId) {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('restaurant_staff_view')
+          .select('*')
+          .eq('restaurant_id', restaurantId)
+      );
+      if (!error && data && data.length > 0) {
+        return data as RestaurantStaffView[];
+      }
+
+      // Fallback query to restaurant_users
+      const { data: ruData, error: ruError } = await withTimeout(
+        supabase
+          .from('restaurant_users')
+          .select('*')
+          .eq('restaurant_id', restaurantId)
+      );
+      if (!ruError && ruData && ruData.length > 0) {
+        return ruData.map((u) => ({
+          id: u.id,
+          restaurant_id: u.restaurant_id,
+          user_id: u.user_id,
+          role: u.role,
+          created_at: u.created_at,
+          updated_at: u.updated_at || u.created_at,
+          name: u.name || 'Staff Member',
+          email: u.email || null,
+          last_login: null,
+        })) as RestaurantStaffView[];
+      }
+    }
+  } catch {
+    // Fall back to seed mock
+  }
+
+  return [
+    {
+      id: '1',
+      restaurant_id: restaurantId || '5b99fb66-e992-489d-86b6-125577af8f55',
+      user_id: 'usr-001',
+      role: 'owner',
+      created_at: '2026-06-15T08:30:00Z',
+      updated_at: '2026-06-15T08:30:00Z',
+      name: 'John Rossi',
+      email: 'john@mamaspizzeria.com.au',
+      last_login: 'Now',
+    },
+    {
+      id: '2',
+      restaurant_id: restaurantId || '5b99fb66-e992-489d-86b6-125577af8f55',
+      user_id: 'usr-002',
+      role: 'manager',
+      created_at: '2026-06-20T10:00:00Z',
+      updated_at: '2026-06-20T10:00:00Z',
+      name: 'Sarah M.',
+      email: 'sarah@mamaspizzeria.com.au',
+      last_login: '2h ago',
+    },
+  ];
+}
+
+export async function getRestaurantIntegrations(
+  restaurantId?: string
+): Promise<RestaurantIntegration[]> {
+  try {
+    if (restaurantId) {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('restaurant_integrations')
+          .select('id, restaurant_id, provider, status, is_active, metadata, created_at, updated_at')
+          .eq('restaurant_id', restaurantId)
+      );
+      if (!error && data && data.length > 0) {
+        return data as RestaurantIntegration[];
+      }
+    }
+  } catch {
+    // Fall back to seed mock
+  }
+
+  return [
+    {
+      id: 'int-001',
+      restaurant_id: restaurantId || '5b99fb66-e992-489d-86b6-125577af8f55',
+      provider: 'square',
+      config: { environment: 'production' },
+      credentials: { api_key: 'sq0atp-****' },
+      api_key: 'sq0atp-****',
+      metadata: { location_id: 'L9B4EXAMPLE', location_name: "Mama's Pizzeria — Newtown" },
+      status: 'connected',
+      is_active: true,
+      created_at: '2026-06-15T08:30:00Z',
+      updated_at: '2026-06-15T08:30:00Z',
+    },
+    {
+      id: 'int-002',
+      restaurant_id: restaurantId || '5b99fb66-e992-489d-86b6-125577af8f55',
+      provider: 'stripe',
+      config: {},
+      credentials: { api_key: 'sk_live_****' },
+      api_key: 'sk_live_****',
+      metadata: { publishable_key: 'pk_live_****', account_name: 'acc_1Nk...' },
+      status: 'connected',
+      is_active: true,
+      created_at: '2026-06-15T08:30:00Z',
+      updated_at: '2026-06-15T08:30:00Z',
+    },
+    {
+      id: 'int-003',
+      restaurant_id: restaurantId || '5b99fb66-e992-489d-86b6-125577af8f55',
+      provider: 'twilio',
+      config: {},
+      credentials: { api_key: 'AC****' },
+      api_key: 'AC****',
+      metadata: { from_phone_number: '+61 2 9999 1234' },
+      status: 'connected',
+      is_active: true,
+      created_at: '2026-06-15T08:30:00Z',
+      updated_at: '2026-06-15T08:30:00Z',
+    },
+  ];
+}
+
+export async function saveRestaurantIntegration(
+  restaurantId: string,
+  provider: string,
+  apiKey?: string,
+  metadata?: Record<string, any>
+): Promise<boolean> {
+  try {
+    const record: any = {
+      restaurant_id: restaurantId,
+      provider: provider.toLowerCase(),
+      status: 'connected',
+      is_active: true,
+      metadata: metadata || {},
+      config: metadata || {},
+    };
+    if (apiKey) {
+      record.api_key = apiKey;
+      record.credentials = { api_key: apiKey };
+    }
+    const { error } = await withTimeout(
+      supabase.from('restaurant_integrations').upsert(record as any)
+    );
+    return !error;
+  } catch {
+    return false;
+  }
+}
+

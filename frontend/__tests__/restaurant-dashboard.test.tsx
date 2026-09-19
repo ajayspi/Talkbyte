@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DashboardTab from '@/components/restaurant/DashboardTab';
 import LiveCallsTab from '@/components/restaurant/LiveCallsTab';
@@ -211,7 +211,7 @@ describe('Restaurant Dashboard Component Suites', () => {
       expect(screen.getByText('Sarah M.')).toBeInTheDocument();
     });
 
-    it('opens and submits invite staff modal', () => {
+    it('opens and submits invite staff modal', async () => {
       render(<SettingsTab />);
 
       const inviteBtn = screen.getByRole('button', { name: 'Invite' });
@@ -225,7 +225,9 @@ describe('Restaurant Dashboard Component Suites', () => {
       fireEvent.change(emailInput, { target: { value: 'luigi@mamaspizzeria.com.au' } });
 
       fireEvent.click(screen.getByRole('button', { name: 'Send Invite Token' }));
-      expect(screen.queryByText('Invite Staff Member')).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByText('Invite Staff Member')).not.toBeInTheDocument();
+      });
       expect(screen.getByText('Luigi V.')).toBeInTheDocument();
     });
   });

@@ -81,3 +81,40 @@ The frontend is currently missing its authentication pages (`/login`, `/signup`,
 ### Version Control
 - [ ] `git status` shows a clean working tree.
 - [ ] All changes are pushed to `origin/claude/talkbyte-project-integration-fad989`.
+
+## Follow-up — 2026-09-19T20:52:08Z
+
+Build functional configuration interfaces for the TalkByte Restaurant Dashboard, replacing the current UI mockups. This includes wiring up the Staff Management table to invite users, creating dedicated routes/modals for third-party Integrations (Square, Stripe, Twilio, Shopify) to collect their respective API keys, and implementing a real AI-generation backend endpoint for the Voice Greeting Script.
+
+Working directory: `c:\Users\vigilare\OneDrive - Vigilare BP PVT LTD\Desktop\Claude local\.claude\worktrees\talkbyte-project-integration-fad989`
+
+## Requirements
+
+### R0. Apply Database Schema
+First, review and apply the SQL schema updates outlined in the `database_schema_proposal.md` artifact to the Supabase database. This schema defines the `restaurant_integrations` and `restaurant_users` tables required for the subsequent steps.
+
+### R1. Staff Management Integration
+The Staff Access table and Invite Modal in `SettingsTab.tsx` currently use mocked React state (`staffList`). Wire this up to the Supabase backend. It must fetch real staff members from the `restaurant_users` joined with `auth.users` (or a profiles table), and the invite form must trigger a backend endpoint to send a real invite (or create a user).
+
+### R2. Integrations Routing & Configuration
+The Integrations section (Square POS, Stripe Checkout, Twilio SMS, Shopify POS) currently displays hardcoded "Connected/Active" badges. Refactor this so that users can click "Connect" on unconfigured integrations, which should either open a modal or navigate to a dedicated route (e.g. `/dashboard/integrations/square`) to securely collect and save the required API keys to the backend.
+
+### R3. AI Greeting Script Generator
+The "Generate with AI" button in the Voice Settings currently inserts a static template string. Create a new FastAPI backend endpoint that accepts the restaurant's name and persona, calls the configured LLM, and returns a custom, professional AI greeting script. Wire the frontend button to call this endpoint and display a loading state while generating.
+
+## Acceptance Criteria
+
+### Build & Type Safety
+- [ ] Running `npm run build` in the `frontend` directory succeeds with exit code 0, no TypeScript errors.
+- [ ] Running `pip install -r requirements.txt` in `backend` succeeds with exit code 0.
+
+### Staff Management (R1)
+- [ ] The Staff Access table correctly loads data from the database.
+- [ ] Submitting the Invite Staff form successfully POSTs to a backend endpoint.
+
+### Integrations (R2)
+- [ ] Clicking to configure an integration opens a form/route with input fields for the required API keys (e.g., Square Location ID & Access Token).
+- [ ] Submitting the integration form securely saves the keys to the database.
+
+### AI Generator (R3)
+- [ ] Clicking "Generate with AI" calls the backend and populates the text area with a dynamically generated script, without crashing.
