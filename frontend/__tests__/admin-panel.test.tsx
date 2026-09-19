@@ -352,11 +352,11 @@ describe('Admin Panel Component Suites', () => {
       expect(screen.getByDisplayValue('Last 7 days')).toBeInTheDocument();
 
       // 4 KPIs
-      expect(screen.getByText('Total Calls (7d)')).toBeInTheDocument();
+      expect(screen.getAllByText('Total Calls (7d)')[0]).toBeInTheDocument();
       expect(screen.getAllByText('19,847')[0]).toBeInTheDocument();
-      expect(screen.getByText('Orders Completed')).toBeInTheDocument();
+      expect(screen.getAllByText('Orders Completed')[0]).toBeInTheDocument();
       expect(screen.getAllByText('14,731')[0]).toBeInTheDocument();
-      expect(screen.getByText('GMV (7d)')).toBeInTheDocument();
+      expect(screen.getAllByText('GMV (7d)')[0]).toBeInTheDocument();
       expect(screen.getByText('$441K')).toBeInTheDocument();
       expect(screen.getByText('Avg Order Value')).toBeInTheDocument();
       expect(screen.getAllByText('$43.20')[0]).toBeInTheDocument();

@@ -23,52 +23,10 @@ log = structlog.get_logger()
 
 
 async def send_payment_sms(
-    to_number: str,
-    from_number: str,
-    payment_url: str,
-    restaurant_name: str,
-    force_sms: bool = False,
-) -> bool:
-    """
-    Send the Stripe payment link to the customer.
-
-    For Australian mobile numbers (+614xxxxxxxx) the message is first
-    attempted via the Meta WhatsApp Business Cloud API unless *force_sms* is True.
-    If that fails — or the number is not registered on WhatsApp — the function falls back
-    to plain SMS delivered through the existing Telnyx integration.
-
-    Parameters
-    ----------
-    to_number:
-        Recipient phone number in E.164 format (e.g. ``+61412345678``).
-    from_number:
-        Telnyx sender number used for the SMS fallback path.
-    payment_url:
-        Stripe Checkout URL to include in the message body.
-    restaurant_name:
-        Display name of the restaurant shown in the message.
-    force_sms:
-        If True, skip the WhatsApp check and send directly via Telnyx SMS.
-        Defaults to False for backward compatibility.
-    """
-    # -- WhatsApp (AU mobiles only, unless force_sms is True) ------------------
-    if not force_sms and is_au_mobile(to_number):
-        log.info("messaging.whatsapp_attempt", to=to_number)
-        whatsapp_ok = await send_whatsapp_payment_link(
-            to_number=to_number,
-            payment_url=payment_url,
-            restaurant_name=restaurant_name,
-        )
-        if whatsapp_ok:
-            return True  # Delivered via WhatsApp - no SMS needed
-        log.info(
-            "messaging.whatsapp_failed_sms_fallback",
-            to=to_number,
-            reason="WhatsApp delivery unsuccessful",
-        )
-
-
-    # -- Telnyx SMS (always runs for non-AU; fallback for AU) ------------------
+        to_number: str,
+        from_number: str,
+        payment_url: str,
+        restaurant_name: str) -> None:
     telnyx.api_key = await get_platform_secret("TELNYX_API_KEY")
     message_text = (
         f"Thank you for ordering with {restaurant_name}! "
@@ -77,7 +35,8 @@ async def send_payment_sms(
     try:
         # Telnyx SDK is synchronous for Message.create by default,
         # but we can wrap it or just call it directly if it supports async.
-        # It's usually fine to call it directly in a background task or threaded.
+        # It's usually fine to call it directly in a background task or
+        # threaded.
         telnyx.Message.create(
             to=to_number,
             _from=from_number,

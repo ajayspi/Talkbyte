@@ -1,6 +1,7 @@
 """Order endpoints — Sprint 1+"""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from app.api.auth import verify_restaurant_access
 from app.db.supabase import get_order, get_db
 
 router = APIRouter()
@@ -15,7 +16,10 @@ async def get_order_api(order_id: str):
 
 
 @router.get("/restaurant/{restaurant_id}")
-async def list_orders(restaurant_id: str, limit: int = 50):
+async def list_orders(
+        restaurant_id: str,
+        limit: int = 50,
+        access=Depends(verify_restaurant_access)):
     db = get_db()
     result = await db.table("orders").select("*").eq("restaurant_id", restaurant_id).order("created_at", desc=True).limit(limit).execute()
     return {"orders": result.data, "restaurant_id": restaurant_id}

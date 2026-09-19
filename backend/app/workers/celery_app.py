@@ -41,7 +41,6 @@ def push_order_to_pos(self, order_id: str, restaurant_id: str):
     from app.db.supabase import get_order, get_restaurant_by_id, update_order_state
     from app.models.order import OrderState
     from app.services.pos.square import SquarePOS
-    from config import config
     import structlog
 
     log = structlog.get_logger()
@@ -54,8 +53,9 @@ def push_order_to_pos(self, order_id: str, restaurant_id: str):
 
         restaurant = await get_restaurant_by_id(restaurant_id)
         if not restaurant:
-            log.error("celery.push_order.restaurant_not_found",
-                      restaurant_id=restaurant_id)
+            log.error(
+                "celery.push_order.restaurant_not_found",
+                restaurant_id=restaurant_id)
             return
 
         try:

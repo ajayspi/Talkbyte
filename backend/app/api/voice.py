@@ -3,7 +3,7 @@ Voice webhook — receives Telnyx inbound call events, bridges to LiveKit.
 Sprint 1: fully implemented.
 """
 
-from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Request, BackgroundTasks
 import structlog
 import telnyx
 from app.models.call import CallSession, CallState
@@ -98,8 +98,8 @@ async def telnyx_webhook(request: Request, background_tasks: BackgroundTasks):
 @router.post("/livekit-agent-start")
 async def livekit_agent_start(request: Request):
     """
-    Webhook for LiveKit events.
-    Verifies the webhook signature before processing.
+    Placeholder for any webhook LiveKit might send if needed,
+    but the main logic runs in livekit_agent.py entrypoint.
     """
     auth_header = request.headers.get("Authorization")
     if not auth_header:

@@ -29,7 +29,8 @@ class OrderItem(BaseModel):
 
     name: str
     qty: int = Field(
-        gt=0, description="Always at least 1; remove the line instead of going to 0")
+        gt=0,
+        description="Always at least 1; remove the line instead of going to 0")
     price_cents: int = Field(
         ge=0, description="Unit price. 0 is allowed (comped item)")
 
@@ -49,7 +50,8 @@ class Order(BaseModel):
     state: OrderState = OrderState.CONFIRMED
     pos_order_id: str | None = None
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc))
+        default_factory=lambda: datetime.now(
+            timezone.utc))
 
 
 # ── Capture logic ────────────────────────────────────────────────────────────
@@ -88,7 +90,10 @@ def add_item(
     return updated
 
 
-def remove_item(items: list[OrderItem], name: str, qty: int) -> list[OrderItem]:
+def remove_item(
+        items: list[OrderItem],
+        name: str,
+        qty: int) -> list[OrderItem]:
     """
     Remove qty of an item. Removing at least as many as present drops the
     whole line — "take the pizzas off" should clear it, never go negative.

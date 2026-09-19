@@ -1,6 +1,7 @@
 """Restaurant management endpoints — Sprint 3"""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from app.api.auth import get_current_user, verify_restaurant_access
 from app.db.supabase import get_restaurant_by_id, get_db
 from app.models.restaurant import RestaurantCreate
 import structlog
@@ -19,17 +20,30 @@ async def get_restaurant(restaurant_id: str):
 
 
 @router.post("/")
-async def create_restaurant(body: RestaurantCreate):
+async def create_restaurant(body: dict, user=Depends(get_current_user)):
     # TODO: onboarding flow — create restaurant, provision Telnyx number
     # Sprint 3 feature.
     db = get_db()
-    data = body.model_dump(exclude_unset=True)
-    result = await db.table("restaurants").insert(data).execute()
-    return {"status": "created", "restaurant": result.data[0]}
+
+    # Insert restaurant
+    result = await db.table("restaurants").insert(body).execute()
+    restaurant = result.data[0]
+
+    # Grant access to the user who created it
+    await db.table("restaurant_users").insert({
+        "restaurant_id": restaurant["id"],
+        "user_id": user.id,
+        "role": "owner"
+    }).execute()
+
+    return {"status": "created", "restaurant": restaurant}
 
 
 @router.put("/{restaurant_id}/menu")
-async def update_menu(restaurant_id: str, body: dict):
+async def update_menu(
+        restaurant_id: str,
+        body: dict,
+        access=Depends(verify_restaurant_access)):
     # upsert menu_items, re-embed with text-embedding-3-small → pgvector
     db = get_db()
     items = body.get("items", [])

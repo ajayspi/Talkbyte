@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.get("/stats")
-async def platform_stats(admin_user=Depends(get_current_admin)):
+async def platform_stats():
     # Mocking MRR, calls today for this sprint
     return {"mrr": 5000, "calls_today": 120, "active_restaurants": 15}
 

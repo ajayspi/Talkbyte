@@ -23,18 +23,27 @@ class CallState(str, Enum):
     PAYMENT_EXPIRED = "PAYMENT_EXPIRED"      # Stripe link not opened in 30min
 
 
-VALID_TRANSITIONS: dict[CallState, list[CallState]] = {
-    CallState.GREETING:          [CallState.TAKING_ORDER, CallState.TRANSFER_TO_HUMAN, CallState.CALL_DROPPED],
-    CallState.TAKING_ORDER:      [CallState.CONFIRMING,   CallState.TRANSFER_TO_HUMAN, CallState.CALL_DROPPED],
-    CallState.CONFIRMING:        [CallState.TAKING_ORDER, CallState.CONFIRMED,          CallState.TRANSFER_TO_HUMAN, CallState.CALL_DROPPED],
-    CallState.CONFIRMED:         [CallState.PAYMENT_SENT, CallState.POS_FAILED],
-    CallState.PAYMENT_SENT:      [CallState.COMPLETE,     CallState.PAYMENT_EXPIRED],
-    CallState.COMPLETE:          [],
-    CallState.TRANSFER_TO_HUMAN: [],
-    CallState.CALL_DROPPED:      [],
-    CallState.POS_FAILED:        [],
-    CallState.PAYMENT_EXPIRED:   [],
-}
+VALID_TRANSITIONS: dict[CallState,
+                        list[CallState]] = {CallState.GREETING: [CallState.TAKING_ORDER,
+                                                                 CallState.TRANSFER_TO_HUMAN,
+                                                                 CallState.CALL_DROPPED],
+                                            CallState.TAKING_ORDER: [CallState.CONFIRMING,
+                                                                     CallState.TRANSFER_TO_HUMAN,
+                                                                     CallState.CALL_DROPPED],
+                                            CallState.CONFIRMING: [CallState.TAKING_ORDER,
+                                                                   CallState.CONFIRMED,
+                                                                   CallState.TRANSFER_TO_HUMAN,
+                                                                   CallState.CALL_DROPPED],
+                                            CallState.CONFIRMED: [CallState.PAYMENT_SENT,
+                                                                  CallState.POS_FAILED],
+                                            CallState.PAYMENT_SENT: [CallState.COMPLETE,
+                                                                     CallState.PAYMENT_EXPIRED],
+                                            CallState.COMPLETE: [],
+                                            CallState.TRANSFER_TO_HUMAN: [],
+                                            CallState.CALL_DROPPED: [],
+                                            CallState.POS_FAILED: [],
+                                            CallState.PAYMENT_EXPIRED: [],
+                                            }
 
 
 class CallSession(BaseModel):
@@ -47,7 +56,8 @@ class CallSession(BaseModel):
     # default_factory, not `= datetime.utcnow()`: a bare default is evaluated
     # once at import, giving every call in the process the same start time.
     started_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc))
+        default_factory=lambda: datetime.now(
+            timezone.utc))
     transcript: list[dict] = Field(default_factory=list)
 
     # ── Redis serialisation ──────────────────────────────────────────────

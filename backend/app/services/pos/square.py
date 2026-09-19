@@ -13,11 +13,16 @@ log = structlog.get_logger()
 
 class SquarePOS(POSBase):
 
-    def __init__(self, access_token: str, location_id: str, environment: str = "sandbox"):
+    def __init__(
+            self,
+            access_token: str,
+            location_id: str,
+            environment: str = "sandbox"):
         self.access_token = access_token
         self.location_id = location_id
-        self.client = Client(access_token=access_token,
-                             environment=environment)
+        self.client = Client(
+            access_token=access_token,
+            environment=environment)
 
     async def push_order(self, restaurant_id: str, order: dict) -> dict:
         """
@@ -47,8 +52,10 @@ class SquarePOS(POSBase):
             result = self.client.orders.create_order(body)
             if result.is_success():
                 order_id = result.body.get("order", {}).get("id")
-                log.info("square.push_order.success",
-                         restaurant=restaurant_id, order_id=order_id)
+                log.info(
+                    "square.push_order.success",
+                    restaurant=restaurant_id,
+                    order_id=order_id)
                 return {"pos_order_id": order_id, "success": True}
             elif result.is_error():
                 log.error("square.push_order.error", errors=result.errors)

@@ -28,7 +28,10 @@ async def get_embedding(text: str) -> list[float]:
     return response.data[0].embedding
 
 
-async def search_menu_items(restaurant_id: str, query: str, top_k: int = 5) -> list[MenuItem]:
+async def search_menu_items(
+        restaurant_id: str,
+        query: str,
+        top_k: int = 5) -> list[MenuItem]:
     """
     Search menu items using semantic similarity.
     """

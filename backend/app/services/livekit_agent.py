@@ -1,3 +1,4 @@
+import os
 """
 LiveKit Agents pipeline — Sprint 1, Tasks 6–10
 Wires: Deepgram Flux STT → GPT-4.1 → ElevenLabs TTS
@@ -12,7 +13,6 @@ from livekit.plugins import deepgram, openai, elevenlabs, silero, cartesia
 from app.services.llm import build_system_prompt
 from app.models.call import CallSession, CallState
 from app.db.redis import get_session, save_session
-from config import config
 
 logger = logging.getLogger(__name__)
 
@@ -41,16 +41,6 @@ async def entrypoint(ctx: JobContext):
         logger.info(
             f"[{ctx.room.name}] Session loaded: {session.call_id}, state={session.state}")
 
-        # Fetch restaurant for dynamic STT language
-        restaurant = await get_restaurant_by_id(session.restaurant_id)
-        stt_language = "en-US" # Default
-        if restaurant and hasattr(restaurant, 'timezone'):
-            if "Australia" in restaurant.timezone:
-                stt_language = "en-AU"
-            elif "Europe" in restaurant.timezone or "London" in restaurant.timezone:
-                stt_language = "en-GB"
-
-
         # Load VAD (Voice Activity Detection)
         try:
             vad = silero.VAD.load()
@@ -58,7 +48,8 @@ async def entrypoint(ctx: JobContext):
             logger.error(f"[{ctx.room.name}] VAD.load() failed: {e}")
             raise
 
-        # Build system prompt with restaurant context (no menu RAG yet in Sprint 1)
+        # Build system prompt with restaurant context (no menu RAG yet in
+        # Sprint 1)
         system_prompt = build_system_prompt(session)
         logger.debug(f"[{ctx.room.name}] System prompt:\n{system_prompt}")
 
@@ -92,7 +83,8 @@ async def entrypoint(ctx: JobContext):
             except Exception as e:
                 return f"Failed to remove: {e}"
 
-        @fnc_ctx.ai_callable(description="Confirm the complete order and proceed to payment")
+        @fnc_ctx.ai_callable(
+            description="Confirm the complete order and proceed to payment")
         async def confirm_order():
             logger.info(f"[{ctx.room.name}] Order confirmed by AI")
             session.transition(CallState.CONFIRMED)
@@ -103,7 +95,6 @@ async def entrypoint(ctx: JobContext):
             return "Order confirmed. Proceed to inform the customer about payment via SMS."
 
         from app.db.supabase import get_platform_secret
-        import os
 
         deepgram_key = await get_platform_secret("DEEPGRAM_API_KEY")
         openai_key = await get_platform_secret("OPENAI_API_KEY")
@@ -114,23 +105,6 @@ async def entrypoint(ctx: JobContext):
         # Fetch keys
         cartesia_key = await get_platform_secret("CARTESIA_API_KEY")
         elevenlabs_key = await get_platform_secret("ELEVENLABS_API_KEY")
-        fallback_provider = os.getenv("TTS_FALLBACK_PROVIDER", "elevenlabs")
-
-        try:
-            if tts_provider_name == "cartesia" and cartesia_key:
-                cartesia_voice_id = voice_id if voice_id else "a0e99841-438c-4a64-b679-ae501e7d6091"
-                tts_plugin = cartesia.TTS(voice=cartesia_voice_id, api_key=cartesia_key)
-                logger.info(f"[{ctx.room.name}] Using Cartesia TTS (voice={cartesia_voice_id})")
-            else:
-                raise ValueError("Cartesia selected but no key available, falling back")
-        except Exception as e:
-            logger.warning(f"[{ctx.room.name}] Primary TTS failed/unavailable ({e}). Routing to fallback: {fallback_provider}")
-            if fallback_provider == "elevenlabs" and elevenlabs_key:
-                eleven_voice_id = ELEVENLABS_VOICE_ID # Safe default fallback
-                tts_plugin = elevenlabs.TTS(voice_id=eleven_voice_id, api_key=elevenlabs_key)
-            else:
-                logger.error("No valid TTS fallback available.")
-                raise
 
         # Initialize VoiceAssistant
         # Using LiteLLM Proxy (http://litellm:4000) for cross-provider LLM failover (OpenAI -> Anthropic)
@@ -138,9 +112,17 @@ async def entrypoint(ctx: JobContext):
         litellm_base_url = os.getenv("LITELLM_BASE_URL", "http://litellm:4000/v1")
         assistant = VoiceAssistant(
             vad=vad,
-            stt=deepgram.STT(model="nova-3", language=stt_language, api_key=deepgram_key),
-            llm=openai.LLM(model="gpt-4o-mini", system_prompt=system_prompt, api_key=openai_key, base_url=litellm_base_url),
-            tts=tts_plugin,
+            stt=deepgram.STT(
+                model="nova-3",
+                language="en-AU",
+                api_key=deepgram_key),
+            llm=openai.LLM(
+                model="gpt-4.1",
+                system_prompt=system_prompt,
+                api_key=openai_key),
+            tts=elevenlabs.TTS(
+                voice_id=ELEVENLABS_VOICE_ID,
+                api_key=elevenlabs_key),
             fnc_ctx=fnc_ctx,
         )
 
@@ -155,7 +137,8 @@ async def entrypoint(ctx: JobContext):
                 {"role": "user", "content": message.content})
             await save_session(session.to_redis(), ttl=1800)
 
-        # Event: assistant response → save to transcript and update state if needed
+        # Event: assistant response → save to transcript and update state if
+        # needed
         @assistant.on("agent_speech_committed")
         async def on_agent_speech(message: llm.ChatMessage):
             """Agent message committed."""
@@ -181,7 +164,6 @@ async def entrypoint(ctx: JobContext):
 
 def _run_with_creds():
     import asyncio
-    import os
     from app.db.supabase import get_platform_secret, init_supabase
 
     async def fetch_creds():

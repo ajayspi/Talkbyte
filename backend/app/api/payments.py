@@ -1,11 +1,9 @@
 """Stripe webhook + payment link generation — Sprint 2"""
 
-from fastapi import APIRouter, Request, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Request, HTTPException
 import stripe
-
-from app.db.supabase import get_order, update_order_state, get_call, get_platform_secret
-from app.models.order import OrderState
-from app.services.messaging import send_payment_message
+from app.db.supabase import get_order, get_call, get_platform_secret
+from app.services.sms import send_payment_sms
 import structlog
 from app.workers.celery_app import push_order_to_pos
 
@@ -27,7 +25,8 @@ async def stripe_webhook(request: Request):
     except Exception as e:
         log.error("stripe.webhook.verification_failed", error=str(e))
         raise HTTPException(
-            status_code=400, detail="Webhook verification failed")
+            status_code=400,
+            detail="Webhook verification failed")
 
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
@@ -98,9 +97,8 @@ async def create_payment_link(order_id: str):
             from_number=telnyx_number,
         )
 
-
         return {"payment_url": session.url, "order_id": order_id}
     except Exception as e:
         log.error("stripe.create_link.failed", error=str(e))
-        raise HTTPException(
-            status_code=500, detail="Failed to create payment link")
+        raise HTTPException(status_code=500,
+                            detail="Failed to create payment link")
