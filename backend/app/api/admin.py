@@ -1,27 +1,27 @@
 """Admin API — Sprint 4"""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.db.supabase import get_db
+from app.core.security import get_current_admin
 
 router = APIRouter()
 
 
 @router.get("/stats")
-async def platform_stats():
-    db = get_db()
+async def platform_stats(admin_user=Depends(get_current_admin)):
     # Mocking MRR, calls today for this sprint
     return {"mrr": 5000, "calls_today": 120, "active_restaurants": 15}
 
 
 @router.get("/restaurants")
-async def list_all_restaurants():
+async def list_all_restaurants(admin_user=Depends(get_current_admin)):
     db = get_db()
     result = await db.table("restaurants").select("*").execute()
     return {"restaurants": result.data}
 
 
 @router.get("/calls/live")
-async def live_calls():
+async def live_calls(admin_user=Depends(get_current_admin)):
     # Read active call sessions from Upstash Redis if possible
     # For now returning empty list as placeholder for UI
     return {"calls": []}
