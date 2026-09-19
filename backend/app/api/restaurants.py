@@ -2,13 +2,11 @@
 
 from fastapi import APIRouter, HTTPException
 from app.db.supabase import get_restaurant_by_id, get_db
-from app.models.restaurant import RestaurantCreate
 import structlog
 from app.services.rag import get_embedding
 
 log = structlog.get_logger()
 router = APIRouter()
-
 
 @router.get("/{restaurant_id}")
 async def get_restaurant(restaurant_id: str):
@@ -19,12 +17,11 @@ async def get_restaurant(restaurant_id: str):
 
 
 @router.post("/")
-async def create_restaurant(body: RestaurantCreate):
+async def create_restaurant(body: dict):
     # TODO: onboarding flow — create restaurant, provision Telnyx number
     # Sprint 3 feature.
     db = get_db()
-    data = body.model_dump(exclude_unset=True)
-    result = await db.table("restaurants").insert(data).execute()
+    result = await db.table("restaurants").insert(body).execute()
     return {"status": "created", "restaurant": result.data[0]}
 
 

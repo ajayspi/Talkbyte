@@ -24,5 +24,3 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: () => false,
   }),
 });
-
-jest.setTimeout(30000);

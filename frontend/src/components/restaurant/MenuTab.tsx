@@ -164,7 +164,7 @@ export const MenuTab: React.FC<MenuTabProps> = ({
     if (activeCategory.includes('Sides') && item.category === 'Sides') return true;
     if (activeCategory.includes('Drinks') && item.category === 'Drinks') return true;
     if (activeCategory.includes('Desserts') && item.category === 'Desserts') return true;
-    return false;
+    return true;
   });
 
   // Handle Add Item Submit
