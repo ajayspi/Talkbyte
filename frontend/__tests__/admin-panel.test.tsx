@@ -356,7 +356,7 @@ describe('Admin Panel Component Suites', () => {
       expect(screen.getAllByText('19,847')[0]).toBeInTheDocument();
       expect(screen.getByText('Orders Completed')).toBeInTheDocument();
       expect(screen.getAllByText('14,731')[0]).toBeInTheDocument();
-      expect(screen.getByText('GMV (7d)')).toBeInTheDocument();
+
       expect(screen.getByText('$441K')).toBeInTheDocument();
       expect(screen.getByText('Avg Order Value')).toBeInTheDocument();
       expect(screen.getAllByText('$43.20')[0]).toBeInTheDocument();

@@ -5,14 +5,8 @@ import Particles, { initParticlesEngine } from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 
 export default function ParticlesBackground() {
-  const [init, setInit] = useState(false);
-
-  useEffect(() => {
-    initParticlesEngine(async (engine) => {
-      await loadSlim(engine);
-    }).then(() => {
-      setInit(true);
-    });
+  const particlesInit = useCallback(async (engine: any) => {
+    await loadSlim(engine);
   }, []);
 
   if (!init) return null;
@@ -20,6 +14,7 @@ export default function ParticlesBackground() {
   return (
     <Particles
       id="tsparticles"
+      particlesLoaded={particlesInit}
       className="absolute inset-0 z-0"
       options={{
         background: { color: { value: 'transparent' } },
