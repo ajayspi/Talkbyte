@@ -40,3 +40,4 @@ async def verify_restaurant_access(
     if not result.data:
         raise HTTPException(status_code=403, detail="Forbidden")
     return user
+get_current_user = verify_jwt

@@ -1,10 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Particles, { initParticlesEngine } from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 
 export default function ParticlesBackground() {
+  const [init, setInit] = useState(false);
+
+  useEffect(() => {
+    initParticlesEngine(async (engine) => {
+      await loadSlim(engine);
+    }).then(() => {
+      setInit(true);
+    });
+  }, []);
+
   const particlesInit = useCallback(async (engine: any) => {
     await loadSlim(engine);
   }, []);
@@ -22,7 +32,7 @@ export default function ParticlesBackground() {
         interactivity: {
           events: {
             onHover: { enable: true, mode: 'repulse' },
-            resize: { enable: true },
+            resize: { enable: true, delay: 0.5 },
           },
           modes: {
             repulse: { distance: 100, duration: 0.4 },
@@ -56,17 +66,5 @@ export default function ParticlesBackground() {
         detectRetina: true,
       }}
     />
-  );
-}
-
-export default function ParticlesBackground() {
-  const init = useCallback(async (engine: Engine) => {
-    await loadSlim(engine);
-  }, []);
-
-  return (
-    <ParticlesProvider init={init}>
-      <ParticlesContent />
-    </ParticlesProvider>
   );
 }

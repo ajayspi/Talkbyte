@@ -12,7 +12,7 @@ import SettingsTab from '@/components/restaurant/SettingsTab';
 describe('Restaurant Dashboard Component Suites', () => {
   describe('DashboardTab', () => {
     it('renders dashboard metrics and upcoming reservations', () => {
-      render(<DashboardTab />);
+      render(<DashboardTab onNavigateTab={() => {}} />);
 
       // Metrics
       expect(screen.getByText('Today\'s Revenue')).toBeInTheDocument();
@@ -26,7 +26,7 @@ describe('Restaurant Dashboard Component Suites', () => {
     });
 
     it('allows taking over and monitoring an active call', () => {
-      render(<DashboardTab />);
+      render(<DashboardTab onNavigateTab={() => {}} />);
 
       const takeOverBtn = screen.getByRole('button', { name: 'Take Over' });
       expect(takeOverBtn).toBeInTheDocument();
@@ -71,8 +71,6 @@ describe('Restaurant Dashboard Component Suites', () => {
       expect(screen.getByText('Pepperoni Supreme')).toBeInTheDocument();
       expect(screen.getByText('Quattro Formaggi')).toBeInTheDocument();
       expect(screen.getByText('Garlic Bread')).toBeInTheDocument();
-    });
-
 
       fireEvent.click(screen.getByText(/🥤 Drinks/i));
       expect(screen.getByText('San Pellegrino Sparkling')).toBeInTheDocument();
