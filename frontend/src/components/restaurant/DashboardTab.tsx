@@ -321,7 +321,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
                     return (
                       <g
-                        key={d.hour}
+                        key={`bar-${index}`}
                         onMouseEnter={() => setHoveredBar(index)}
                         onMouseLeave={() => setHoveredBar(null)}
                         className="cursor-pointer"

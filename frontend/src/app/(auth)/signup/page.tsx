@@ -36,7 +36,7 @@ export default function SignupPage() {
     <>
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-white mb-2">Create Account</h1>
-        <p className="text-white/50 text-sm">Automate your restaurant\restaurant'sapos;s phone orders</p>
+        <p className="text-white/50 text-sm">Automate your restaurant's phone orders</p>
       </div>
 
       {error && (
@@ -51,7 +51,7 @@ export default function SignupPage() {
           <input
             type="text"
             required
-            placeholder="Mama\Mama'sapos;s Pizzeria"
+            placeholder="Mama's Pizzeria"
             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[var(--gold)]/50 focus:ring-1 focus:ring-[var(--gold)]/50 transition-all"
           />
         </div>

@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export interface Restaurant {
+export type Restaurant = {
   id: string;
   name: string;
   phone_number: string | null;
@@ -26,19 +26,46 @@ export interface Restaurant {
   orders_month?: number;
   completion_rate?: number;
   created_at: string;
-}
+};
 
-export interface RestaurantUser {
+export type RestaurantUser = {
   id: string;
   restaurant_id: string;
   user_id: string;
   role: 'owner' | 'manager' | 'staff' | 'readonly' | string;
   created_at: string;
+  updated_at?: string;
   email?: string;
   name?: string;
-}
+};
 
-export interface MenuItem {
+export type RestaurantIntegration = {
+  id: string;
+  restaurant_id: string;
+  provider: 'square' | 'stripe' | 'twilio' | 'shopify' | string;
+  config: Json;
+  credentials: Json;
+  api_key?: string | null;
+  metadata?: Json;
+  status: 'active' | 'inactive' | 'error' | 'disconnected' | string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RestaurantStaffView = {
+  id: string;
+  restaurant_id: string;
+  user_id: string;
+  role: 'owner' | 'manager' | 'staff' | 'readonly' | string;
+  created_at: string;
+  updated_at: string;
+  name: string | null;
+  email: string | null;
+  last_login: string | null;
+};
+
+export type MenuItem = {
   id: string;
   restaurant_id: string;
   name: string;
@@ -49,13 +76,13 @@ export interface MenuItem {
   available: boolean;
   embedding?: number[] | null;
   created_at: string;
-}
+};
 
-export interface CallTranscriptEntry {
+export type CallTranscriptEntry = {
   role: 'ai' | 'customer' | 'system';
   text: string;
   time?: string;
-}
+};
 
 export type CallState =
   | 'GREETING'
@@ -70,7 +97,7 @@ export type CallState =
   | 'PAYMENT_EXPIRED'
   | string;
 
-export interface Call {
+export type Call = {
   id: string;
   restaurant_id: string;
   restaurant_name?: string;
@@ -85,14 +112,14 @@ export interface Call {
   livekit_room: string | null;
   sentiment?: 'positive' | 'neutral' | 'negative' | string;
   order_items_preview?: string;
-}
+};
 
-export interface OrderItem {
+export type OrderItem = {
   name: string;
   qty: number;
   price_cents: number;
   modifiers?: string[];
-}
+};
 
 export type OrderState =
   | 'PLACED'
@@ -108,7 +135,7 @@ export type OrderState =
   | 'Expired'
   | string;
 
-export interface Order {
+export type Order = {
   id: string;
   call_id: string | null;
   restaurant_id: string;
@@ -120,9 +147,9 @@ export interface Order {
   customer_phone?: string;
   customer_name?: string;
   created_at: string;
-}
+};
 
-export interface PaymentEvent {
+export type PaymentEvent = {
   id: string;
   order_id: string;
   stripe_payment_link?: string | null;
@@ -133,9 +160,9 @@ export interface PaymentEvent {
   status?: 'pending' | 'completed' | 'expired' | 'failed' | 'paid' | string;
   amount_cents?: number;
   created_at?: string;
-}
+};
 
-export interface Plan {
+export type Plan = {
   id: 'starter' | 'growth' | 'enterprise' | string;
   name: string;
   monthly_cents: number;
@@ -143,9 +170,9 @@ export interface Plan {
   call_limit: number;
   call_minutes_included?: number;
   features?: string[];
-}
+};
 
-export interface Subscription {
+export type Subscription = {
   id: string;
   restaurant_id: string;
   restaurant_name?: string;
@@ -155,9 +182,9 @@ export interface Subscription {
   status: 'active' | 'past_due' | 'cancelled' | 'trialing' | string;
   current_period_end: string | null;
   created_at: string;
-}
+};
 
-export interface BillingEvent {
+export type BillingEvent = {
   id: string;
   restaurant_id: string;
   event_type: string;
@@ -167,9 +194,9 @@ export interface BillingEvent {
   stripe_subscription_id: string | null;
   status: string;
   created_at: string;
-}
+};
 
-export interface AuditLog {
+export type AuditLog = {
   id: string;
   timestamp: string;
   event_type: 'ORDER' | 'ESCALATION' | 'BILLING' | 'SYSTEM' | 'POS' | 'AUTH' | 'RESTAURANT' | 'ONBOARD' | string;
@@ -178,9 +205,9 @@ export interface AuditLog {
   details: string;
   ip_address: string;
   status?: 'success' | 'warning' | 'error' | 'info' | string;
-}
+};
 
-export interface PlatformStats {
+export type PlatformStats = {
   activeCallsCount: number;
   totalVenues: number;
   todayCallsCount: number;
@@ -192,9 +219,9 @@ export interface PlatformStats {
   cogsPerMinuteAud: number;
   sttAccuracyPercent: number;
   uptimePercent: number;
-}
+};
 
-export interface InfraService {
+export type InfraService = {
   name: string;
   category: 'voice' | 'ai' | 'infra' | 'payment' | 'pos';
   status: 'operational' | 'degraded' | 'outage';
@@ -203,63 +230,87 @@ export interface InfraService {
   errorRatePercent: number;
   metricLabel: string;
   metricValue: string;
-}
+};
 
-export interface Database {
+export type Database = {
+  __InternalSupabase?: {
+    PostgrestVersion: "14.5";
+  };
   public: {
     Tables: {
       restaurants: {
         Row: Restaurant;
         Insert: Partial<Restaurant>;
         Update: Partial<Restaurant>;
+        Relationships: [];
       };
       restaurant_users: {
         Row: RestaurantUser;
         Insert: Partial<RestaurantUser>;
         Update: Partial<RestaurantUser>;
+        Relationships: [];
       };
       menu_items: {
         Row: MenuItem;
         Insert: Partial<MenuItem>;
         Update: Partial<MenuItem>;
+        Relationships: [];
       };
       calls: {
         Row: Call;
         Insert: Partial<Call>;
         Update: Partial<Call>;
+        Relationships: [];
       };
       orders: {
         Row: Order;
         Insert: Partial<Order>;
         Update: Partial<Order>;
+        Relationships: [];
       };
       payment_events: {
         Row: PaymentEvent;
         Insert: Partial<PaymentEvent>;
         Update: Partial<PaymentEvent>;
+        Relationships: [];
       };
       subscriptions: {
         Row: Subscription;
         Insert: Partial<Subscription>;
         Update: Partial<Subscription>;
+        Relationships: [];
       };
       plans: {
         Row: Plan;
         Insert: Partial<Plan>;
         Update: Partial<Plan>;
+        Relationships: [];
       };
       audit_logs: {
         Row: AuditLog;
         Insert: Partial<AuditLog>;
         Update: Partial<AuditLog>;
+        Relationships: [];
       };
       billing_events: {
         Row: BillingEvent;
         Insert: Partial<BillingEvent>;
         Update: Partial<BillingEvent>;
+        Relationships: [];
+      };
+      restaurant_integrations: {
+        Row: RestaurantIntegration;
+        Insert: Partial<RestaurantIntegration>;
+        Update: Partial<RestaurantIntegration>;
+        Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      restaurant_staff_view: {
+        Row: RestaurantStaffView;
+        Relationships: [];
+      };
+    };
     Functions: {
       search_menu: {
         Args: {
@@ -277,5 +328,11 @@ export interface Database {
         }[];
       };
     };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
-}
+};

@@ -41,6 +41,7 @@ create table restaurant_users (
   user_id       uuid references auth.users(id) on delete cascade,
   role          text default 'owner',      -- 'owner' | 'staff'
   created_at    timestamptz default now(),
+  updated_at    timestamptz default now(),
   unique(restaurant_id, user_id)
 );
 
@@ -114,13 +115,84 @@ create table subscriptions (
 );
 
 
+-- ── Restaurant Integrations ──────────────────────────────────────────────────
+create table restaurant_integrations (
+  id            uuid primary key default gen_random_uuid(),
+  restaurant_id uuid not null references restaurants(id) on delete cascade,
+  provider      text not null,                         -- 'square' | 'stripe' | 'twilio' | 'shopify'
+  config        jsonb not null default '{}'::jsonb,       -- non-sensitive: location_id, phone_number, store_domain
+  credentials   jsonb not null default '{}'::jsonb,       -- sensitive: access_token, api_key, auth_token, secret_key
+  api_key       text,                                  -- direct api_key field if used
+  metadata      jsonb not null default '{}'::jsonb,       -- additional metadata
+  status        text not null default 'active',          -- 'active' | 'inactive' | 'error' | 'disconnected'
+  is_active     boolean not null default true,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now(),
+  unique(restaurant_id, provider)
+);
+
+create index idx_restaurant_integrations_restaurant_id on restaurant_integrations(restaurant_id);
+create index idx_restaurant_integrations_provider on restaurant_integrations(provider);
+create index idx_restaurant_users_restaurant_id on restaurant_users(restaurant_id);
+create index idx_restaurant_users_user_id on restaurant_users(user_id);
+
+
+-- ── Timestamps trigger function ──────────────────────────────────────────────
+create or replace function update_modified_column()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+create trigger update_restaurant_users_modtime
+  before update on restaurant_users
+  for each row execute function update_modified_column();
+
+create trigger update_restaurant_integrations_modtime
+  before update on restaurant_integrations
+  for each row execute function update_modified_column();
+
+
+-- ── Helper Security Definer Functions ────────────────────────────────────────
+create or replace function get_user_restaurant_ids(p_user_id uuid)
+returns setof uuid
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select restaurant_id from restaurant_users where user_id = p_user_id;
+$$;
+
+create or replace function is_restaurant_admin(p_restaurant_id uuid, p_user_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from restaurant_users
+    where restaurant_id = p_restaurant_id
+      and user_id = p_user_id
+      and lower(role) in ('owner', 'manager')
+  );
+$$;
+
+
 -- ── Row-Level Security (RLS) ─────────────────────────────────────────────────
 -- Restaurants can only see their own data
-alter table restaurants   enable row level security;
-alter table menu_items    enable row level security;
-alter table calls         enable row level security;
-alter table orders        enable row level security;
-alter table payment_events enable row level security;
+alter table restaurants             enable row level security;
+alter table menu_items              enable row level security;
+alter table calls                   enable row level security;
+alter table orders                  enable row level security;
+alter table payment_events          enable row level security;
+alter table restaurant_users        enable row level security;
+alter table restaurant_integrations enable row level security;
 
 -- Restaurant staff policy (via restaurant_users join)
 create policy "restaurant_own_data" on restaurants
@@ -131,7 +203,67 @@ create policy "restaurant_own_data" on restaurants
     )
   );
 
--- Repeat similar policies for other tables (omitted for brevity — add in Sprint 3)
+-- restaurant_users policies
+create policy "restaurant_users_select_policy" on restaurant_users
+  for select using (
+    user_id = auth.uid()
+    or restaurant_id in (select get_user_restaurant_ids(auth.uid()))
+  );
+
+create policy "restaurant_users_insert_policy" on restaurant_users
+  for insert with check (
+    is_restaurant_admin(restaurant_id, auth.uid())
+  );
+
+create policy "restaurant_users_update_policy" on restaurant_users
+  for update using (
+    is_restaurant_admin(restaurant_id, auth.uid())
+  );
+
+create policy "restaurant_users_delete_policy" on restaurant_users
+  for delete using (
+    is_restaurant_admin(restaurant_id, auth.uid())
+  );
+
+-- restaurant_integrations policies
+create policy "restaurant_integrations_select_policy" on restaurant_integrations
+  for select using (
+    restaurant_id in (select get_user_restaurant_ids(auth.uid()))
+  );
+
+create policy "restaurant_integrations_insert_policy" on restaurant_integrations
+  for insert with check (
+    is_restaurant_admin(restaurant_id, auth.uid())
+  );
+
+create policy "restaurant_integrations_update_policy" on restaurant_integrations
+  for update using (
+    is_restaurant_admin(restaurant_id, auth.uid())
+  );
+
+create policy "restaurant_integrations_delete_policy" on restaurant_integrations
+  for delete using (
+    is_restaurant_admin(restaurant_id, auth.uid())
+  );
+
+
+-- ── Staff Management View ────────────────────────────────────────────────────
+create or replace view restaurant_staff_view as
+select
+  ru.id,
+  ru.restaurant_id,
+  ru.user_id,
+  ru.role,
+  ru.created_at,
+  ru.updated_at,
+  coalesce(pu.name, au.raw_user_meta_data->>'name', au.raw_user_meta_data->>'full_name', split_part(au.email, '@', 1)) as name,
+  coalesce(pu.email, au.email) as email,
+  au.last_sign_in_at as last_login
+from restaurant_users ru
+left join auth.users au on ru.user_id = au.id
+left join users pu on ru.user_id = pu.id;
+
+grant select on restaurant_staff_view to authenticated, service_role, anon;
 
 
 -- ── Menu RAG helper function ─────────────────────────────────────────────────

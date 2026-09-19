@@ -3,7 +3,20 @@ Voice webhook — receives Telnyx inbound call events, bridges to LiveKit.
 Sprint 1: fully implemented.
 """
 
-from fastapi import APIRouter, Request, BackgroundTasks
+from typing import Optional
+from pydantic import BaseModel, Field
+from openai import AsyncOpenAI
+from fastapi import APIRouter, Request, BackgroundTasks, HTTPException
+try:
+    from livekit.api import TokenVerifier, WebhookReceiver
+except ImportError:
+    try:
+        from livekit.api.webhook import WebhookReceiver
+        from livekit.api.access_token import TokenVerifier
+    except ImportError:
+        TokenVerifier = None
+        WebhookReceiver = None
+
 import structlog
 import telnyx
 from app.models.call import CallSession, CallState
@@ -14,6 +27,111 @@ from datetime import datetime, timezone
 
 log = structlog.get_logger()
 router = APIRouter()
+
+
+class GenerateGreetingRequest(BaseModel):
+    restaurant_name: str = Field(..., description="Name of the restaurant")
+    persona: str = Field(default="Aria", description="Voice persona name")
+    style_or_tone: Optional[str] = Field(default=None, description="Optional style or tone")
+
+
+class GenerateGreetingResponse(BaseModel):
+    status: str = "success"
+    greeting: str
+    provider: str
+
+
+def generate_fallback_greeting(restaurant_name: str, persona: str) -> str:
+    name = restaurant_name.strip() if restaurant_name and restaurant_name.strip() and restaurant_name.strip() != "Loading..." else "our restaurant"
+    p = persona.strip() if persona and persona.strip() else "Aria"
+    p_lower = p.lower()
+
+    if "liam" in p_lower or "mate" in p_lower or "jack" in p_lower:
+        return f"G'day, thanks for calling {name}! I'm {p}, your AI assistant. What can I get started for you today?"
+    elif "chloe" in p_lower or "sarah" in p_lower:
+        return f"Hi there, welcome to {name}! I'm {p}. Would you like to place an order for pickup or delivery today?"
+    elif "olivia" in p_lower or "sophie" in p_lower:
+        return f"Good day! Thanks for calling {name}. I'm {p}. How may I help you with your order today?"
+    else:
+        return f"G'day! Welcome to {name}. I'm {p}, your automated assistant. Would you like to place an order today?"
+
+
+GREETING_SYSTEM_PROMPT = (
+    "You are an expert hospitality voice assistant scriptwriter for Australian restaurants. "
+    "Generate a warm, concise, natural phone greeting script (1 to 2 sentences, maximum 30 words) for an AI voice ordering assistant. "
+    "Rules:\n"
+    "1. Welcome the caller naturally with an authentic, friendly Australian conversational tone.\n"
+    "2. Clearly identify the restaurant name and the AI assistant's persona name.\n"
+    "3. Warmly invite the customer to place an order or ask a question.\n"
+    "4. Return ONLY the plain spoken greeting text. Do not include quotes, markdown, emojis, or stage directions."
+)
+
+
+@router.post("/generate-greeting", response_model=GenerateGreetingResponse)
+@router.post("/greeting", response_model=GenerateGreetingResponse, include_in_schema=False)
+async def generate_greeting(request: GenerateGreetingRequest):
+    """
+    Generate a dynamic AI voice greeting script using OpenAI with prompt engineering
+    tailored for Australian restaurants. If OpenAI is unavailable or errors, falls back
+    to a high-quality persona-specific dynamic greeting.
+    """
+    name = request.restaurant_name.strip()
+    persona = request.persona.strip()
+
+    openai_key = await get_platform_secret("OPENAI_API_KEY")
+    if not openai_key:
+        fallback = generate_fallback_greeting(name, persona)
+        return GenerateGreetingResponse(
+            status="success",
+            greeting=fallback,
+            provider="fallback"
+        )
+
+    try:
+        client = AsyncOpenAI(api_key=openai_key)
+        user_prompt = f"Restaurant: {name}\nVoice Persona: {persona}"
+        if request.style_or_tone:
+            user_prompt += f"\nStyle/Tone: {request.style_or_tone}"
+
+        completion = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": GREETING_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=60,
+            temperature=0.7,
+        )
+
+        content = completion.choices[0].message.content
+        if content and content.strip():
+            greeting_text = content.strip().strip('"').strip("'")
+            return GenerateGreetingResponse(
+                status="success",
+                greeting=greeting_text,
+                provider="openai"
+            )
+        else:
+            fallback = generate_fallback_greeting(name, persona)
+            return GenerateGreetingResponse(
+                status="success",
+                greeting=fallback,
+                provider="fallback"
+            )
+    except Exception as e:
+        log.warning(
+            "voice.generate_greeting.fallback_used",
+            error=str(e),
+            restaurant=name,
+            persona=persona
+        )
+        fallback = generate_fallback_greeting(name, persona)
+        return GenerateGreetingResponse(
+            status="success",
+            greeting=fallback,
+            provider="fallback"
+        )
+
 
 
 async def dial_livekit_sip(

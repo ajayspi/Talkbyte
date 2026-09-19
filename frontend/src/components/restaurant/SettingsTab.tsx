@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabaseBrowser } from '@/lib/supabase-browser';
 import {
   SettingsIcon,
   StoreIcon,
@@ -23,19 +24,49 @@ export const SettingsTab: React.FC = () => {
   const [upgradeFeature, setUpgradeFeature] = useState<FeatureKey | null>(null);
 
   // Business Details State
-  const [businessName, setBusinessName] = useState("Mama's Pizzeria");
-  const [didNumber] = useState("+61 2 9999 1234");
-  const [timezone, setTimezone] = useState("AEST (UTC+10)");
-  const [holidayMode, setHolidayMode] = useState(false);
+const [businessName, setBusinessName] = useState("Loading...");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [timezone, setTimezone] = useState("Australia/Sydney");
+  const [holidayClosureMode, setHolidayClosureMode] = useState(false);
 
-  // AI Voice Settings State
-  const [ttsProvider, setTtsProvider] = useState<'cartesia' | 'elevenlabs'>('cartesia');
-  const [personaName, setPersonaName] = useState("Aria");
-  const [greetingScript, setGreetingScript] = useState(
-    '"Hi, welcome to Mama\'s Pizzeria! I\'m Aria. Would you like to place an order today?"'
-  );
+  const [ttsProvider, setTtsProvider] = useState("Cartesia Sonic (Ultra-low Latency)");
+  const [voicePersona, setVoicePersona] = useState("Aria");
+  const [greetingScript, setGreetingScript] = useState("");
+
   const [allowManualTakeover, setAllowManualTakeover] = useState(true);
   const [transferLowConfidence, setTransferLowConfidence] = useState(true);
+  
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const supabase = supabaseBrowser();
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+      
+      const { data: userRest } = await supabase
+        .from('restaurant_users')
+        .select('restaurant_id')
+        .eq('user_id', userData.user.id)
+        .single();
+        
+      if (userRest) {
+        const { data: rest } = await supabase
+          .from('restaurants')
+          .select('*')
+          .eq('id', userRest.restaurant_id)
+          .single();
+          
+        if (rest) {
+          setBusinessName(rest.name || "");
+          setPhoneNumber(rest.telnyx_number || rest.phone_number || "");
+          setTimezone(rest.timezone || "Australia/Sydney");
+          setGreetingScript(rest.ai_instructions || "");
+        }
+      }
+    };
+    loadData();
+  }, []);
 
   const handleTtsChange = (newVal: 'cartesia' | 'elevenlabs') => {
     if (newVal === 'elevenlabs' && !canAccess('settings:tts_elevenlabs')) {
@@ -66,9 +97,25 @@ export const SettingsTab: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    showToast('✓ Settings and AI persona instructions saved successfully.');
+    setIsSaving(true);
+    const supabase = supabaseBrowser();
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData.user) {
+      const { data: userRest } = await supabase.from('restaurant_users').select('restaurant_id').eq('user_id', userData.user.id).single();
+      if (userRest) {
+        await supabase.from('restaurants').update({
+          name: businessName,
+          phone_number: phoneNumber,
+          timezone: timezone,
+          ai_instructions: greetingScript
+        }).eq('id', userRest.restaurant_id);
+      }
+    }
+    setIsSaving(false);
+    
+    showToast('✨ Settings and AI persona instructions saved successfully.');
   };
 
   const handleInviteStaff = (e: React.FormEvent) => {
@@ -122,7 +169,7 @@ export const SettingsTab: React.FC = () => {
                   <div className="input-label">Phone Number (TalkByte DID)</div>
                   <input
                     type="text"
-                    value={didNumber}
+                    value={phoneNumber}
                     readOnly
                     style={{ background: '#f9fafb', color: 'var(--muted)' }}
                   />
@@ -147,11 +194,11 @@ export const SettingsTab: React.FC = () => {
                     </div>
                   </div>
                   <div
-                    className={`toggle ${holidayMode ? 'on' : ''}`}
+                    className={`toggle ${holidayClosureMode ? 'on' : ''}`}
                     onClick={() => {
-                      setHolidayMode(!holidayMode);
+                      setHolidayClosureMode(!holidayClosureMode);
                       showToast(
-                        !holidayMode
+                        !holidayClosureMode
                           ? 'Holiday closure IVR mode activated.'
                           : 'Standard operating hours restored.'
                       );
@@ -282,13 +329,23 @@ export const SettingsTab: React.FC = () => {
                   <div className="input-label">Voice Persona Name</div>
                   <input
                     type="text"
-                    value={personaName}
-                    onChange={(e) => setPersonaName(e.target.value)}
+                    value={voicePersona}
+                    onChange={(e) => setVoicePersona(e.target.value)}
                   />
                 </div>
 
                 <div className="input-group">
-                  <div className="input-label">Greeting Script</div>
+                  <div className="input-label flex items-center justify-between">
+                    <span>Greeting Script</span>
+                    <button
+                      type="button"
+                      className="text-purple-600 hover:text-purple-700 font-semibold flex items-center gap-1"
+                      onClick={() => setGreetingScript(`"Hi, welcome to ${businessName || 'our restaurant'}! I'm ${voicePersona}. Would you like to place an order today?"`)}
+                      style={{ fontSize: '10px' }}
+                    >
+                      ✨ Generate with AI
+                    </button>
+                  </div>
                   <textarea
                     style={{ height: '70px', resize: 'none' }}
                     value={greetingScript}
