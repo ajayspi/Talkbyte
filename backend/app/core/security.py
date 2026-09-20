@@ -31,16 +31,9 @@ async def get_current_admin(
 
         user = user_response.user
 
-        # Check if the user is an admin
-        app_metadata = getattr(user, 'app_metadata', {}) or {}
-        role = getattr(user, 'role', '')
-        email = getattr(user, 'email', '')
-
-        is_admin = app_metadata.get('is_admin', False)
-        is_talkbyte = email.endswith('@talkbyte.com')
-
-        # We check multiple typical signals for admin privileges
-        if not is_admin and role != 'service_role' and not is_talkbyte:
+        # Check if the user is in admin_users table
+        admin_check = await db.table("admin_users").select("*").eq("id", user.id).maybe_single().execute()
+        if not admin_check.data:
             log.warning("admin.auth.forbidden", user_id=user.id)
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
