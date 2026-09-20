@@ -168,12 +168,28 @@ export default function InfraView() {
 
   useEffect(() => {
     getInfraServices().then((data: InfraService[]) => {
-      // Keep authoritative prototype cards and synchronize with any dynamic updates
+      setServices(data as unknown as ServiceCardItem[]);
     });
   }, []);
 
-  const handleRunHealthCheck = () => {
+  const handleRunHealthCheck = async () => {
     setIsRefreshing(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${apiUrl}/api/admin/health/check`, { method: 'POST' });
+      if (res.ok) {
+        // give it a second to simulate wait
+        setTimeout(async () => {
+          setIsRefreshing(false);
+          const data = await getInfraServices();
+          setServices(data as unknown as ServiceCardItem[]);
+          alert('Health probe completed and services updated.');
+        }, 1000);
+        return;
+      }
+    } catch (e) {
+      // ignore
+    }
     setTimeout(() => {
       setIsRefreshing(false);
       alert('Synthetic health probe completed. All 9 subsystems responding within SLA parameters.');

@@ -135,7 +135,7 @@ export default function OverviewView() {
               <DollarIcon size={24} className="text-emerald-500/30" />
             </div>
             <div className="text-3xl font-extrabold text-emerald-400 mt-2 mb-1">
-              $125.4K
+              ${stats ? (stats.mrrCents / 100).toLocaleString() : '125,400'}
             </div>
             <div className="text-xs text-slate-400 font-medium">
               <span className="text-emerald-400">↑ 5.5%</span> vs last month · $1.51M ARR

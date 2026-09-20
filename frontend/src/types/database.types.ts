@@ -25,6 +25,10 @@ export type Restaurant = {
   calls_month?: number;
   orders_month?: number;
   completion_rate?: number;
+  holiday_closure_mode?: boolean;
+  voice_persona?: string;
+  allow_manual_takeover?: boolean;
+  transfer_low_confidence?: boolean;
   created_at: string;
 };
 
@@ -302,6 +306,18 @@ export type Database = {
         Row: RestaurantIntegration;
         Insert: Partial<RestaurantIntegration>;
         Update: Partial<RestaurantIntegration>;
+        Relationships: [];
+      };
+      system_health_logs: {
+        Row: any;
+        Insert: any;
+        Update: any;
+        Relationships: [];
+      };
+      admin_users: {
+        Row: any;
+        Insert: any;
+        Update: any;
         Relationships: [];
       };
     };

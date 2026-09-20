@@ -24,10 +24,13 @@ const monthlyTrendData = [
 
 export default function RevenueView() {
   const [isMounted, setIsMounted] = useState(false);
+  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
-// eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
+    import('@/lib/supabase').then((m) => {
+      m.getPlatformStats().then(setStats);
+    });
   }, []);
 
   return (
@@ -50,7 +53,7 @@ export default function RevenueView() {
             <DollarIcon size={24} className="text-[#22c55e]/20" />
           </div>
           <div className="text-[28px] font-extrabold text-[#22c55e] mt-2 mb-1 leading-none">
-            $125.4K
+            ${stats ? (stats.mrrCents / 100).toLocaleString() : '125,400'}
           </div>
           <div className="text-[12px] text-[#6b7280]">
             <span className="text-[#22c55e] font-semibold">↑ 5.5%</span> MoM
@@ -237,7 +240,7 @@ export default function RevenueView() {
                 </tr>
                 <tr className="bg-[#f0fdf4]">
                   <td className="py-2.5 px-3.5 font-bold text-[#16a34a]">TOTAL COST</td>
-                  <td className="py-2.5 px-3.5 font-bold font-mono text-[#16a34a]">$0.062/min</td>
+                  <td className="py-2.5 px-3.5 font-bold font-mono text-[#16a34a]">${stats ? stats.cogsPerMinuteAud.toFixed(3) : '0.062'}/min</td>
                   <td className="py-2.5 px-3.5 font-bold text-[#16a34a]">100%</td>
                 </tr>
                 <tr className="bg-[#ede9fe]">

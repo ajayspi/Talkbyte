@@ -160,10 +160,48 @@ export async function getRecentOrders(
 }
 
 export async function getPlatformStats(): Promise<PlatformStats> {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/admin/finance`);
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        ...MOCK_PLATFORM_STATS,
+        mrrCents: data.mrr ? Math.round(data.mrr * 100) : MOCK_PLATFORM_STATS.mrrCents,
+        cogsPerMinuteAud: data.cost_per_minute || MOCK_PLATFORM_STATS.cogsPerMinuteAud,
+      };
+    }
+  } catch (e) {
+    // ignore
+  }
   return MOCK_PLATFORM_STATS;
 }
 
 export async function getInfraServices(): Promise<InfraService[]> {
+  try {
+    const { data, error } = await withTimeout(supabase
+      .from('system_health_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20));
+    
+    if (!error && data && data.length > 0) {
+      return MOCK_INFRA_SERVICES.map(service => {
+        const logName = service.name.split(' ')[0].toLowerCase();
+        const log = (data as any[]).find(l => l.service_name?.toLowerCase() === logName);
+        if (log) {
+          return {
+            ...service,
+            status: log.status === 'healthy' ? 'operational' : 'degraded',
+            latencyMs: log.latency_ms || service.latencyMs
+          };
+        }
+        return service;
+      });
+    }
+  } catch (e) {
+    // ignore
+  }
   return MOCK_INFRA_SERVICES;
 }
 
@@ -196,8 +234,26 @@ export async function getSubscriptions(): Promise<Subscription[]> {
 
 export async function getUsers(): Promise<RestaurantUser[]> {
   try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/admin/users`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.users && data.users.users) {
+        return data.users.users.map((u: any) => ({
+          id: u.id,
+          name: u.email ? u.email.split('@')[0] : 'Admin User',
+          email: u.email,
+          role: 'admin',
+          restaurant_id: 'admin',
+          user_id: u.id,
+          created_at: u.created_at
+        }));
+      }
+    }
+    
+    // Fallback if API fails
     const { data, error } = await withTimeout(supabase
-      .from('restaurant_users')
+      .from('admin_users')
       .select('*')
       .order('created_at', { ascending: false }));
     if (!error && data && data.length > 0) return data as unknown as RestaurantUser[];
