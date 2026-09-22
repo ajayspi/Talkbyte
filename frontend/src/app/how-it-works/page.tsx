@@ -1,41 +1,79 @@
+import Link from 'next/link';
 import Navbar from '@/components/marketing/Navbar';
 import Footer from '@/components/marketing/Footer';
 import ParticlesBackground from '@/components/marketing/ParticlesBackground';
+import { ProcessFlow } from '@/components/ui/ProcessFlow';
+import { Reveal } from '@/components/ui/Reveal';
+
+const DEPLOY_STEPS = [
+  { icon: 'search', title: 'Discover', sub: 'We map your call flows, FAQs and pain points before a line of code.' },
+  { icon: 'workflow', title: 'Connect', sub: 'TalkByte wires into your phones, calendar and stack — typed, tested, safe.' },
+  { icon: 'rocket', title: 'Go live', sub: 'You approve scripts and success metrics. No rip and replace.' },
+];
+
+const LIVE_PIPELINE = [
+  { icon: 'phone-call', title: 'Call arrives', sub: 'Answered in 0.8s, any hour' },
+  { icon: 'audio-waveform', title: 'TalkByte resolves', sub: '38 accents, 30+ languages' },
+  { icon: 'calendar-check', title: 'Action booked', sub: 'Calendar, ticket or order created' },
+  { icon: 'receipt', title: 'Payment secured', sub: 'SMS link, PCI-compliant' },
+];
+
+export const metadata = {
+  title: 'How TalkByte Works — From First Call to Live AI',
+  description:
+    'A transparent path from discovery to a live voice AI that answers, books, sells and follows up for your business, 24/7.',
+};
 
 export default function HowItWorksPage() {
   return (
-    <>
+    <div className="relative selection:bg-[var(--gold)] selection:text-black mesh-bg min-h-screen">
       <Navbar />
       <ParticlesBackground />
-      <main className="relative z-10 min-h-screen flex flex-col pt-32 pb-24 px-6 md:px-12">
-        <div className="max-w-4xl mx-auto w-full flex-grow">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-teal-400">
-            How TalkByte Works
-          </h1>
-          <p className="text-lg text-white/70 mb-12 max-w-2xl">
-            Our AI seamlessly answers your phone, takes orders, and syncs directly with your kitchen. It's like having your best staff member on the phones 24/7.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-[#1a1030]/80 backdrop-blur-md border border-white/5 rounded-3xl p-8 shadow-[8px_8px_20px_rgba(0,0,0,0.5),-4px_-4px_12px_rgba(255,255,255,0.06)]">
-              <h3 className="text-2xl font-bold text-white mb-4">1. The Phone Rings</h3>
-              <p className="text-white/60">Instead of a stressed staff member, TalkByte picks up instantly with a friendly, natural greeting tailored to your restaurant.</p>
+
+      <main className="relative z-10 pt-36 pb-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          {/* Hero */}
+          <Reveal className="text-center mb-20">
+            <p className="section-eyebrow mb-4">Platform</p>
+            <h1 className="font-display text-4xl md:text-6xl font-black tracking-tight leading-[1.05] text-white max-w-3xl mx-auto">
+              From first call to <span className="text-gradient-gold">live AI</span> in three steps
+            </h1>
+            <p className="mt-5 text-lg text-white/55 max-w-2xl mx-auto font-light">
+              A transparent path — you approve everything before a single customer hears it.
+            </p>
+          </Reveal>
+
+          {/* Live call pipeline — the animated showpiece */}
+          <Reveal delay={0.1} className="mb-20">
+            <div className="glass-panel rounded-3xl px-8 py-12 md:px-14">
+              <p className="section-eyebrow text-center mb-10">What a call looks like</p>
+              <ProcessFlow steps={LIVE_PIPELINE} />
             </div>
-            <div className="bg-[#1a1030]/80 backdrop-blur-md border border-white/5 rounded-3xl p-8 shadow-[8px_8px_20px_rgba(0,0,0,0.5),-4px_-4px_12px_rgba(255,255,255,0.06)]">
-              <h3 className="text-2xl font-bold text-white mb-4">2. Taking the Order</h3>
-              <p className="text-white/60">Using advanced conversational AI, TalkByte handles modifications, up-sells naturally, and understands accents perfectly.</p>
+          </Reveal>
+
+          {/* Deployment steps */}
+          <Reveal delay={0.15} className="mb-20">
+            <div className="glass-panel rounded-3xl px-8 py-12 md:px-14">
+              <p className="section-eyebrow text-center mb-10">Deployment</p>
+              <ProcessFlow steps={DEPLOY_STEPS} />
             </div>
-            <div className="bg-[#1a1030]/80 backdrop-blur-md border border-white/5 rounded-3xl p-8 shadow-[8px_8px_20px_rgba(0,0,0,0.5),-4px_-4px_12px_rgba(255,255,255,0.06)]">
-              <h3 className="text-2xl font-bold text-white mb-4">3. Payment & SMS</h3>
-              <p className="text-white/60">The caller receives a secure payment link via SMS while on the phone, seamlessly concluding the transaction.</p>
-            </div>
-            <div className="bg-[#1a1030]/80 backdrop-blur-md border border-white/5 rounded-3xl p-8 shadow-[8px_8px_20px_rgba(0,0,0,0.5),-4px_-4px_12px_rgba(255,255,255,0.06)]">
-              <h3 className="text-2xl font-bold text-white mb-4">4. POS Integration</h3>
-              <p className="text-white/60">The order is instantly injected into your POS system (like Square) and prints in the kitchen. Zero manual entry required.</p>
-            </div>
-          </div>
+          </Reveal>
+
+          {/* CTA */}
+          <Reveal delay={0.2} className="text-center">
+            <p className="text-white/55 mb-7 font-light">Most businesses go live in 4–8 weeks.</p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 glow-btn rounded-full px-9 py-4 text-xs font-bold uppercase tracking-widest text-white"
+            >
+              Book a free demo
+            </Link>
+          </Reveal>
         </div>
       </main>
+
       <Footer />
-    </>
+    </div>
   );
 }
+

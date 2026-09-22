@@ -36,7 +36,7 @@ export default function LoginPage() {
     <>
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-white mb-2">Welcome Back</h1>
-        <p className="text-white/50 text-sm">Sign in to your restaurant dashboard</p>
+        <p className="text-white/50 text-sm">Sign in to your TalkByte dashboard</p>
       </div>
 
       {error && (
@@ -83,8 +83,8 @@ export default function LoginPage() {
       </form>
 
       <div className="mt-6 text-center text-sm text-white/50">
-        Don\Don'tapos;t have an account? <Link href="/signup" className="text-[var(--gold)] hover:text-[var(--gold-light)] font-semibold transition-colors">Sign up</Link>
-      </div>
+          Don't have an account? <Link href="/signup" className="text-[var(--gold)] hover:text-[var(--gold-light)] font-semibold transition-colors">Sign up</Link>
+        </div>
     </>
   );
 }

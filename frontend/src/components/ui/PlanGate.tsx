@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { usePlanGating, FeatureKey } from '@/lib/planGating';
-import { XIcon } from '@/components/icons';
+import { XIcon, CheckCircleIcon } from '@/components/icons';
+import { Badge } from '@/components/ui/Badge';
 
 // Self-contained SVG Lock Icon
 export const LockIcon: React.FC<{ size?: number; className?: string }> = ({
@@ -238,3 +239,52 @@ export const PlanUpgradeModal: React.FC<{
 };
 
 export default PlanGate;
+
+// ---------------------------------------------------------------------------
+// PlanGatePill: compact Gold & Obsidian plan selector pill (new in this deploy)
+// ---------------------------------------------------------------------------
+
+interface PlanGatePillProps {
+  active: boolean;
+  plan: string;
+  price?: string;
+  badge?: 'popular' | 'new' | 'best-value';
+}
+
+export const PlanGatePill: React.FC<PlanGatePillProps> = ({
+  active,
+  plan,
+  price,
+  badge,
+}) => {
+  return (
+    <div
+      className={`glass-panel rounded-xl px-5 py-4 flex items-center justify-between gap-4 w-full transition-all ${
+        active ? 'ring-1 ring-[var(--gold)]' : ''
+      }`}
+    >
+      <div className="flex flex-col gap-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-display text-lg text-white font-semibold truncate">
+            {plan}
+          </span>
+          {badge && (
+            <Badge variant="gold" size="sm">
+              {badge}
+            </Badge>
+          )}
+        </div>
+        {price && (
+          <span className="text-sm text-white/50 font-mono">{price}</span>
+        )}
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        {active ? (
+          <CheckCircleIcon size={22} className="text-[var(--gold)]" />
+        ) : (
+          <XIcon size={20} className="text-white/20" />
+        )}
+      </div>
+    </div>
+  );
+};

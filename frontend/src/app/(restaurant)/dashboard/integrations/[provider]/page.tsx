@@ -112,7 +112,7 @@ const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
   shopify: {
     name: 'Shopify POS',
     icon: '📦',
-    subtitle: 'Catalog and inventory synchronization for restaurants running on Shopify.',
+    subtitle: 'Catalog and inventory synchronization for retail and e-commerce teams.',
     docsUrl: 'https://shopify.dev/docs/apps/auth/admin-app-access-tokens',
     fields: [
       {

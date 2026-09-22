@@ -36,7 +36,7 @@ export default function SignupPage() {
     <>
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-white mb-2">Create Account</h1>
-        <p className="text-white/50 text-sm">Automate your restaurant's phone orders</p>
+        <p className="text-white/50 text-sm">Put your phones on autopilot — every industry welcome</p>
       </div>
 
       {error && (

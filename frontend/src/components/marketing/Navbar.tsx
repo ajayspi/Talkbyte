@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import Logo from '@/components/ui/Logo';
 
 const NAV_LINKS = [
-  { label: 'How It Works', href: '/how-it-works' },
+  { label: 'Platform', href: '/how-it-works' },
+  { label: 'Use Cases', href: '/use-cases' },
+  { label: 'Industries', href: '/industries' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Contact', href: '/contact' },
 ];
@@ -33,21 +36,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-9 h-9 flex-shrink-0">
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-              <defs>
-                <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{ stopColor: '#D4AF37', stopOpacity: 1 }} />
-                  <stop offset="100%" style={{ stopColor: '#FCF6BA', stopOpacity: 1 }} />
-                </linearGradient>
-              </defs>
-              <rect x="40" y="25" width="20" height="30" rx="10" fill="url(#navLogoGrad)" />
-              <line x1="50" y1="55" x2="50" y2="75" stroke="url(#navLogoGrad)" strokeWidth="3" strokeLinecap="round" />
-              <line x1="35" y1="75" x2="65" y2="75" stroke="url(#navLogoGrad)" strokeWidth="3" strokeLinecap="round" />
-              <path d="M 20 40 Q 15 50 20 60" stroke="#D4AF37" strokeWidth="2.5" fill="none" opacity="0.7" />
-              <path d="M 10 35 Q 3 50 10 65" stroke="#D4AF37" strokeWidth="2" fill="none" opacity="0.5" />
-              <path d="M 80 40 Q 85 50 80 60" stroke="#FCF6BA" strokeWidth="2.5" fill="none" opacity="0.7" />
-              <path d="M 90 35 Q 97 50 90 65" stroke="#FCF6BA" strokeWidth="2" fill="none" opacity="0.5" />
-            </svg>
+            <Logo size={36} />
           </div>
           <span className="text-xl font-black tracking-tighter text-white uppercase group-hover:opacity-80 transition-opacity">
             TalkByte <span className="text-gradient-gold">OS</span>
@@ -101,7 +90,7 @@ export default function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.nav
-            className="md:hidden bg-[#0f0a1a]/95 backdrop-blur-md border-t border-white/10 px-6 py-6 flex flex-col gap-4"
+            className="md:hidden bg-[var(--bg-deep)]/97 backdrop-blur-md border-t border-[var(--border-subtle)] px-6 py-6 flex flex-col gap-4"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -120,7 +109,7 @@ export default function Navbar() {
             <Link
               href="/contact"
               onClick={() => setMobileOpen(false)}
-              className="mt-2 px-5 py-3 rounded-full bg-gradient-to-r from-purple-600 to-teal-500 text-white text-sm font-semibold text-center hover:opacity-90 transition-opacity"
+              className="mt-2 px-5 py-3 rounded-full glow-btn text-white text-sm font-semibold text-center"
             >
               Book a Demo
             </Link>

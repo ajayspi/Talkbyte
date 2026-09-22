@@ -1,13 +1,24 @@
 import type { Metadata } from 'next';
+import { Fraunces, Geist_Mono } from 'next/font/google';
+import { CookieConsent } from '@/components/ui/CookieConsent';
 import './globals.css';
 
+const display = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const mono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'TalkByte AI — Restaurant Voice Ordering Platform',
+  title: 'TalkByte AI — Voice AI that answers, books and gets paid',
   description:
-    'Autonomous AI voice phone ordering system for Australian restaurants. Caller rings -> AI answers -> takes order -> sends SMS payment link -> pushes to POS.',
-  icons: {
-    icon: '/favicon.ico',
-  },
+    'TalkByte answers every call in under a second, handles the request, takes payment, and syncs it to your systems. Voice infrastructure for clinics, trades, hospitality, retail and multi-site operations.',
 };
 
 export default function RootLayout({
@@ -16,9 +27,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-[#050505] text-slate-100 antialiased font-sans">
+    <html lang="en" className={`${display.variable} ${mono.variable}`}>
+      <body className="min-h-screen antialiased">
         {children}
+        <CookieConsent />
       </body>
     </html>
   );

@@ -1,26 +1,51 @@
 import React from 'react';
 
-type CardProps = {
+type CardVariant = 'panel' | 'card' | 'surface';
+type CardSize    = 'sm' | 'md' | 'lg';
+
+interface CardProps {
   children: React.ReactNode;
+  variant?: CardVariant;
+  size?: CardSize;
   className?: string;
+  hoverable?: boolean;
+}
+
+const variantClasses: Record<CardVariant, string> = {
+  panel:  'glass-panel',
+  card:   'glass-card',
+  surface: 'glass-surface',
 };
 
-export function Card({ children, className = '' }: CardProps) {
+const sizeClasses: Record<CardSize, string> = {
+  sm: 'rounded-xl p-4',
+  md: 'rounded-2xl p-6',
+  lg: 'rounded-3xl p-8',
+};
+
+export function Card({
+  children,
+  variant = 'card',
+  size = 'md',
+  className = '',
+  hoverable = false,
+}: CardProps) {
   return (
     <div
-      className={`bg-slate-800/80 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-lg ${className}`}
+      className={`${variantClasses[variant]} ${sizeClasses[size]} ${hoverable ? 'card-hover relative' : ''} ${className}`}
     >
+      {hoverable && <span className="top-accent" />}
       {children}
     </div>
   );
 }
 
 export function CardHeader({ children, className = '' }: CardProps) {
-  return <div className={`px-6 py-4 border-b border-slate-700/50 ${className}`}>{children}</div>;
+  return <div className={`px-6 py-4 border-b border-[var(--border-subtle)] ${className}`}>{children}</div>;
 }
 
 export function CardTitle({ children, className = '' }: CardProps) {
-  return <h3 className={`text-lg font-semibold text-slate-100 ${className}`}>{children}</h3>;
+  return <h3 className={`font-display text-2xl text-white ${className}`}>{children}</h3>;
 }
 
 export function CardContent({ children, className = '' }: CardProps) {

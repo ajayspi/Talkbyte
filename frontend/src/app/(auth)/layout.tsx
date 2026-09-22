@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ReactNode } from "react";
+import Logo from "@/components/ui/Logo";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -7,15 +8,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       {/* Background Effects */}
       <div className="absolute inset-0 grid-bg opacity-30 mix-blend-screen z-0" />
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--gold)]/10 blur-[120px] z-0" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--violet)]/10 blur-[120px] z-0" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--accent-violet)]/10 blur-[120px] z-0" />
 
       {/* Brand Header */}
       <Link href="/" className="flex items-center gap-3 group relative z-10 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--gold)] to-[var(--gold-light)] flex items-center justify-center text-black font-black text-lg group-hover:scale-105 transition-transform shadow-[0_0_20px_rgba(212,175,55,0.4)]">
-          TB
-        </div>
-        <span className="text-2xl font-bold tracking-tight text-white">
-          TalkByte <span className="text-[var(--gold)]">AI</span>
+        <Logo size={40} />
+        <span className="text-2xl font-black tracking-tight text-white uppercase">
+          TalkByte <span className="text-gradient-gold">OS</span>
         </span>
       </Link>
 

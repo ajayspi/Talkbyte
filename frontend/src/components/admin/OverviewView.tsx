@@ -334,7 +334,7 @@ export default function OverviewView() {
         <Card>
           <CardHeader className="flex items-center justify-between flex-row">
             <CardTitle>Top Restaurants by Orders Today</CardTitle>
-            <Badge variant="info">Today</Badge>
+            <Badge variant="gold">Today</Badge>
           </CardHeader>
           <div className="overflow-x-auto rounded-b-xl">
             <table className="w-full text-left text-sm border-collapse">
