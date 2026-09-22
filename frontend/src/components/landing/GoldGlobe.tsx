@@ -56,7 +56,7 @@ export default function HeroVisual() {
           {[
             { icon: Activity, top: '1m 04s', bottom: 'handle time' },
             { icon: CreditCard, top: '$20.00', bottom: 'deposit taken' },
-            { icon: Printer, top: 'POS + KDS', bottom: 'posted 2.1s' },
+            { icon: Printer, top: 'POS + CRM', bottom: 'posted 2.1s' },
           ].map((item) => (
             <div key={item.bottom} className="rounded-xl border border-white/10 bg-white/[0.04] px-2 py-2">
               <item.icon size={15} className="mx-auto mb-1 text-[#f7dfa0]" />

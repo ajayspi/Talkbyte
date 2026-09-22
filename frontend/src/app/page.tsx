@@ -11,7 +11,6 @@ import HeroVisual from "@/components/landing/GoldGlobe";
 import AnimatedGraph from "@/components/landing/AnimatedGraph";
 import NodeNetwork from "@/components/landing/NodeNetwork";
 import { IndustryTicker, MetricsStrip } from "@/components/landing/HeroPanels";
-import ScenarioTabs from "@/components/landing/ScenarioTabs";
 import ComparisonTable from "@/components/landing/ComparisonTable";
 import LiveCallDemo from "@/components/landing/LiveCallDemo";
 import { GlobalSignals, IndustryGrid, OperatingModel, GuardrailList, Testimonials } from "@/components/landing/HomepageSections";
@@ -82,14 +81,6 @@ TalkByte is the voice AI layer for ambitious businesses of every kind: a multili
 </div>
 <div className="gsap-rise"><LiveCallDemo /></div>
 </section>
-<section className="mx-auto max-w-7xl px-6 py-6 md:py-10">
-<div className="gsap-rise mb-8">
-<p className="font-mono-grotesk text-xs uppercase tracking-[0.28em] text-[#f7dfa0]">Reality, not promises</p>
-<h2 className="font-display mt-3 text-4xl leading-tight md:text-5xl">Nights your team will recognize.</h2>
-<p className="mt-3 max-w-3xl text-white/60">Each scenario is modeled from real TalkByte service data.</p>
-</div>
-<ScenarioTabs />
-</section>
 <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
 <div className="gsap-rise mb-8">
 <p className="font-mono-grotesk text-xs uppercase tracking-[0.28em] text-[#f7dfa0]">Old phone vs TalkByte</p>
@@ -139,7 +130,7 @@ TalkByte is the voice AI layer for ambitious businesses of every kind: a multili
 </div>
 <GlobalSignals />
 <div className="mt-12 overflow-hidden rounded-[28px] border border-[rgba(217,164,65,0.28)] bg-gradient-to-br from-[rgba(217,164,65,0.14)] via-black to-black p-8 text-center md:p-12">
-<h3 className="font-display mx-auto max-w-3xl text-3xl leading-tight md:text-5xl">Your busiest night is about to become your best-reviewed one.</h3>
+<h3 className="font-display mx-auto max-w-3xl text-3xl leading-tight md:text-5xl">Your busiest hour is about to become your best-reviewed one.</h3>
 <div className="mt-8 flex flex-wrap justify-center gap-4">
 <Link href="/contact" className="glow-btn rounded-full px-9 py-4 text-sm font-black uppercase tracking-[0.14em]">Start the pilot</Link>
 <Link href="/pricing" className="ghost-btn rounded-full px-9 py-4 text-sm font-black uppercase tracking-[0.14em] text-white">See pricing</Link>
