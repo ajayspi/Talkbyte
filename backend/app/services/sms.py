@@ -1,5 +1,5 @@
 """
-Messaging service — WhatsApp-first with Telnyx SMS fallback.
+Messaging service - WhatsApp-first with Telnyx SMS fallback.
 
 Delivery strategy
 -----------------
@@ -21,25 +21,41 @@ from app.services.whatsapp import is_au_mobile, send_whatsapp_payment_link
 
 log = structlog.get_logger()
 
-
 async def send_payment_sms(
-        to_number: str,
-        from_number: str,
-        payment_url: str,
-        restaurant_name: str) -> None:
-    telnyx.api_key = await get_platform_secret("TELNYX_API_KEY")
+    to_number: str,
+    from_number: str,
+    payment_url: str,
+    restaurant_name: str,
+    force_sms: bool = False,
+) -> bool:
+    """
+    Send the Stripe payment link to the customer.
+    """
+    if not force_sms and is_au_mobile(to_number):
+        log.info("messaging.whatsapp_attempt", to=to_number)
+        whatsapp_ok = await send_whatsapp_payment_link(
+            to_number=to_number,
+            payment_url=payment_url,
+            restaurant_name=restaurant_name,
+        )
+        if whatsapp_ok:
+            return True
+        log.info(
+            "messaging.whatsapp_failed_sms_fallback",
+            to=to_number,
+            reason="WhatsApp delivery unsuccessful",
+        )
+
+    api_key = await get_platform_secret("TELNYX_API_KEY")
+    client = telnyx.Telnyx(api_key=api_key)
     message_text = (
         f"Thank you for ordering with {restaurant_name}! "
         f"Complete your payment here: {payment_url}"
     )
     try:
-        # Telnyx SDK is synchronous for Message.create by default,
-        # but we can wrap it or just call it directly if it supports async.
-        # It's usually fine to call it directly in a background task or
-        # threaded.
-        telnyx.Message.create(
+        client.messages.send(
             to=to_number,
-            _from=from_number,
+            from_=from_number,
             text=message_text,
         )
         log.info("sms.payment_link_sent", to=to_number, url=payment_url)
@@ -47,4 +63,3 @@ async def send_payment_sms(
     except Exception as e:
         log.error("sms.payment_link_failed", error=str(e), to=to_number)
         return False
-
