@@ -1,0 +1,1755 @@
+=== PAGE: R13 — Before/After Grid (True Same-Space Paired Images) ===
+R13 - Before/After Grid (True Same-Space Paired Images)
+Status: ACTIVE sprint - R13 sample-space paired-image showcase expansion for the AuroMakeover homepage. Spec approved by user (yes, 2026-09-23). Test-first; all four gates stay green.
+What this expands
+The flagship single Before/After showcase grows into a 4x4 (16-cell) responsive grid: 15 true SAME-SPACE before -> after image pairs + 1 CTA card. Seven category families (blinds, wallpapers, lights, drapes, pooja room, kids room, balcony), 2-3 variants each.
+The true-pairing technique (verified live 2026-09-23)
+Keyed Pollinations edits tier (POST gen.pollinations.ai/v1/images/edits, multipart -F image=@base.jpg -F prompt=... -F model=black-forest-labs/flux.1.1-pro, Bearer key) generates the AFTER by editing the SAME base space - geometry preserved, features swapped. Verified: base room JPEG 33,894B FFD8 -> same-space edit 76,643B FFD8 (geometry-matched true pair).
+Rejected with evidence: anonymous Pollinations (seed-cache dedup -> byte-identical pairs impossible, 429 bursts); AgentKey catalog (no image-gen tools); Pexels/Pixabay keys (invalid formats -> 400/401); stock imagery (user directive: generate).
+Keys live in gitignored .secrets/image-keys.json. Never commit keys.
+The 16-cell grid (7 families x 2-3 variants + 1 CTA)
+
+Files (new, additive only)
+scripts/generate-before-after.mjs (paired keyed edits, FFD8 verify)
+src/components/BeforeAfterGrid.tsx (16-cell grid, per-card drag sliders)
+src/app/page.tsx (wire grid between showcase + gallery)
+scripts/test-e2e.mjs (R13 block appended test-first -> 108/108 -> target 117)
+Acceptance gates
+node scripts/test-e2e.mjs (108/108 now; R13 appends -> 117 expected)
+npx tsc --noEmit, npm run lint, npm run build - all green
+Every public/images/ba-* ref resolves to a real FFD8 JPEG >10KB on disk before it is referenced
+
+=== PAGE: AuroMakeover — Project Documentation ===
+Quick navigation
+Project Overview
+Getting Started
+Architecture
+Design System
+Business Logic Engines
+Testing & Verification
+Roadmap & Milestones
+Competitive Research & Idea Bank
+Phase 2 — Style Quiz & AI Restyle
+
+Status (verified 2026-09-22): ALL GATES GREEN — npm run build ✅ exit 0 · npx tsc --noEmit ✅ zero errors · E2E suite ✅ 70/70 · npm run lint ✅ 0 errors · Syne + Plus Jakarta Sans loaded via next/font/google · Phase 2 shipped: /quiz style-quiz funnel, /api/ai/restyle visualizer, /[city] geo routes · Turbopack still warns about duplicate lockfiles (workspace root inferred as parent C:/Users/vigilare/Aura).
+
+=== PAGE: Testing & Verification ===
+93-test Opaque-Box E2E suite — 93/93 green (verified 2026-09-23). History: 52/70 on 2026-09-22 → 70/70 same day → 74/74 Tier 3 → 77/77 How-it-Works (R7.1–R7.3) → 81/81 lead routing (R-C11–C13, R-W5) → 84/84 Reviews (R8.1–R8.3) → 88/88 recommender + image guard (R9.1–R9.4) → 93/93 GSAP interaction layer (R10.1–R10.5). TEST_READY.md is stale; this page + the runner are truth.
+How to run
+node scripts/test-e2e.mjs   # exit 0 = all pass · exit 1 = failures
+npx tsc --noEmit            # verified clean 2026-09-22
+npm run build               # must complete with zero errors (acceptance gate)
+Not wired as an npm script — run the file directly with node
+Tier structure (93 tests; acceptance requires ≥ 40)
+
+Failure history — all resolved
+The 18 failures listed here on 2026-09-22 were fixed same-day (spec headline/blobs/pills restored, Before/After labels + decoupled slider, gallery tilt/aspects/8 items, Syne + Plus Jakarta via next/font, R-W4 journey) → 70/70
+R5.5 repaired 2026-09-23 (wa.me assertion tolerated city-prop interpolation; 919700675637 still the default) → still green
+2026-09-23: suite grew 70 → 74 (R-C7 shop-look written red, then green; R-C8 quiz, R-C9 visualize, R-C10 geo as characterization) → 74/74 ✅
+2026-09-23: suite grew 88 → 93 (R10.1–R10.5 GSAP layer — gsap dep + setup module, AnimatedCounter, GoldDivider, page seams + Reviews counter, hero parallax — all written red first, then green) → 93/93 ✅
+What the suite enforces beyond behavior
+Palette audit (R6-B4) ✅ · corner audit (R6-B5) ✅ · zero LayoutProps<"/"> (R6-B1) ✅ · escrow invariant (R5-B5) ✅ · WhatsApp number (R5.5) ✅ · layout metadata (R6.1) ✅ · GSAP layer (R10.1–R10.5: gsap dependency + src/lib/gsap.ts ScrollTrigger registration, AnimatedCounter useGSAP/gsap.to/#C5A880/ScrollTrigger, GoldDivider strokeDash + gold palette + scroll trigger, page.tsx seams + Reviews counter mount, hero yPercent/scrub parallax) ✅
+Methodology & docs
+Opaque-box: tests derive from ORIGINAL_REQUEST.md requirements, not implementation artifacts — never "fix" a test by matching current implementation drift; fix the component, or consciously amend the spec
+TEST_INFRA.md — full requirement→test mapping matrix (R1–R6 → T-codes) with tier minimums
+tests/e2e-requirements.test.ts — typed reference harness importing engines (not the runner)
+Adversarial boundaries covered: 5–30ft width, 8–15ft height, zero/NaN inputs, 0%/100% slider clamps, fractional dims
+Phase 2 Test Coverage (to be added)
+Tier 3: quiz→estimator prefill, quiz→WhatsApp payload
+Tier 4: Named society journey including quiz entry
+Test file: scripts/test-e2e.mjs (add after Phase 2B)
+Phase 2 Test Coverage (to be added)
+Tier 3: quiz→estimator prefill, quiz→WhatsApp payload
+Tier 3: visualize→estimator prefill, visualize→WhatsApp payload  
+Tier 4: Named society journey including quiz entry
+Tier 4: Full journey with AI visualization (upload → restyle → estimator → WhatsApp)
+Test file: scripts/test-e2e.mjs (add after next feature iteration)
+2026-09-23 — R11 added 6 tests: quiz 'Your Details' step (R11.1), quiz persists name+phone (R11.2), estimator Step 3 gating (R11.3), estimator persists name+phone (R11.4), WhatsApp message includes customer name (R11.5), shared lead-details validators (R11.6). Suite: 93 -> 99/99 green.
+
+=== PAGE: Roadmap & Milestones ===
+5 milestones from PROJECT.md. Their status column is a planning-time snapshot (every row still says PLANNED) — actual state verified in code 2026-09-22 below.
+Milestones
+
+Acceptance criteria (from ORIGINAL_REQUEST.md)
+Build
+npm run build completes with zero errors from auro-makeover/
+npx tsc --noEmit reports zero TypeScript errors
+Animations & interactivity
+Hero headline word-by-word stagger on load · before/after slider real-time drag · gallery 3D tilt on hover · estimator price counts up
+Functionality
+Category filter client-side · smooth-scroll CTAs · WhatsApp pre-filled message · wizard Next/Back navigation
+Design consistency
+Only the 5 palette colors · no rounded/rounded-sm · Syne headings + Plus Jakarta Sans body
+Correctness
+No LayoutProps<"/"> anywhere · all images use Next <Image> with alt + sizes
+Feature inventory
+27 features tracked in PROJECT.md (R1–R6 + E2E) across milestones M1–M5 — treat that file as the spec index, not as live status
+
+Future updates — research backlog (2026-09-22)
+Ranked from the Competitive Research & Idea Bank page; none outrank M5's 18 failing tests — this is what comes after the suite is green.
+✅ Geo-targeted landing routes — SHIPPED (/hyderabad, /bangalore, /chennai SSG via generateStaticParams)
+Style-quiz entry funnel → WhatsApp lead handoff (Havenly + Decorilla)
+"Visualize my room" AI restyle via Replicate — same-stack reference siegblink/interior-designer-ai (Next 16 / React 19 / Tailwind 4)
+Layout-preserving AI before/after (alaradirik/sd-interior-design) to replace gradient placeholders in R2
+Shop-the-look gallery tagging → estimator pre-fill (IKEA dataset R&D-only, non-commercial)
+Questionnaire → package recommender on existing Prisma Lead/DesignItem models (abhisekpadhi/livspace shape)
+How-it-Works page + named differentiator + sticky offer banner (Decorilla patterns)
+Reviews as a nav-level trust section (currently hero badges + ticker pills only)
+Details, links and constraints live on the Competitive Research & Idea Bank page.
+Phase 1 complete (2026-09-22): build ✅ · tsc ✅ · lint ✅ · E2E 70/70 ✅. All 7 sections spec-compliant. Engines untouched. Notion hub live.
+Phase 2 — Active Development (started 2026-09-22)
+Next milestone: Style Quiz entry funnel → WhatsApp lead capture. Competitors (Havenly, Decorilla) both lead with a quiz; it's the strongest shared conversion pattern.
+Scope
+New route: /quiz (or modal entry from hero) — multi-step taste profiler
+Questions map to existing Prisma Lead + DesignItem tags (livspace recommender shape)
+Result → pre-fills EstimatorWizard + opens WhatsApp with context
+Reuses design tokens, Framer Motion patterns, Tailwind v4
+Acceptance
+Quiz completes in ≤5 steps, zero JS errors
+WhatsApp payload includes quiz tags + society (if pre-selected)
+Tests added to E2E suite (Tier 3 cross-feature)
+Docs updated in Notion (this page + Getting Started + Roadmap)
+
+Phase 2 — Research backlog (updated 2026-09-22)
+✅ Phase 2A — Style Quiz Funnel (COMPLETED)
+src/lib/quiz-to-tags.ts — pure answers→tags function
+src/components/StyleQuiz.tsx — 5-step visual stepper
+/quiz route + Hero CTA + Estimator prefill
+/api/leads/quiz — Lead upsert with Prisma 8 dynamic import
+All gates green: 70/70 tests, tsc 0, lint 0, build 0
+🔄 Phase 2B — AI "Visualize My Room" (NEXT)
+Reference: siegblink/interior-designer-ai (identical stack: Next 16 / React 19 / Tailwind 4 / Replicate)
+Upload photo → Replicate adirik/interior-design (layout-preserving SD)
+Poll for result → show in Before/After slider (reuses R2)
+"Use This Look" → tags design items → estimator pre-fill
+Remaining backlog (ranked)
+✅ Geo-targeted landing routes — SHIPPED (/hyderabad, /bangalore, /chennai SSG via generateStaticParams)
+✅ Shop-the-look gallery — SHIPPED 2026-09-23 (card button → designToEstimatorPrefill → shared prefill channel; R-C7 red→green)
+✅ Package recommender — SHIPPED 2026-09-23 (package-recommender.ts scoring core, 7/7 unit cases; PackageRecommender.tsx 4-question chips client; R9.1–R9.3 red→green)
+✅ How-it-Works + offer banner — SHIPPED 2026-09-23 (HowItWorks.tsx 4-step timeline, OfferBanner sticky + dismiss; R7.1–R7.3 green)
+✅ Reviews trust section — SHIPPED 2026-09-23 (Reviews.tsx 6 cards, gold stars, initials avatars, #reviews anchor; R8.1–R8.3 red→green)
+
+Phase 2 — Research backlog (updated 2026-09-22)
+✅ Phase 2A — Style Quiz Funnel (COMPLETED)
+src/lib/quiz-to-tags.ts — pure answers→tags function
+src/components/StyleQuiz.tsx — 5-step visual stepper
+/quiz route + Hero CTA + Estimator prefill
+/api/leads/quiz — Lead upsert with Prisma 8 dynamic import
+All gates green: 70/70 tests, tsc 0, lint 0, build 0
+✅ Phase 2B — AI "Visualize My Room" (COMPLETED)
+/api/ai/restyle + [jobId] — Replicate adirik/interior-design (layout-preserving SD)
+VisualizeRoom.tsx — upload → poll → Before/After slider → "Use This Look"
+Gallery cards: "Visualize in My Room" hover action
+All gates green: 70/70 tests, tsc 0, lint 0, build 0
+Remaining backlog (ranked)
+✅ Geo-targeted landing routes — SHIPPED (/hyderabad, /bangalore, /chennai SSG via generateStaticParams)
+✅ Shop-the-look gallery — SHIPPED 2026-09-23 (card button → designToEstimatorPrefill → shared prefill channel; R-C7 red→green)
+✅ Package recommender — SHIPPED 2026-09-23 (package-recommender.ts scoring core, 7/7 unit cases; PackageRecommender.tsx 4-question chips client; R9.1–R9.3 red→green)
+✅ How-it-Works + offer banner — SHIPPED 2026-09-23 (HowItWorks.tsx 4-step timeline, OfferBanner sticky + dismiss; R7.1–R7.3 green)
+✅ Reviews trust section — SHIPPED 2026-09-23 (Reviews.tsx 6 cards, gold stars, initials avatars, #reviews anchor; R8.1–R8.3 red→green)
+Complete Project Status — AuroMakeover Phase 1 + Phase 2. All gates green. Last updated 2026-09-22.
+✅ COMPLETED — Phase 1 (Core Landing Page)
+
+Gates (All Green)
+
+
+✅ COMPLETED — Phase 2A (Style Quiz Funnel)
+
+Data Flow
+Quiz (5 steps) → answersToTags() → sessionStorage + URL prefill → /#estimator?prefill=... + WhatsApp deep-link
+
+✅ COMPLETED — Phase 2B (AI "Visualize My Room")
+
+Data Flow
+Gallery hover → upload room photo → Replicate SD (layout-preserving) → poll (3s, max 5min) → Before/After slider (reuses R2) → "Use This Look" → estimator prefill with restyled image URL + category
+Replicate Integration
+Model: adirik/interior-design (Realistic Vision V3 + ControlNet seg/MLSD)
+Prompt per category (Botanical/Fluted Louver/Neo-Classical/Temple Pichwai/Smart Blinds)
+prompt_strength 0.6 default, ~$0.03/generation, ~15-30s latency
+
+=== PAGE: Architecture ===
+App Router single-page site: layout.tsx (fonts + metadata) → page.tsx composes 7 sections; all math lives in pure engines; cross-section wiring is two anchors plus one CustomEvent.
+Module map
+src/app/layout.tsx — root layout; loads DM Sans + Inter via next/font/google as --font-heading/--font-body; Hyderabad metadata; scroll-smooth on html
+src/app/page.tsx — composes the 7 sections; owns #gallery and #estimator anchors
+src/app/globals.css — Tailwind v4 @import + @theme palette tokens (--color-espresso/gold/terracotta/linen/whatsapp)
+src/components/HeroSection.tsx (R1) — full-screen hero; currently a photo-background variant that drifted from spec (see Testing)
+src/components/BeforeAfterShowcase.tsx (R2) — draggable mouse+touch slider, Living Room / Bedroom toggle
+src/components/DesignGallery.tsx (R3) — masonry grid, category filter
+src/components/SocietyPreMeasured.tsx (R4) — 4 society cards, horizontal snap scroll; dispatches society selection
+src/components/StatsTicker.tsx (R5) — auto-scrolling micro-testimonial ticker
+src/components/EstimatorGateway.tsx (R5) — 3-step wizard (Room Size → Finish Tier → Book), animated price counter, WhatsApp CTA; consumes the engines
+src/components/Footer.tsx (R6) — 2-Year Warranty badge, 5 service areas, socials
+src/components/admin/, src/components/technician/ — secondary surfaces (AuroOps Command / TechOps Workspace); not mounted on the homepage
+src/lib/engines.ts — three pure engines (see Business Logic Engines page)
+src/lib/lead-router.ts — pure routeLead() (city → weight → 24h round-robin) + findCityForSociety(); unit-verified via node (9 cases)
+src/lib/lead-assign.ts — server helper resolving assignment with fail-closed fallback to city default number
+src/lib/package-recommender.ts — pure recommendPackage() (room/style/full-room/budget scoring, deterministic fallback) + recommendToPrefill() shared-channel mapping; 7/7 unit cases
+src/components/Reviews.tsx — nav-level trust section: 6 review cards, gold #C5A880 stars, initials avatars, project tags, stagger reveal (#reviews anchor)
+src/components/PackageRecommender.tsx — 4-question chips (room/style/budget/scope) → live best-match card → Pre-fill My Estimate via estimator_prefill channel
+src/app/api/leads/estimator/route.ts — booking-intent capture + assignment; gateway POSTs before WhatsApp open and retargets to agent number
+scripts/test-e2e.mjs — self-contained 70-test runner
+prisma/schema.prisma — PostgreSQL domain schema (orders, leads, dye lots, warranty vault) + SalesAgent roster and Lead routing fields (sessionId, quizAnswers, source, assignedAgentId, routedAt); migration SQL at prisma/migrations/pending_lead_routing/ awaits live-DB review — never blind-apply
+Cross-component contracts
+Anchors: #estimator (hero + society CTAs scroll here), #gallery (View Lookbook scrolls here)
+Society pre-selection: window.dispatchEvent(new CustomEvent('auro:select-society', { detail: { society: string } })) — SocietyPreMeasured dispatches, EstimatorGateway listens (tested R4-B4, R-C1)
+WhatsApp: https://wa.me/919700675637 with pre-filled estimate text (EstimatorGateway + Footer)
+Smooth scrolling is done with local scrollIntoView({ behavior: 'smooth' }) helpers duplicated per component
+Key design decisions
+Engines are pure synchronous functions — no side effects, no I/O; UI renders their results directly
+Tailwind v4 tokens are declared in @theme inside globals.css; tailwind.config.ts only carries content globs plus legacy background/foreground CSS vars
+Multi-agent build layout: .agents/ role folders (orchestrator_1, worker_m1_foundation … worker_m5_fix, challenger_1/2, reviewer_1/2, auditor_1, sentinel, test_writer_e2e, explorer_survey_1-3)
+R10 — GSAP interaction layer (2026-09-23)
+`src/lib/gsap.ts` — client-safe GSAP singleton: registers ScrollTrigger exactly once (SSR-guarded via typeof window), re-exports `gsap`/`ScrollTrigger`/`useGSAP` — single import point; all GSAP consumers go through it and call `registerGsap()` in their `useGSAP` callback
+`src/components/AnimatedCounter.tsx` — count-up figures (Warm Gold `#C5A880` digits, Syne); renders final value for SSR/no-JS, then tweens `gsap.to` on scroll into view; used for the Reviews "200+" stat
+`src/components/GoldDivider.tsx` — self-drawing gold seam divider (stroke-dashoffset in on scroll + pulsing center orb); mounted at Reviews→HowItWorks and HowItWorks→PackageRecommender seams in `page.tsx`
+Hero parallax — `HeroSection.tsx` scrubs the background image (`yPercent`) + ambient blobs (`data-hero-blob`) with ScrollTrigger; additive over the existing framer-motion entrances, which are untouched
+Animation stack rule: framer-motion owns entrances/stagger/tilt/marquee; GSAP owns scroll-driven motion (count-ups, draw-ins, parallax). Deps: `gsap@^3.15` + `@gsap/react@^2` (free since GSAP 3.13)
+
+=== PAGE: Master Plan & Feature Specification ===
+THE authoritative implementation plan for StratForge v1. Every architecture section and every feature being added, specified in detail: purpose, spec, guardrails, acceptance conditions, and the phase where it lands. Full detail lives here in Notion (source of truth); the repo docs/ folder mirrors this page as each phase ships.
+0. Purpose & guiding principles
+User requirements locked into this plan: (1) the bot must never cause a loss greater than 5% of the investment; (2) maximize profit within that guard; (3) when a trade closes, the bot automatically rotates to the next best strategy; (4) AI / agent API integrations (OpenCode, Claude, etc.) are part of the design.
+Guardrail #0 — honest framing: a literal never-lose-more-than-5% cannot be guaranteed in live crypto (gap moves, flash crashes, exchange outages exceed any stop). StratForge builds defense-in-depth so exceeding ~5% requires a tail event, plus a HARD equity circuit breaker at -5% that flattens everything and halts trading. The 5% line is the backstop, not the plan.
+Principle 1 — capital protection outranks action: breaker > daily limit > strategy budgets > trade selection > rotation. A lower layer may only be overridden by a higher one.
+Principle 2 — money path is deterministic: orders are placed only by deterministic engines after risk gates. AI/ML inform signals, regime and proposals; they never execute.
+Principle 3 — paper/testnet-first: nothing touches real money until validated on testnet AND by backtest gates; canary then promote.
+Principle 4 — compute once in the data plane: one MarketDataProducer ingests and aggregates; every consumer receives the same clean series (Redis Streams fan-out).
+Principle 5 — account isolation: one leveraged/futures account per bot, never shared across bots (freqtrade rule). Spot balances pooled only with explicit per-bot budgets.
+Principle 6 — test-first: every gate is a machine-checked test (unit + integration + CI), never a convention. If it cannot be tested, it does not ship.
+1. Feature register — how to read this document
+[v1] = core MVP feature, built and tested in Phases 0–8.
+[later] = accepted backlog; architecture already accommodates it; not in the MVP.
+[res] = research item studied but not yet committed to the design.
+Every feature is specified as: purpose → spec → guardrails → acceptance conditions → phase. Acceptance conditions are the tests that prove the feature.
+2. Core runtime
+2.1 Asyncio event bus
+Purpose: decouple producers (data, orders, risk) from consumers (strategies, executors, dashboard feed).
+Spec: typed async events: CandleNew, SignalGenerated, OrderAccepted/Rejected/Filled, TradeClosed, PositionChanged, RiskEvent, RegimeChanged, ConfigReloaded. One event loop per worker; handlers registered by topic; bounded queues with slow-consumer policy — the money path never blocks more than one tick.
+Guardrails: no handler blocks the loop >1s; risk and kill-switch paths are highest priority; every event carries an immutable monotonic sequence for replay/debug.
+Acceptance: unit test — event emitted once, delivered to all subscribers, order preserved per topic; slow consumer does not stall the loop.
+Phase: v1 — Phase 1. ✅ SHIPPED (commit 899e8e8, 2026-09-22)
+2.2 Loop, scheduler & lifecycle
+Spec: per-bot MainLoop: 1s data tick, 5s decision tick; scheduler runs periodic jobs (balance refresh, risk re-check, funding check, heartbeat) with jitter and misfire handling; graceful stop drains in-flight orders (flat-then-exit, max 60s).
+Guardrails: risk re-check runs every tick regardless of strategy state; a crashed job cannot suppress the next run; startup asserts NTP clock skew < 500ms and fails closed.
+Acceptance: FakeExchange integration test — loop ticks, schedule executes, graceful shutdown flattens open positions.
+Phase: v1 — Phase 1. ✅ SHIPPED (commit 899e8e8, 2026-09-22)
+2.3 Configuration
+Spec: pydantic-settings; layered: defaults → config files → DB configs table → env overrides. Validated on load and reload. Secrets referenced by vault key, never inline. Hot-reload (REST + /reload_config) applies trading-free changes live; risk-critical params need explicit approval.
+Acceptance: invalid config rejected with precise errors; hot-reload applies param change to a running worker; risk-critical values cannot be hot-reloaded without approval.
+Phase: v1 — Phase 1. ✅ SHIPPED (commit 899e8e8, 2026-09-22)
+2.4 Observability
+Spec: structlog JSON logging with correlation ids per trade/rotation; log rotation + journald transport; heartbeat records (worker id, state, last tick, equity) every 5s; counters for events/orders/risk actions exposed for later Prometheus. Secrets redacted at the emitter.
+2.5 Startup integrity
+Spec: startup: unlock vault → verify clock skew → connect DB (migrations present) → connect Redis → connect exchange (testnet first) → load strategy_state → resume or start clean. Any failure aborts with a precise error; never retries into a half-state.
+3. Data plane
+3.1 MarketDataProducer & Redis Streams
+Purpose: ingest once, fan out many — all consumers share identical cleaned market data.
+Spec: one producer per market (spot, futures) consumes WS + REST, normalizes, aggregates OHLCV, publishes to Redis Streams (stream per instrument+timeframe). Consumers use consumer groups; producer is the only writer of raw market data.
+Guardrails: producer restart is idempotent on exchange event ids (no gaps/duplicates); consumers replay from last ack; stream retention ≥ 7 days of ticks.
+Acceptance: integration test — two consumers get identical series; crash + restart yields gapless resume against a recorded exchange fixture.
+Phase: v1 — Phase 2.
+3.2 Binance adapters (spot + USDT-M futures)
+Spec: REST + WebSocket adapters for spot and USDT-M perpetuals. Capability flags per market (market orders, shorting, leverage tiers, lot size, min notional, fee schedule). Rate-limit budget tracking (weight/minute) with priority lanes; risk/kill-switch calls preempt. Consumes Binance system status; pauses new entries during maintenance windows. Futures adapter exposes the funding-rate feed for the DCA funding guard.
+Guardrails: private endpoints callable only with the owning bot's vault keys; every mutation carries an idempotent clientOrderId; exponential-backoff retries; never retry a non-idempotent call.
+Acceptance: recorded-payload fixture tests (no network in CI); rate-limit lane-priority test; mid-request disconnection reconstruction.
+3.3 OHLCV correctness rules
+Completed candles only: strategies never see the in-progress candle — closed-bar (t-1) policy enforced in the aggregator and tested (repainting guard).
+Missing-candle fillup: after downtime, empty candles filled with previous close, volume 0, flagged; stale candles are never trade inputs.
+Price-jump monitor: gap > 30% flags the instrument degraded (halt/delisting risk); degraded instruments are excluded from new entries.
+Aggregation: 1m base from WS trades + periodic REST verification; higher timeframes aligned strictly to exchange boundaries.
+Acceptance: unit tests — incomplete candle withheld; gap-filled series matches fixture; price-jump fixture flags correctly.
+3.4 Backfill & data integrity
+Spec: bulk historical download from data.binance.vision (spot + futures) with per-file SHA-256 checksum before load; daily incremental backfill; SQLite dev fallback on small windows.
+Acceptance: tampered archive rejected; backfilled series reconciles with live series at the seam (no lookahead join).
+3.5 Derivatives data
+Funding rate history stored from v1 (hypertable) — required by the DCA funding guard and fee modeling.
+Open interest & liquidation data [later] — schema reserved, ingestion later.
+4. Storage
+4.1 Schema (SQLAlchemy models, Alembic-managed)
+instruments — symbol, market (spot/futures), base/quote, lot size, min notional, leverage tiers, capability flags, degraded flag.
+candles — hypertable (time, instrument_id, timeframe, OHLCV) with continuous aggregates; unique (instrument, timeframe, time).
+funding_rates — per instrument, timestamp, rate.
+orders — every attempt incl. rejected; clientOrderId unique (idempotency); status history.
+trades / fills — executed fills with fees (fee currency, BNB discount) and slippage vs reference.
+positions — open/liquidated: entry/exit, mark, liq price, leverage, margin mode.
+equity_snapshots — time-series equity (spot + futures margin MTM); feeds the breaker and drawdown gauge.
+signals — every emitted signal (strategy, instrument, direction, strength, params, regime at time).
+regime_snapshots — regime id, confidence, horizon, computed_at.
+strategy_state — per-bot resume state: active strategy, position refs, cooldowns, snowball tranche state, DCA grid state.
+configs — versioned config with validation schema; active revision pointer; full audit of changes.
+risk_events — every breaker/limit/kill action + every AI proposal verdict (append-only).
+debriefs — per closed trade: PnL, ATR distances, regime entry vs exit, exit reason, rotation inputs.
+4.2 Dialects & migrations
+Prod: PostgreSQL 16 + TimescaleDB (hypertables, continuous aggregates, retention). Dev/test: SQLite via the same models. Alembic baseline + forward migrations for both; CI runs migrations on a Postgres-Timescale container to catch drift.
+4.3 Backups & recovery
+Scheduled pg_dump (daily) + WAL archiving; Redis persistence (RDB + AOF); one-command backup/restore with a restore-drill test in CI; convert-db for SQLite dev → Postgres.
+5. Quant engine
+5.1 Indicators (Polars)
+Spec: TA library (SMA/EMA, RSI, ATR, BBands, MACD, ROC, volume) computed on completed bars only; lookahead-safe by construction (inputs ≤ t-1); optional PyO3/Rust for the heaviest loops [later].
+5.2 Regime detector
+Spec: classifies TREND_UP / TREND_DOWN / RANGE / HIGH_VOL / LOW_VOL from volatility (ATR percentile) + trend filters; emits RegimeChanged; writes regime_snapshots; gates strategies and the Trade Recycler.
+Acceptance: fixture tests — labeled windows classified; boundary cases (flat → trend) tested.
+5.3 Signal bus & sizing
+Spec: strategies emit typed signals (entry long/short, add, exit) with strength and ATR-scaled stop/target; risk engine sizes via volatility-target with hard notional caps and ≤1% equity risk per trade; Edge-style win-rate/RR sizing research reports later [later].
+5.4 Backtester (Polars, vectorized)
+Spec: event-accurate simulation on stored series: fees (maker/taker, VIP tiers, BNB discount), slippage model, partial fills, futures funding, snowball/DCA tranches, regime-aware rotation. Walk-forward evaluation is mandatory before a strategy ships.
+Adverse-path gates: every candidate must survive −30% and −50% adverse crypto paths (fees + slippage inflated, 20% spread blowup) without breaching its strategy budget; otherwise rejected regardless of backtest PnL.
+Monte Carlo [v1]: trade-order shuffling + candle-path resampling per backtest → PnL distribution, % losing paths, overfit warning when simulations breach risk caps.
+Acceptance: backtest reproduces recorded fixture fills; walk-forward reports out-of-sample metrics; a strategy failing the adverse gate is rejected by the gate test.
+Phase: v1 — Phase 3. ✅ SHIPPED (commits 37238a2 · 0d4450d · e617375 · cce1505 · 1618278, 2026-09-22)
+5.5 Optimization & bias analysis
+Optuna [v1]: Bayesian search in a sandbox (never live) paired with walk-forward CV; results stored with config lineage.
+Rule significance testing [later]: bootstrap an entry rule against random entries to reject lucky rules.
+lookahead-analysis & recursive-analysis [v1]: CLI dogs that scan a strategy's compute graph for lookahead bias and recursive-formula bugs; run in CI as a gate (freqtrade pattern). ✅ SHIPPED (commit 1618278, 2026-09-22) — `stratforge quant dogs --check` (CI job `dogs`): lookahead dog replays the strategy on every strict bar prefix and requires earlier decisions stay byte-identical; deterministic dog; gate-chain dog. See docs/phase-3.md.
+6. Strategy catalogue (v1)
+Shared contract: every strategy: params validated, regime-gated, emits signals only, never touches orders; state in strategy_state; backtest gates pass before activation; params hot-reloadable.
+6.1 trend_follow
+Spec: trend regime only; entry on trend filter + pullback confirmation; ATR trailing stop; partial TP ladder; exit on regime flip or stop.
+6.1 trend_follow
+
+=== PAGE: Phase 2 — Style Quiz & AI Restyle ===
+Phase 2: Style Quiz entry funnel + AI "Visualize my room" restyle. Started 2026-09-22. Priority after Phase 1's 70/70 gate.
+Phase 2A — Style Quiz Funnel (Week 1-2)
+User flow
+Entry: Hero CTA "Take the Style Quiz" or dedicated /quiz route (geo-landable)
+4-5 steps: Room Type → Style Vibe → Color Preference → Must-Haves → Budget Tier
+Each step: visual cards (radio), single tap/click, progress bar
+Result page: "Your Style Profile" + top 3 matching Design Gallery items
+Primary CTA: "Get My Estimate" → pre-fills EstimatorWizard (room, tier) + WhatsApp deep-link with quiz payload
+Secondary: "Save & Share" (localStorage + URL params)
+Data model (maps to existing Prisma)
+Lead model: new fields styleQuizAnswers (JSON), styleTags (String[]), quizCompletedAt (DateTime)
+DesignItem already has category enum (Botanical / Fluted Louver / Neo-Classical / Temple Pichwai / Smart Blinds) — quiz tags map 1:1
+SocietyLayout pre-measured dims → estimator pre-fill when auro:select-society fires
+Implementation checklist
+src/app/quiz/page.tsx — client component, Framer Motion page transitions
+src/components/StyleQuiz.tsx — stepper, card-grid radios, progress, localStorage resume
+src/lib/quiz-to-tags.ts — pure function: answers → DesignItem category tags + budget tier
+API route /api/leads/quiz (POST) → upsert Lead with quiz JSON + tags
+EstimatorGateway: accept prefill prop from quiz result / society event
+WhatsApp message template: include quiz tags, society, room, tier
+E2E tests: Tier 3 (quiz→estimator, quiz→WhatsApp), Tier 4 (named journey)
+Phase 2B — AI "Visualize My Room" (Week 2-3)
+Reference: siegblink/interior-designer-ai (identical stack)
+Next.js 16 + React 19 + Tailwind 4 + shadcn/ui + Replicate API
+Live: https://interior-designer-ai.vercel.app/
+Flow
+From Style Quiz result or Gallery card → "Visualize in My Room"
+Upload photo (drag-drop / camera) → client-side resize to 1024px max
+POST /api/ai/restyle → Replicate adirik/interior-design (layout-preserving SD)
+Poll for result → show Before/After slider (reuses R2 component)
+"Use This Look" → tags design items → estimator pre-fill
+API contract
+POST /api/ai/restyle
+{ imageBase64: string, prompt: string, strength: 0.3-0.8 }
+→ { jobId: string, status: 'pending'|'done'|'failed', resultUrl?: string }
+Risks
+Replicate cold-start latency (~8-15s) → show animated skeleton + progress
+Cost per generation (~$0.03) → add rate limit per IP/session
+Non-commercial IKEA dataset only for R&D (no prod assets)
+Tracking
+
+
+Phase 2A — Style Quiz Funnel: ✅ IMPLEMENTED (2026-09-22)
+Files added/modified
+src/lib/quiz-to-tags.ts — pure function: answers → tags + WhatsApp message + estimator prefill
+src/components/StyleQuiz.tsx — 5-step visual stepper (Room → Vibe → Colors → Must-haves → Budget)
+src/app/quiz/page.tsx — /quiz route, calls quiz-to-tags, stores prefill, navigates to estimator + WhatsApp
+src/app/api/leads/quiz/route.ts — POST endpoint, upserts Lead with quiz answers (Prisma 8 dynamic import)
+src/components/HeroSection.tsx — added "Take Style Quiz" CTA button
+src/components/EstimatorGateway.tsx — accepts prefill from quiz/society (room presets, tier mapping)
+Data flow
+User completes quiz → /quiz calls answersToTags()
+Result → sessionStorage.setItem('estimator_prefill', ...) + URL param
+Navigate to /#estimator?prefill=... → EstimatorGateway applies prefill on mount
+Parallel: WhatsApp deep-link opened with quiz payload
+Tests
+All 70 existing tests pass (no regressions)
+New tests to add: Tier 3 (quiz→estimator, quiz→WhatsApp), Tier 4 (named journey)
+Lint: 0 errors (3 pre-existing warnings only)
+TypeScript: 0 errors
+Build: exit 0
+Verified acceptance
+Quiz completes in 5 steps, zero JS errors
+WhatsApp payload includes quiz tags + society (if pre-selected)
+Estimator pre-fills room dimensions + finish tier from quiz
+Design tokens respected (Syne headings, Plus Jakarta body, rounded-2xl/3xl)
+
+Phase 2B — AI "Visualize My Room": ✅ IMPLEMENTED (2026-09-22)
+Files added/modified
+src/app/api/ai/restyle/route.ts — POST endpoint, submits to Replicate (adirik/interior-design), returns jobId
+src/app/api/ai/restyle/[jobId]/route.ts — GET endpoint, polls Replicate, caches result
+src/components/VisualizeRoom.tsx — Full-screen modal: upload → 30s poll → Before/After slider (reuses R2 pattern) → "Use This Look" CTA
+src/components/DesignGallery.tsx — Added "Visualize in My Room" button on card hover, state for modal
+Data flow
+Gallery card hover → "Visualize in My Room" → opens modal with design context
+User uploads room photo (drag-drop, <4MB) → POST /api/ai/restyle with base64 + style prompt
+Replicate adirik/interior-design (layout-preserving SD) processes → jobId returned immediately
+Client polls GET /api/ai/restyle/[jobId] every 3s (max 5 min)
+Result → Before/After slider with draggable handle (reuses R2 clipPath logic)
+"Use This Look" → stores restyledUrl + category in sessionStorage → redirects to estimator with prefill
+Replicate integration
+Model: adirik/interior-design (Realistic Vision V3 + ControlNet seg/MLSD, layout-preserving)
+Prompt per category (Botanical/Fluted Louver/Neo-Classical/Temple Pichwai/Smart Blinds)
+prompt_strength 0.6 default (configurable)
+Cost: ~$0.03/generation, ~15-30s latency
+UX details
+Drag-drop upload zone with preview, 4MB limit
+Progress spinner with animated progress bar during processing
+Result: full-screen Before/After slider (50/50 default, draggable handle)
+Download / Open full-size / Retry buttons in header
+"Use This Look" → pre-fills Estimator with room type + category + restyled image URL
+Tests
+All 70 existing tests pass (no regressions)
+New Phase 2 tests to add: Tier 3 (visualize→estimator, visualize→WhatsApp), Tier 4 (full journey with AI)
+Lint: 0 errors (5 pre-existing warnings only)
+TypeScript: 0 errors
+Build: exit 0 (7 routes: /, /quiz, 4 API endpoints)
+Verified acceptance
+Upload → poll → result flow works end-to-end (tested manually with Replicate token)
+Before/After slider smooth, matches R2 interaction patterns
+"Use This Look" correctly pre-fills EstimatorGateway with category + restyled image
+Design tokens respected (Syne headings, Plus Jakarta body, rounded-2xl/3xl)
+
+=== PAGE: Getting Started ===
+Working directory: C:/Users/vigilare/Aura/auro-makeover — no .env and no database needed for the default local flow.
+Prerequisites
+Node.js 20+ and npm (Next.js 16 requirement)
+No environment variables required for dev — DATABASE_URL is only needed once you wire up Prisma
+Install
+cd C:/Users/vigilare/Aura/auro-makeover
+npm install
+postinstall runs prisma skills sync || exit 0 — designed to tolerate failure
+Everyday commands (run from auro-makeover/, never the repo root)
+npm run dev               # dev server → http://localhost:3000
+npm run build             # production build — must finish with zero errors
+npm run start             # serve the production build
+npm run lint              # eslint (eslint-config-next 16)
+npx tsc --noEmit          # typecheck — must report zero errors
+node scripts/test-e2e.mjs # opaque-box E2E suite — exit 0 = all pass
+The test suite is NOT an npm script. npm test does not exist — run node scripts/test-e2e.mjs directly.
+Verification order that matters
+node scripts/test-e2e.mjs — behavioral truth (currently 52/70)
+npx tsc --noEmit — types (currently clean)
+npm run build — bundling (zero errors required by acceptance criteria)
+Gotchas
+The repo-root package.json only declares ssh2 — it is a different package; always cd auro-makeover first
+next dev auto-regenerates the agent-rules block at the top of auro-makeover/AGENTS.md — commit it with your work instead of deleting it (removing it just recreates an uncommitted change)
+Next.js is v16 with breaking changes — read node_modules/next/dist/docs/ before assuming older Next.js APIs still apply
+Windows/PowerShell: && is not a command separator on this machine's shell — run commands separately or use ;
+
+=== PAGE: Competitive Research & Idea Bank ===
+Seven sources analyzed 2026-09-22: 3 competitor/service sites + 4 reference repos. The ranked idea bank at the bottom feeds Roadmap & Milestones → Future updates. Priority call: nothing here outranks fixing the 18 failing tests first.
+Competitor & service sites
+Livspace — Hyderabad Google Ads landing page
+Direct Hyderabad competitor for full-home interiors
+The URL itself is the finding: /landing-page/home-interiors/hyderabad_brand_cd carries the Google Ads parameters utm_adset / utm_matchtype / utm_adposition — Livspace buys city-level ad traffic into dedicated geo landing routes, not the homepage
+Page is fully client-rendered: server HTML yields only the title "Redefining the modern home lifestyle - Livspace.com" — no headings extractable without a live browser session (browser was disconnected this session). Re-open manually before quoting page specifics
+Havenly (havenly.com)
+US online interior-design service; funnel: Style Quiz ("Start your project") → designer match → packages/pricing
+IA worth borrowing: two SEO hub axes — Ideas by Room (living, bedroom, dining, office, nursery, patio, entryway) and Ideas by Style (boho, mid-century, coastal, farmhouse, traditional, Scandinavian, glam); every idea page is shoppable — "12 designer rooms · Shop the look"
+Also sells: in-person vs online tiers, an AI interior design product, cost guide + FAQ content pages, gift cards
+Decorilla (decorilla.com)
+US online design service; sticky promo banner above the nav — "Save $120 and Design At Home — Start Now" (offer-first layout)
+Nav spine: Pricing · Get Started · How it Works (The Details / The Decorilla 3D Difference / Reviews / FAQ / Platinum luxury tier) · Portfolio by room · Style Quiz · Blog
+Differentiator branded as its own page: the "3D Difference" renders their value prop as a named product feature; luxury tier (Platinum Design Service) called out separately
+Reference repos (mined via GitHub API + raw READMEs, 2026-09-22)
+
+Repo details worth keeping
+interior-designer-ai — identical stack to ours, so it is a drop-in code reference: style presets (Modern/Vintage/Minimalist/Professional) × room types (Living/Dining/Bedroom/Bathroom/Office), REPLICATE_API_TOKEN server call, glassmorphism UI, cmdk command menu; dev flow uses Bun + portless local HTTPS
+sd-interior-design — API args: image / prompt / negative_prompt / num_inference_steps / guidance_scale / prompt_strength / seed; inpaint prompt_strength 0→1 controls how far the transformation goes — directly reusable parameter story for an AuroMakeover restyle endpoint
+ikea dataset — caveat kept for compliance: images are IKEA.COM property, non-commercial use only (prototypes OK, never production marketing assets)
+livspace recommender — profiling questions are single/multi-select (age bracket etc.) tagged onto designs; the questions → answers → tag → designs API loop is the exact shape of a future style profiler
+Idea bank — ranked for auro-makeover
+Geo-targeted landing routes (Livspace pattern) — city landing paths (e.g. /hyderabad) so ad traffic never touches the homepage; cheap once the homepage stabilizes
+Style quiz as entry funnel (Havenly AND Decorilla both lead with it) — strongest shared conversion pattern; quiz result → WhatsApp handoff (line already wired: 919700675637)
+"Visualize my room" AI restyle (siegblink) — Replicate call from our exact Next 16/React 19/Tailwind 4 setup; perfect Phase-2 lead magnet
+Layout-preserving AI before/after (alaradirik) — the honest evolution of our R2 slider: real photoreal transformations instead of gradient placeholders
+Shop-the-look gallery → estimator pre-fill (Havenly model; IKEA dataset for R&D only) — gallery items become purchasable paths into the wizard
+Questionnaire → package recommender (livspace shape) — profile answers → tags → recommended package; fits existing Prisma Lead/DesignItem models, no new tables
+How-it-Works + named differentiator + sticky offer banner (Decorilla) — brand the process (candidate name: "The 48-Hour Method"), add a promo bar, surface escrow/warranty trust at nav level
+Reviews as a first-class section — competitors surface reviews/pricing/FAQ at nav level; our trust story currently lives only inside hero badges + ticker pills
+Gaps observed vs competitors (honest list)
+No style quiz / no lead-capture step before WhatsApp — the wizard asks for room size first, taste never
+No dedicated How-it-Works or Reviews page — process + social proof are embedded in-page only
+No offer/promo surface anywhere (competitors run sticky promos)
+Gallery is a lookbook, not shoppable (no path from a design into the estimator)
+
+=== PAGE: Business Logic Engines ===
+Three pure functions in src/lib/engines.ts. 100% preservation is an acceptance criterion — never make them async, never rename output fields, never add side effects.
+calculateRollNesting(input) → RollNestingOutput
+Input: wallWidthFt, wallHeightFt, rollWidthInches (42" or 54"), patternRepeatInches
+Vertical drops = ceil(wallWidth·12 / rollWidthInches); pattern-matching waste = (drops − 1) · repeatInches
+Drop height = wallHeight·12 + 4 (2" bleed top and bottom); continuous meters = linear inches × 0.0254
+Required sqft = linearInches · rollWidth / 144; final = max(required, exactWallSqFt · 1.11) — an ≥11% safety buffer is always present
+Boundaries tested: 5ft×8ft → 2 drops ≥44.4 sqft · 30ft×15ft → 9 drops ≥499.5 sqft
+analyzeSolarLux(input) → SolarLuxOutput
+Compass 180°–315° (South→West band) AND floor ≥ 10 → highSolarHeatRadiation: true
+Recommendation chain: high heat → Double-cell Honeycomb Blinds; west/SW band only → 100% Blackout Motorized Blinds; else Standard Translucent Sheer
+recommendedBlindType is a string-literal union — UI switch statements depend on the exact three values
+calculateDynamicPricing(input) → PricingOutput
+material = rawMaterialBasePerSqFt · sqft · primer = ₹15/sqft · installation labor = ₹25/sqft
+isSmartMotorized adds a flat ₹15,000; GST = 18% of subtotal
+Escrow tranches of totalRetailPrice: deposit 10% / material release 60% / post-QA unlock 30%
+Invariant tested (R5-B5): deposit10 + materialRelease60 + postQAUnlock30 === totalRetailPrice
+Contract rules
+Output field names are interface — EstimatorGateway and the test suite both depend on them
+Zero/empty/negative dimensions must not produce NaN (tested R5-B3)
+Fractional dimensions (10.5ft × 9.25ft) must calculate precisely, not truncate (tested R5-B4)
+
+=== PAGE: Design System ===
+Strict and machine-audited: 5-color palette only, Syne headings / Plus Jakarta Sans body, corners rounded-2xl or larger. The test suite fails the build on violations.
+Palette — no other colors on redesign components
+
+Tokens live in src/app/globals.css under @theme
+Audit: test R6-B4 checks components for zero unauthorized colors (currently passing)
+Typography — ⚠️ known broken state
+Spec: headings font-['Syne'] (bold/black 700-800), body font-['Plus_Jakarta_Sans'] (400-700)
+The classes are applied across components, but the fonts are never loaded: layout.tsx imports DM Sans + Inter, globals.css has no font import — Syne/Plus Jakarta silently fall back to system fonts
+Consequence: test R6.3 fails ("Syne must be imported from next/font/google"); PROJECT.md M1's font task is genuinely unfinished
+Fix direction: import Syne + Plus Jakarta Sans in layout.tsx via next/font/google (or an @import in globals.css) and wire their CSS variables before the arbitrary classes
+Corners
+Only rounded-2xl, rounded-3xl, rounded-full — rounded-sm and bare rounded are forbidden (audited by R6-B5, passing)
+Imagery
+Before/After uses gradient placeholders (grey/white builder vs gold/brown luxury) — real photos swap in later
+Hero uses /images/hero.jpg with dark espresso gradient overlays
+
+=== PAGE: Personal Home ===
+Organize everything in your life in one place.
+
+=== PAGE: Phase 2 — Data plane: decisions & lessons (2026-09-22) ===
+Phase 2 (data plane, Master Plan §3) — decisions & lessons, shipped 2026-09-22 (commits a6a855c..d9c9164). Producer is the ONLY writer of raw market data; gap-filled bars also flow to the stream so consumers see the same cleaned series the DB has (envelope quality field lets them discount). Exchange-event-id dedupe is producer-level (spans WS + REST). Crash recovery: consumer restarts under the SAME consumer identity and replays its own pending list (XREADGROUP 0) — at-least-once per entry until acked. aggregator.seed() takes the last persisted candle's open_time datetime (a raw bucket index caused a 29M-iteration gap loop).
+Storage decoupled from exchange types via InstrumentSpec. SQLite DateTime(timezone=True) returns naive datetimes — normalize to aware UTC before .timestamp() (naive = local time, wrong ms cursors). session.execute(stmt, rows) executemany returns IteratorResult with NO rowcount — inserted counts come from a before/after delta. github actions: no GitHub remote exists yet, so CI (incl. the live Redis gate + the extended PG hypertable gate) cannot be verified locally; wired and ready. Like phase 1, do NOT amend a6a855c / 899e8e8 (hashes referenced from Notion).
+Lessons: executemany rowcount trap; XREADGROUP 0 consumer scoping; SQLite naive tz; ruff format fixes E501 before check; PowerShell pipe into Select-Object -First 1 exits 1 on a broken pipe even after a successful commit (verify with git log). Full mirror: docs/phase-2.md. Next: Master Plan §5 Quant engine (Phase 3) — indicators, regime detector, signal bus + vol-target sizing, vectorized backtester with walk-forward / adverse-path / Monte-Carlo gates, lookahead + recursive CLI dogs.
+
+=== PAGE: Decisions & Lessons ===
+Why these choices, and what we learned from the previous fork + ecosystem research. Updated as decisions land.
+Architectural decisions
+asyncio single-loop over threads — no GIL fights on the money path; I/O-bound trading fits coroutines
+Polars over pandas for live candles — columnar, fast, no index fragility; pandas only in notebooks
+PostgreSQL + TimescaleDB over SQLite-only — time-series is the core workload; SQLite retained as dev fallback
+Redis Streams over raw pub/sub — consumer groups give replay + at-least-once delivery for zero missed events
+Container-per-bot over one mega-process — isolation, canary deploys, horizontal scaling (Hummingbot's 111K-instance model)
+Deterministic execution layer — ML/LLM (optional, later) only informs signals/regime; it never executes orders directly
+Lessons from the old fork (binance-trade-bot)
+Single-file strategy monolith is a dead end → strategy/signal/risk/execution separation
+Config-less testnet-first boot is a huge onboarding win → keep .env defaults working out of the box
+Look-ahead bias killed prior backtest trust → explicit warm-up + strict prior-bar signal computation
+Lessons from ecosystem research
+Freqtrade Producer/Consumer: compute analyzed dataframes once, share over websocket → StratForge generalizes with Redis Streams
+Freqtrade leverage docs: never 2 bots on one leveraged account; liquidation_buffer formula for stop placement
+Hummingbot: bot = container, central API server, executor abstraction with standardized PnL → our worker/control-plane model
+Money-path rules (non-negotiable)
+Testnet/paper first, always; live requires explicit config flip + safety checks
+Stops always attached; adverse-path backtests gate every strategy
+Kill switch honored within one loop tick
+
+=== PAGE: Phase 2 — Data plane: DONE (commit d9c9164) ===
+Scope (Master Plan §3): s1 candles.quality migration + settings; s2 rate limiter (DATA<ENTRY<RISK lanes, weight budgets 6000/2400) + Binance spot/USDT-M REST (retry, 429, maintenance pause); s3 WS combined-stream pump (bounded backoff); s4 OHLCV closed-bar t-1 policy, gap-fill, price-jump degraded; s5 Redis Streams fan-out (md:market:symbol:tf, consumer groups, replay from last ack) + MarketDataProducer (persist-then-publish, event-id dedupe, restart seeds from last bar); s6 data.binance.vision backfill (SHA-256 CHECKSUM verify, incremental, seam reconciliation); s7 funding-rate feed + funding_rates hypertable (migration 0003, PG-only).
+Evidence: 87 passed / 3 skipped (live Redis + Postgres gates run in CI via STRATFORGE_REDIS_URL / STRATFORGE_PG_URL); mypy strict clean (28 files); ruff check + format clean. All plan acceptance tests green (lane priority, identical series, gapless crash resume, closed-bar withheld, gap-fill fixture, price-jump degraded, tampered archive rejected, migration 0002 quality, funding hypertable).
+Details mirrored in docs/phase-2.md. Commits: a6a855c s1, 4fdc854 s2, 2913ca7 s3, 9ee7fae s4, a71715c s5, 14663b7 s6, b00736f s7, b654870 funding hypertable, d9c9164 close-out. Do NOT amend a6a855c / 899e8e8.
+
+=== PAGE: Roadmap & Publishing Plan ===
+v1 = master architecture + strong MVP. Phases 5-6 (multi-bot, snowball, futures DCA) are research-defined and baked into the architecture from day one, so nothing is retrofitted.
+Phase 0 — Foundation & repo
+uv project, pyproject, CI (ruff/mypy/pytest), docker-compose, README with architecture diagram, LICENSE (MIT), SECURITY.md
+Phase 1 — Core engine (MVP)
+Event bus, loop, scheduler, config; SQLAlchemy models + Alembic baseline (Postgres/Timescale + SQLite fallback)
+Exchange adapters: Binance spot + USDT-M futures (REST + WS); paper/sim execution provider
+Data plane: feed + OHLCV aggregation + historical backfill
+Phase 2 — Quant engine
+Polars indicators, regime detector, signal bus, vol-target portfolio sizing
+Backtester with fees/slippage + walk-forward gate + adverse-path stress
+Phase 3 — v1 strategies + risk
+trend_follow, mean_reversion, momentum, vol_breakout; stop-loss/trailing/TP ladder engine
+Risk engine: limits, daily-loss breaker, drawdown breaker, kill switch
+Phase 4 — Dashboard & API
+FastAPI control plane, React dashboard, WebSocket live, Grafana/Prometheus
+Phase 5 — Multi-bot orchestration
+Data plane fan-out via Redis Streams; container-per-bot workers; canary→promote; account-isolation enforcement
+Phase 6 — Advanced strategies
+Position Snowball (tranche pyramid, ratchet stops, TP ladder)
+Futures DCA (bounded averaging-down, isolated margin, liquidation buffer, funding guard, hard terminal stop)
+Publishing plan (star-project checklist)
+README: hero diagram, badges (CI, coverage, Python, license), quickstart demo (docker compose up → paper bot + dashboard)
+docs/: architecture, strategy dev guide, risk guide, deployment, security, FAQ — mirrored from Notion
+CONTRIBUTING.md + issue/PR templates + CODE_OF_CONDUCT
+CI everything; release via semantic-release; tags + auto-changelog
+Demo mode ships with a bundled demo strategy + sample data so anyone sees it run in minutes
+Security: testnet-first, no live keys in repo, non-root containers, rate-limit middleware, audit log
+
+Phase 7 — Capital protection + auto-rotation + AI advisor
+5% equity circuit breaker + daily loss limit + per-trade risk budgets + exchange-side stops (multi-layer backend)
+Trade Recycler: closed trade → debrief → regime re-eval → auto-select next strategy → instant re-entry (risk-gated)
+AI Advisor layer: Claude/OpenAI/OpenCode integrations; advisory-only, backtest+risk gated, never executes
+
+Phase 8 — Security hardening + DevEx polish (from repo-mining)
+Secrets vault: AES-256-GCM + scrypt/HKDF; API keys encrypted at rest; constant-time compares; HMAC-verified webhooks; idempotent clientOrderId nonces
+DevEx CLI: create workspace/config/strategy wizards, list-pairs/strategies/timeframes, show-config, convert-db
+Quant tooling: lookahead-analysis + recursive-analysis commands as CI gate; backtesting-analysis module; SHA-256 checksums on data downloads
+Ops: NTP clock-skew startup check (<500ms); documented min hardware spec
+
+Phase 0 — FOUNDATIONS ✅ COMPLETE (commit 227c402, root commit 920fd54). Repo created at C:\Users\vigilare\stratforge; session moved into it.
+uv project (Python 3.12.14): pyproject.toml with ruff/mypy/pytest config, .python-version, uv.lock committed
+Tooling green locally: pytest 1 passed · ruff check clean · ruff format clean · mypy strict clean
+CI (.github/workflows/ci.yml): lint job (ruff check + format + mypy), test job (Postgres+Timescale & Redis services), security job (Trivy fs scan). Pending first GitHub run
+docker-compose.yml: timescale/timescaledb:latest-pg16 + redis:7-alpine with healthchecks + volumes
+LICENSE (MIT © 2026 Ajay Kiran), README skeleton with badge placeholders + phase table, .env.example
+docs/ mirror scaffold — doc map matching the Notion hub (18 docs), to be filled per phase
+.gitattributes (LF normalization) + project AGENTS.md captured the CRLF format gotcha
+
+=== PAGE: Phase 1 — Core engine: DONE (commit 899e8e8) ===
+Core runtime + storage + vault delivered in commit 899e8e8. Evidence: 46 tests passed / 2 skipped (PG gate CI-only), mypy strict clean, ruff clean. Details mirrored in docs/phase-1.md and docs/decisions.md. Next: exchange adapters (Binance spot + USDT-M futures) and the data plane.
+
+=== PAGE: StratForge — Master Documentation ===
+StratForge: a greenfield, regime-adaptive crypto trading bot — master architecture for 2026. Python 3.12 · asyncio · uv · FastAPI · PostgreSQL+TimescaleDB · React dashboard. Star-project quality. Docs maintained here in Notion.
+
+Contents
+📐 Master Architecture
+🗄️ Database Architecture
+🧮 Quant Engine
+📈 Strategy Catalogue
+🛡️ Risk Engine
+📊 Dashboard & API
+🏗️ Repo Layout
+🗺️ Roadmap & Publishing Plan
+🧭 Decisions & Lessons
+
+
+
+
+
+
+
+
+Multi-Bot Orchestration
+Advanced Strategies — Snowball & Futures DCA
+Technology Radar — 2026 Stack & Scalable Updates
+
+
+
+
+Dashboard & API
+Repo Layout
+Roadmap & Publishing Plan
+Decisions & Lessons
+
+Data Sources & Pipelines
+
+
+
+Capital Protection — the 5% Guard
+Strategy Auto-Rotation (Trade Recycler)
+AI Advisor & Agent Integrations
+
+Gap Analysis & External Research
+
+Idea Bank — Reference Repo Mining (go-crypto · freqtrade · CryptoSwift)
+
+Master Plan & Feature Specification
+
+=== PAGE: Idea Bank — Reference Repo Mining (go-crypto · freqtrade · CryptoSwift) ===
+Ideas mined from three GitHub repos the user asked about: golang/crypto (Go crypto packages), freqtrade/freqtrade (Python bot), krzyzanowskim/CryptoSwift (Swift crypto). Each idea is tagged [v1] = adopt in MVP, [later] = backlog, [research] = study before deciding. Everything landed here once, then feeds the real specs.
+A. golang/x/crypto → security engineering patterns
+[v1] Secrets vault at rest — API keys, tokens, webhook secrets encrypted on disk with AES-256-GCM (fresh 12-byte nonce per value); key derived locally from a passphrase via scrypt/HKDF. No plaintext secrets in config files, DB, or Docker env dump
+[v1] HMAC-verified webhooks — Telegram/TradingView/GitHub callbacks authenticated with HMAC-SHA256 signatures compared in constant time (rejects forged 'buy'/'sell' triggers)
+[v1] Idempotent order IDs — every order gets a clientOrderId = unique crypto nonce; retries reuse it so a network retry can never double-submit
+[v1] Constant-time comparison for every token/secret check (kill-switch disarm, API keys, webhook HMAC) — avoids timing side-channels
+[later] Signed control-plane commands — control plane → worker commands (flat!, kill) signed with ed25519 so a compromised dashboard/HTTP path cannot spoof a flatten
+[later] Cert pinning / TLS hardening for Binance connections; optional hardware-backed key storage (TPM/enclave)
+B. freqtrade → product, DevEx & quant-ops checklist
+[v1] Scaffolding CLI — mirror freqtrade's wizards: `stratforge create workspace|config|strategy`, `stratforge show-config`, `stratforge list-pairs|list-strategies|list-timeframes`, `convert-db` (DB migration across postgres/sqllite)
+[v1] Automated bias detection — dedicated research commands mirroring freqtrade's lookahead-analysis & recursive-analysis: scan a strategy for lookahead/recursive-formula bugs as a CI gate, not a convention
+[later] Edge positioning (freqtrade 'edge') — compute per-pair win-rate / risk-reward from historical fills and report the statistically optimal stake; feeds sizing as a RESEARCH REPORT, never a live override
+[v1] Backtesting-analysis module — post-run trade-level analysis (holds, first-reaction, in-trade drawdowns) on top of the raw backtest; dashboard keeps per-execution drill-down
+[v1] Telegram command set (full): /status, /profit [n], /daily, /performance, /balance, /forceexit <id|all>, /stopentry, /stop, /start, /reload_config, /version — the notification service ships these; dashboard mirrors them via REST
+[v1] NTP-synced clock as a documented ops REQUIREMENT (freqtrade lists it explicitly; skew breaks exchange auth + candle alignment). Worker startup health-check asserts clock skew < 500ms
+[v1] Minimal hardware spec in ops docs: 2 vCPU / 2GB RAM / 1GB disk guidance for the compose stack
+[later] Star-project community playbook from freqtrade: CONTRIBUTING guide, feature-request labels, Discord, PRs against develop, good-first-issue labels, and a JOSS-style peer-reviewed paper → DOI badge
+C. CryptoSwift → our 'Recommended Defaults' security standard
+[v1] Adopt CryptoSwift's cipher guidance verbatim as StratForge's crypto policy: AEAD constructions only (AES-256-GCM, XChaCha20-Poly1305) for anything we encrypt ourselves; raw block modes (ECB/CBC) are legacy-interop, never new design
+[v1] Hashing: SHA-256/512/SHA-3 only for integrity; MD5/SHA-1 only for non-security checksums (e.g., dedupe keys)
+[v1] Fresh nonce/IV for every encryption operation — the vault enforces this by construction
+[v1] Key derivation minimums: scrypt (N≥16384, r=8, p=1) or PBKDF2-HMAC-SHA256 ≥ 4096 iterations; HKDF for deriving per-use subkeys
+[v1] Data integrity on bulk downloads — SHA-256 checksums verified after pulling data.binance.vision archives (CRC32 optional fast path)
+Adopted into v1 (shortlist)
+Secrets vault (AES-256-GCM + scrypt/HKDF) — Security page becomes the vault spec
+HMAC-verified webhooks + constant-time compares — Notification service spec
+Idempotent clientOrderId nonces — order execution spec
+Scaffolding + list CLI, lookahead/recursive analysis commands, backtesting-analysis — CLI/DevEx spec
+CryptoSwift secure-defaults checklist — Security page standard; SHA-256 checksums in the data downloader
+Parked for later
+ed25519-signed control-plane commands; cert pinning; hardware-backed keys — [later]
+Edge positioning research report; JOSS paper/DOI; community playbook — [later]
+
+=== PAGE: Gap Analysis & External Research ===
+Pressure-tested against Freqtrade (docs, FAQ, advanced-setup), Jesse (README), Hummingbot (docs), and the 2026 ecosystem. This page lists what we already planned vs. gaps discovered and when they land (v1 / later).
+Method
+Sources: freqtrade.io (features, FAQ, producer-consumer, leverage, advanced-setup), Jesse README (github.com/jesse-ai/jesse), docs.hummingbot.org (client, API, condor), Binance API docs
+Every gap is tagged [v1] (must have for the MVP) or [later] (roadmap, architecture already accommodates)
+A. Quant & research rigor — new gaps
+[later] Rule significance testing — compare an entry rule against a bootstrap distribution of random entries; reject lucky/noise rules early (Jesse)
+[v1] Monte Carlo analysis — trade-order-shuffling + candles-based simulations on every backtest; reports PnL distribution, % losing paths, overfitting guard (Jesse)
+[v1] Optimization — Optuna (Bayesian, parallel w/ Ray) for parameter search with walk-forward CV; replaces ad-hoc hyperopt (Jesse/freqtrade)
+[later] Benchmark mode — batch backtests across timeframe/symbol/strategy; sortable metrics table (Jesse)
+[later] ML pipeline — gather features at signal bars → train scikit-learn classifier/regressor → deploy predictions in-strategy; deterministic fallback when confidence low (Jesse pattern == our roadmap)
+[later] Rust-powered indicators — Jesse uses native Rust; we standardize on Polars now, optional PyO3/Rust for the heaviest loops later
+B. Data correctness — action items for v1
+[v1] Completed candles ONLY — strategies never see the in-progress candle (repainting/ghost-signal guard) (freqtrade hard rule)
+[v1] Price-jump monitor — warn/flag >30% candle gaps (token de-listings, halts) and treat instrument as degraded (freqtrade)
+[v1] Missing-candle fillup — after exchange downtime, backfill empty candles with previous close, mark volume 0; never trade stale candles (freqtrade)
+[v1] Look-ahead enforcement in backtest — signals computed strictly on bars up to t-1; verified by tests, not convention
+C. Execution & money details — new gaps
+[v1] Coin dust handling — fees taken in the receiving currency leave untradeable balances; support BNB fee-currency so dust vanishes; include fees in PnL (freqtrade)
+[v1] Fee modeling in backtest/PnL — maker/taker, VIP tiers, BNB discount; slippage model; partial-fill support
+[v1] Balance refresh policy — refresh account balances on deposit detection + periodic (orders, /reload_config trigger) (freqtrade)
+[v1] Order types per exchange capability — market-unsupported exchanges fallback to limit (Gate-style); we pin Binance v1, adapter keeps capability flags
+D. Operations & resilience — new gaps
+[v1] DB backups + recovery — scheduled Postgres dumps, Redis persistence, restore drill; single command backup/restore
+[v1] Infrastructure failure semantics — defined behavior when DB down / exchange down / network partition: worker enters EXCHANGE_UNREACHABLE state, holds positions, no new entries, heartbeat flags red
+[later] systemd watchdog (sd_notify equivalent) — watchdog protocol on non-Docker deploys; Docker path uses healthchecks + restart policies
+[v1] Config hot-reload — edit config + /reload_config (or API POST) without restarting the worker (freqtrade)
+[v1] Log rotation + JSON logging + syslog/journald transport (freqtrade patterns; we already chose structlog JSON)
+[v1] Exchange maintenance awareness — consume Binance system status; pre-emptively pause entries during maintenance windows
+E. Security & API-key hygiene — new gaps
+[v1] API key lockdown guidance — enable ONLY trade permission (never withdraw), IP allow-list the bot, per-action scopes (spot vs futures) (freqtrade FAQ)
+[v1] Supply-chain — uv.lock pinned, container image pinning, Trivy vulnerability scan in CI, Dependabot
+[v1] Secrets never logged or sent to AI — redaction layer on logs + advisor context (extends AI Advisor guardrails)
+F. Integrations & product — new findings
+[v1] Notification service — Telegram/Discord/Slack (apprise); commands: status, flat, stop/start entry, reload_config (freqtrade-style)
+[later] StratForge MCP server — local Model Context Protocol server exposing backtest/research/trade-inspection tools so OpenCode/Claude/Codex/Cursor drive the project safely (Jesse MCP pattern; validation of our AI Advisor plan)
+[later] In-strategy alerts + interactive trade charts with per-execution drill-down (dashboard) (Jesse)
+G. Things we already planned (confirmation, not gaps)
+Multi-bot isolation, canary, control plane; Redis Streams data plane; 5% equity guard; Trade Recycler; AI advisor (advisory-only); Futures DCA + snowball with hard risk caps; TimescaleDB continuous aggregates; walk-forward gates; producer/consumer pattern
+
+=== PAGE: AI Advisor & Agent Integrations ===
+Yes — integrations are planned. OpenCode (this agent harness), Anthropic Claude API, OpenAI, and local models all plug into an AI Advisor layer. Hard rule: AI informs, never executes. Orders only come from deterministic engines after risk gates.
+Integration points (planned)
+Anthropic Claude API (and OpenAI / local models) — the AI Advisor brain: post-trade debriefs, regime summaries, rotation proposals, anomaly triage
+OpenCode / agent harness — a research + ops assistant like this session: run backtests, inspect data, draft strategy code from Notion specs, propose PRs; humans review before anything runs
+Webhook adapters — Telegram alerts, TradingView alerts → signals into the pipeline as inputs to the selector
+The AI Advisor Service
+flowchart LR
+  STORE[(TimescaleDB)] --> CTX[Advisor context: recent candles,
+                                        regime, debrief stats, risk events]
+  CTX --> LLM[Claude / OpenAI / local]
+  LLM --> PROP[Proposals: rotation, params, anomaly notes]
+  PROP --> GATE[Backtest gate + risk gate]
+  GATE --> REC[Recommendations to dashboard + queue]
+  REC -.human/auto-review.-> CFG[Config updates]
+  CFG --> ENGINE[Deterministic engines] --> ORD[Orders]
+Guardrails (non-negotiable)
+AI has ZERO trade execution authority — reads market data, writes proposals only
+Proposals enter a review queue: auto-apply only if they pass the backtest gate AND risk gate; otherwise flagged for human review
+Full audit: every AI proposal logged (prompt summary, output, gate verdict) in risk_events
+No live keys ever sent to AI providers; context is sanitized (no secrets)
+Rate-limited + cost-capped; advisor runs async, never on the money path
+v1 vs later
+v1: deterministic Trade Recycler (no AI required to satisfy auto-rotation)
+v1.x: Claude-powered debrief summaries + rotation suggestions (advisory)
+later: OpenCode agent for repo ops (CI triage, doc generation from Notion), optional LLM regime variant with deterministic fallback
+
+=== PAGE: Strategy Auto-Rotation (Trade Recycler) ===
+User requirement: when one trade closes, the bot automatically launches the next best strategy to keep compounding. StratForge's Trade Recycler: every closed trade triggers a post-trade debrief → regime re-evaluation → auto-selection of the next strategy and instrument → instant setup of the next position (respecting the 5% guard and cooldowns).
+Lifecycle loop
+flowchart LR
+  OPEN[Position open] --> MON[Strategy + risk active]
+  MON --> CLOSE{Trade closed}
+  CLOSE -->|TP / SL / time / regime exit| DEBRIEF[Post-trade debrief]
+  DEBRIEF --> REVAL[Re-evaluate regime + signals]
+  REVAL --> SELECT[Strategy selector picks next best fit]
+  SELECT --> GATE[Risk gate: budget, cooldowns, 5% breaker]
+  GATE -->|approved| NEXT[Immediately size + open next position]
+  GATE -->|blocked| IDLE[Idle pivot: watch + wait for conditions]
+  NEXT --> OPEN
+  IDLE --> REVAL
+Post-trade debrief
+Every closed trade logs: entry/exit, PnL, ATR distances, regime at entry vs exit, strategy id, exit reason
+Debrief feeds the selector: rolling win-rate, expectancy, avg hold time per strategy per regime
+Strategy selector (deterministic core)
+Scoring = expected value (EV) per strategy per current regime, from the debrief stats + backtest priors
+Picks the highest-EV strategy whose risk budget is available; instrument selection by signal strength + liquidity
+No trades between: selector can also choose IDLE (stay flat, collect data) — capital protection outranks action
+AI-assisted rotation (advisory, non-executing)
+The AI Advisor (see AI Advisor & Integrations page) can propose rotation candidates and parameter tweaks
+Any AI suggestion must pass the same backtest gate + risk gate before it becomes a live rotation
+Rotation guards
+Cooldowns: per-strategy min pause after closes; stop-loss cooldown (12h+) after hard exits
+Daily limit & equity breaker from the 5% Guard always override rotation
+Max N rotations per day (default 8) to prevent overtrading / fee bleed
+
+=== PAGE: Capital Protection — the 5% Guard ===
+User requirement: the bot must never make the user lose more than 5% of the investment. Honest engineering answer: no live system can guarantee a hard cap (gap moves, flash crashes, exchange outages can exceed any stop). StratForge's answer is defense-in-depth: capitalism insurance layered so that exceeding ~5% requires a tail event, and even then the system halts immediately.
+The honest truth (design guardrail #0)
+Any claim of a guaranteed max loss is false and dangerous. What a serious system does is: (1) make stops tight enough and sizing small enough that normal and adverse paths rarely approach the cap, (2) enforce a hard equity circuit breaker AT the cap so the bot goes flat and stops trading, and (3) keep a reserve/margin so slippage and lags don't push past it. That is what StratForge builds.
+Layer 1 — Portfolio equity circuit breaker (the 5% line)
+Track portfolio equity continuously (cash + position mark-to-market + margin)
+If equity ≤ 100% − 5% of starting equity → HARD STOP: flatten all positions instantly, cancel all orders, stop all strategies, manual disarm required
+Demo of layer: loss hits 5% → system flat within one loop tick; logged as risk_events[EQUITY_CIRCUIT_BREAKER]
+Layer 2 — Daily loss limit (earlier, softer line)
+If day PnL ≤ −2.5% (configurable) → halt NEW entries for the rest of the day; existing positions only defend (stops/trailing)
+Prevents one bad day from snowballing toward the 5% cap
+Layer 3 — Per-trade & per-strategy risk budgets
+Max loss per trade ≤ 1% of equity (ATR-scaled stop) — a string of losses drifts toward daily limit, not the cap
+Per-strategy risk budget (e.g., each strategy can spend ≤ 2% before auto-pause + review)
+Position sizing = vol-target with hard notional caps; no single position > 5% of equity notionally at liquidation risk
+Layer 4 — Exchange-side protection
+Exchange stop-loss + take-profit attached at order time on futures; spot uses trailing limit exits
+Liquidation-buffer math (Freqtrade formula) keeps our stops safely above the exchange's liquidation price
+Layer 5 — Tail-event mitigation
+Hard kill switch (file/env): flatten + halt within one tick; honored by every worker
+Max leverage cap (default 1x spot, conservative futures) so liquidation risk is bounded
+No DCA with martingale multiplier; futures DCA grids capped at 20% at-risk per the Advanced Strategies page
+The math that makes 'barely ever exceeds 5%'
+Per-trade risk r = 1% equity; daily stop D = 2.5%; equity breaker B = 5%.
+Worst-case path to B requires ~5 losing trades in a day OR a single
+gap through stops — both guarded by layers 2-4. The 5% breaker is
+the backstop, not the plan.
+Reporting
+Dashboard: live equity drawdown gauge, proximity-to-breaker meter, risk event feed
+All breaker/limit hits create risk_events — every protection action is auditable
+
+=== PAGE: Data Sources & Pipelines ===
+The Data Plane's job: turn raw exchange streams into a clean, persistent, queryable dataset — one source of truth feeding live quant, backtesting, and the dashboard. No two places compute prices; everyone reads the same store.
+Live (in-operation) sources — Binance spot + USDT-M futures
+WebSocket streams (primary, low latency): kline (1m candles, all trading pairs), aggTrade (raw trades), bookTicker / depth (L2 order book), markPrice, fundingRate, openInterest, liquidations (futures); userData (account/order events on the private channel)
+REST snapshots (fallback + warm-up + history): /api/v3/klines, /api/v3/ticker/24hr, /api/v3/depth, /fapi/v1/klines, /fapi/v1/fundingRate, /fapi/v1/markPriceKlines, exchangeInfo (instrument list, filters, precision)
+Gap-fill & backfill jobs: detect missing candles after restarts/outages; re-fetch the gap window from REST and upsert idempotently
+Historical (for backtesting & analysis)
+Our own database — everything the data plane has ever seen is persisted (candles, trades, funding, equity). The store is self-reinforcing: the longer it runs, the richer the research set
+Binance public data archives (data.binance.vision) — downloadable bulk CSV/ZIP of klines + trades + funding per pair/interval for years of history (used by the historical backfill to seed deep lookbacks without hammering REST)
+Live REST klines for shallow backfills (fast, TTL-cached — already prototyped as get_klines)
+Research snapshots: export DB windows to Parquet for DuckDB/Polars research notebooks (fast, reproducible, shareable)
+Future optional vendors (not v1)
+Alt-data: CryptoCompare, CoinGecko, Kaiko, Amberdata, LunarCrush (social), on-chain metrics — only where a strategy's alpha actually needs them; plugged through the same ingestion pipeline behind a vendor adapter
+What the quant actually consumes (derived from the raw feed)
+Raw persisted:  candles (o,h,l,c,v,quote_vol,trades) per timeframe
+               trades / aggTrades, bookTicker, funding rate, open interest,
+               mark price, liquidations, exchangeInfo (instruments)
+Derived in-store: higher timeframes via TimescaleDB continuous aggregates
+               (1m -> 5m -> 15m -> 1h -> 4h -> 1d) — no recompute
+Computed on-demand (quant): indicators (EMA/RSI/MACD/ATR/ADX/Bollinger),
+               regime labels, momentum scores, volatility percentiles
+Meta:          instrument registry (symbols, filters, tick size, lot size,
+               margin/leverage rules) refreshed from exchangeInfo
+Data flow into the quant engine
+flowchart LR
+  WS[Binance WS streams] --> NORM[Normalize]
+  REST[Binance REST] --> GAP[Gap-fill/backfill]
+  ARCH[data.binance.vision archives] --> HIST[Historical loader]
+  NORM --> STORE[(TimescaleDB hypertables)]
+  GAP --> STORE
+  HIST --> STORE
+  STORE --> AGG[Continuous aggregates -> higher TFs]
+  STORE --> LIVE[Live quant: subscribe Redis Streams + cache]
+  STORE --> BT[Backtester: query windows]
+  STORE --> RSRCH[Parquet export for notebooks]
+  STORE --> DASH[Dashboard candles/equity]
+Quality & reliability rules
+Idempotent upserts on (instrument, timeframe, ts) — restarts never duplicate data
+Staleness monitors: alert if a symbol's feed goes quiet beyond N iterations; mark instrument degraded, exclude from live strategies
+Validation: reject candles with zero/negative close, timestamp drift, or gap spikes; log anomalies to risk_events
+Always write raw first, derive later — indicators/regime are never stored as truth, only the raw data is
+Multi-bot implication
+All workers read the SAME data plane — one feed subscription per exchange+network, N consumers via Redis Streams. No duplicated WS connections, no rate-limit pressure from many bots polling the same endpoint
+
+=== PAGE: Repo Layout ===
+Monorepo: one Python core + one dashboard app + infra + docs. Worker containers are the same image, differentiated by config (strategy/account/risk).
+stratforge/
+├── pyproject.toml / uv.lock        uv-managed, Python 3.12+
+├── README.md LICENSE CONTRIBUTING.md SECURITY.md
+├── docs/                           mirrors of the Notion pages
+├── docker-compose.yml              infra + workers (profiles per bot)
+├── .github/workflows/ci.yml        lint, type, test, backtest gates
+├── src/stratforge/
+│   ├── config.py                   pydantic-settings (env > file > defaults)
+│   ├── core/                       event bus, loop, scheduler, orchestrator
+│   ├── data/                       feed, aggregation, historical backfill, store
+│   ├── quant/                      indicators, regime, signals, portfolio, backtest
+│   ├── strategies/                 base + trend_follow, mean_reversion, momentum,
+│   │                               vol_breakout, snowball, futures_dca
+│   ├── risk/                       limits, circuit breakers, kill switch
+│   ├── execution/                  exchange adapters (binance spot/futures), order
+│   │                               lifecycle, reconciliation, paper/sim engine
+│   ├── app/                        FastAPI control plane, websocket, auth
+│   ├── models/                     SQLAlchemy models (see Database Architecture)
+│   └── cli/                        typer CLI (run, backtest, flat, status)
+├── dashboard/                      React + Vite + TS + ECharts
+├── workers/                        dockerfile + entrypoints for bot workers
+├── migrations/                     Alembic
+├── tests/                          unit + integration (FakeExchange)
+├── tests_e2e/                      paper-mode e2e
+└── notebooks/                      research (regime lab, strategy lab)
+Process model
+One container = one bot worker (strategy + risk + execution), config-driven
+Control plane API + dashboard run as their own services
+Data plane runs as its own service per (exchange, network)
+Dev loop
+uv sync
+docker compose up -d postgres redis   # infra
+u run stratforge backtest --strategy momentum
+u run stratforge run --paper            # paper bot
+u run uvicorn stratforge.app:app        # control plane
+
+=== PAGE: Dashboard & API ===
+Modern SPA dashboard (React + Vite + TypeScript + ECharts) over a FastAPI control plane. Aggregates ALL bots; per-bot drill-down; live WebSocket updates.
+Dashboard — React + Vite + TS + ECharts
+Global view: aggregated equity curve, PnL, drawdown, active bots, regime heatmap
+Per-bot drill-down: candles + indicators, open positions, order ladder, risk events, strategy signals
+Live updates via WebSocket (data plane events redispatched through the API); ECharts candlesticks + equity + regime charts
+Dark, responsive, zero-login local mode + API-key auth in multi-bot deployments
+Control plane API (FastAPI)
+GET  /api/v1/health            liveness + per-bot heartbeats
+GET  /api/v1/bots                list registered bot workers
+POST /api/v1/bots                register a new bot (strategy, account, risk profile)
+POST /api/v1/bots/{id}/start     start worker
+POST /api/v1/bots/{id}/stop      stop worker
+POST /api/v1/bots/{id}/flat      manual flatten kill
+GET  /api/v1/bots/{id}/state     current positions, equity, regime, signals
+GET  /api/v1/equity              aggregated equity history
+GET  /api/v1/candles/{symbol}    candle history (period filter)
+GET  /api/v1/risk-events         audit trail of rejected/approved actions
+WebSocket channels
+/ws/data — market updates (candles, ticks, regime changes)
+/ws/bots — per-bot state stream (positions, orders, risk events)
+Auth & security
+Local single-user default (loopback-only bind); API key auth for remote deployments
+Read/write split: dashboard reads freely; bot mutation endpoints require admin token
+Observability
+OpenTelemetry traces + Prometheus metrics per worker; Grafana dashboards for PnL, regime, risk, order latency; JSON structured logs via structlog
+
+=== PAGE: Roadmap & Change Log ===
+Living roadmap mirroring PLAN.md. Updated as phases land.
+Phase 1 — 2026-ready (DONE)
+Repo cloned, structure mapped, dependency conflicts identified
+requirements.txt rewritten with mutually-compatible modern pins (verified on Py 3.12)
+SQLAlchemy 2.0 fixes: pair select, session.get, declarative_base
+Config: testnet=true default; new knobs (stop loss, trailing stop, RSI/momentum params, cooldown)
+api_server.py: filter_period fix + current_coin JSON
+get_klines on BinanceAPIManager + MockBinanceManager for backtests
+eventlet → simple-websocket threading mode
+Phase 2 — Strategies + risk (DONE)
+Stop-loss / trailing-stop layer + cooldown in AutoTrader
+momentum_strategy.py — jump with momentum edge
+rsi_strategy.py — mean-reversion RSI gating
+Improved bridge_scout (most-undervalued instead of first match)
+IN PROGRESS: profit_hunter_strategy.py — take-profit port from the CEX repo review
+Phase 3 — Dashboard (IN PROGRESS)
+templates/index.html + static/ (Chart.js, dark responsive, live SocketIO)
+api_server.py: serve /, add /api/health, finish dashboard routes
+Phase 4 — Tests & docs (PARTIAL)
+tests/ suite — 30 passing
+dev-requirements + CI pytest step (planned)
+.user.cfg.example, README, strategies README updates (docs now maintained in Notion)
+Backtest smoke test (planned)
+Change log
+2026-09-22 — Notion doc hub created; full documentation tree (Overview, Getting Started, Config, Architecture, Strategies, Risk, Dashboard/API, Testing, Roadmap)
+2026-09-22 — profit_hunter strategy port started (config knob + strategy module + tests)
+Phase 1+2 shipped: 2026-ready deps, strategies, risk layer, 30 green tests
+Decisions & lessons
+Keep python-binance 1.0.27 for REST (works on Py 3.12); bump websocket stack instead of replacing it
+SQLAlchemy 2.0 upgrade over pinning 1.4 — future-proof
+Simple-websocket threading mode over eventlet (eventlet is bugfix-only)
+Testnet-first, no user.cfg required — lowers barrier to trying the bot
+Second repo (CEX quant bot) is a heavily over-stated fork of the 2018 profit-hunter; only the take-profit idea is worth porting — do not build on its code base
+
+=== PAGE: Technology Radar — 2026 Stack & Scalable Updates ===
+Chosen to scale from a single laptop to many bot workers, and to age well: boring-until-proven libraries for the money path, modern tooling everywhere else. Updated as the ecosystem moves.
+Selected 2026 stack
+Language/runtime  Python 3.12+ (3.13 ready) · uv (lockfile, fast, hermetic)
+Async            asyncio event loop · optional uvloop · FastAPI · Pydantic v2
+Data math        Polars (Arrow) — replaces pandas on the hot path
+                 (pandas only in research notebooks, if at all)
+Messaging        Redis Streams (Valkey drop-in) — durable event bus, consumer groups
+                 NATS JetStream as the scale-out option for huge fan-out
+Databases        PostgreSQL 16 + TimescaleDB 3.x (hypertables, compression,
+                 continuous aggregates) · SQLite fallback · DuckDB/Parquet for
+                 research snapshots
+Orchestration    Docker Compose (MVP) → Nomad (multi-host) → Kubernetes (later)
+CI               ruff (lint+format) · mypy · pytest · backtest gates · coverage
+Observability    structlog (JSON) · OpenTelemetry · Prometheus · Grafana
+ML (optional)    scikit-learn / LightGBM for regime-classifier variant · Timescale
+                 continuous aggregates as the feature store
+Scalability principles
+Workers are stateless w.r.t. market data: all market info arrives via the data plane; a worker only owns its strategy/risk/execution state → horizontal scale = add workers
+Money path stays deterministic: LLM/ML only informs signals (research/regime), never executes orders; execution is pure code (Hummingbot Condor lesson: separate 'agentic' from 'execution' layers)
+Durable event bus: Redis Streams with consumer groups means a crashed worker replays missed events; no lost orders or fills
+Update cadence (evergreen bot)
+Dependabot/Renovate for dependencies; watchtower-style container updates for bot workers
+Semantic-release + auto changelog; docs mirrored from Notion into docs/ so the repo is self-contained for GitHub releases
+Every new strategy ships with backtest + paper-trade gate; canary workers make upgrades a rolling, observable process
+Performance targets (hot path)
+End-to-end tick→signal→risk→order decision < 50 ms on a 2 vCPU worker
+Backtest of 1 year of 1m candles on 20 symbols < 60 s (Polars, columnar)
+What we deliberately avoid (2026 anti-patterns)
+Thread-per-strategy / GIL-bound hot loops on the money path
+Pandas for live candles; API polling where websockets exist
+Black-box ML executing trades without a deterministic fallback
+Shared leveraged accounts across bots (account-isolation rule)
+
+=== PAGE: Advanced Strategies — Snowball & Futures DCA ===
+Two high-value strategies the user asked for, designed safe-first: Position Snowball (add to WINNERS only, ratchet protection) and Futures DCA (bounded averaging-down with hard stops + liquidation buffer). Both are first-class strategies on the signal/risk/execution separation.
+Position Snowball (pyramiding)
+Concept: build a position in tranches as price moves in your favor, ratcheting protection at each step. This multiplies winners instead of averaging losers.
+Mechanics
+Entry tranche at signal (N0). Set initial stop-loss + take-profit ladder
+Add tranche 1 when price ≥ entry + k1·ATR (e.g. k1=0.8); move stop on the FIRST tranche to breakeven
+Add tranche 2 when price ≥ last-add + k2·ATR (k2=0.6); ratchet the whole position's trailing stop up
+Take-profit ladder: close 1/3 at +1.5·ATR, 1/3 at +2.5·ATR, remainder trails behind price (iceberg-style exit)
+If price reverses between tranches: exit ALL tranches (no averaging down — snowball only adds to winners)
+Risk controls (snowball)
+Max tranches (default 3), max total exposure = 2× base notional, per-tranche size non-increasing
+Only active in TREND_UP / HIGH_VOL regimes with high regime confidence (regime gate)
+Stop must not violate liquidation buffer on futures; vol-normalized distances (ATR) not fixed %
+Futures DCA (bounded averaging-down)
+Concept: enter a position and add at predefined adverse levels to lower average entry, with a take-profit target and a HARD terminal stop. This is grid-like; done unbounded it is martingale (account-killer) — StratForge makes it safe by construction.
+Mechanics
+Entry at signal price S; adds at S−d1, S−d2, S−d3, S−d4 (d = ATR step, configurable; max_dca_levels default 4)
+Size per add: fixed, or multiplier m ≤ 1.0 by default (m > 1 = martingale — requires explicit risk-review opt-in)
+Take-profit at avg_entry × (1 + tp_pct), whole-grid close
+HARD stop: price ≤ add_level_n − buffer → close everything, no more adds after max_dca_levels
+Funding guard: skip adds when |funding rate| > threshold; funding via isolated margin
+Risk controls (futures DCA) — mandatory
+ISOLATED margin per position; one DCA grid = one position owned by exactly one bot (account-isolation rule)
+Total at-risk = Σ notional(all levels) / equity ≤ cap (default 20%)
+Liquidation math: recompute liquidation price after every add; enforce stop < liquidation with liquidation_buffer ≥ 0.05 (Freqtrade formula: stop = liq ± |open−liq|×buffer)
+Regime gate: entry only in RANGE / HIGH_VOL mean-reversion conditions; no new DCA in TREND_DOWN
+Daily-loss circuit breaker + kill switch flattens the whole grid (not one leg)
+Backtest gate (both strategies)
+Walk-forward + adverse-path stress tests: simulate −30% / −50% drawdown paths; a strategy that fails them cannot be enabled live
+Where they live in the architecture
+Both implement BaseStrategy.on_candle(); emit Signals with tranche metadata; risk engine enforces the controls above; execution engine manages multi-leg grids as one logical position (position_id)
+
+=== PAGE: Multi-Bot Orchestration ===
+Research-backed: Freqtrade Producer/Consumer mode (share computed indicators/signals over a message websocket — compute once, consume everywhere) and Hummingbot (111K+ instances run as isolated containers managed by a central Hummingbot API server). StratForge adopts both patterns: a shared data plane + container-per-bot workers + a control plane.
+Goals
+Run N bots concurrently: different strategies, different accounts/wallets, different risk profiles, one dashboard
+Compute market data + indicators + regime ONCE in a shared data plane; workers only run strategy & risk & execution
+Start/stop/inspect any bot without touching others (hot-add strategies, canary-test new strategies)
+Architecture — three planes
+flowchart LR
+  subgraph PLANE1[Data Plane (shared)]
+    PROD[MarketDataProducer]
+    AGG[OHLCV + Indicators + Regime]
+    BUS[(Redis Streams)]
+  end
+  subgraph PLANE2[Workers (container-per-bot)]
+    W1[Bot 1: trend_follow]
+    W2[Bot 2: futures DCA]
+    WN[Bot N: snowball]
+  end
+  subgraph PLANE3[Control Plane]
+    API[StratForge API]
+    DASH[Dashboard]
+    SUPV[Supervisor]
+  end
+  PROD --> AGG --> BUS
+  BUS --> W1 & W2 & WN
+  W1 & W2 & WN --> API --> DASH
+  SUPV --> W1 & W2 & WN
+  SUPV --> API
+Data Plane — one MarketDataProducer per (exchange, network): ingests the websocket feed, normalizes, aggregates OHLCV, computes shared indicators + regime; publishes to Redis Streams (consumer groups = reliable, replayable fan-out). Freqtrade-equivalent of producer mode, scaled to Redis
+Workers — one isolated process/container per bot. Each subscribes to the data plane, runs its strategy + risk + execution, and reports state (positions, equity, orders, regime) to the control plane. NumPy/Polars heavy signal math stays client-side or is served pre-computed like FreqAI-on-a-powerful-box
+Control Plane — StratForge API (FastAPI): register/spawn/stop bots, see per-bot state, aggregated portfolio view, kill switch per bot; supervisor (Docker Compose v2 profiles → Nomad later) restarts on healthcheck failure
+Account isolation (critical — from Freqtrade leverage docs)
+Never run two bots on the same account with leverage: liquidation math assumes sole ownership of the account (Freqtrade: 'You can't run 2 bots on the same account with leverage'). For futures/leveraged bots StratForge REQUIRES one account per bot (or isolated-margin positions owned by exactly one bot). Spot/margin-free shared accounts are allowed but every bot reconciles its own balances.
+Implementation methods (proven in the wild)
+Freqtrade Producer/Consumer: analyze on one instance, broadcast analyzed dataframes + whitelist over `external_message_consumer` websocket; consumers reuse without recomputing (see freqtrade.io/en/stable/producer-consumer)
+Hummingbot: bot = Docker container ('Bots' = long-running market making/grid); Hummingbot API server centralizes deployment; Condor adds LLM agents observing each bot. Instance count in the 100Ks → design must assume many workers
+StratForge adapts: Redis Streams as the message bus (instead of point-to-point websockets) so fan-out is native and replayable; containers per worker for full isolation
+Hot-update & canary workflow
+A new strategy/version is a new worker: deploy as canary on testnet, observe via dashboard, promote to production by flipping which worker owns the account
+Strategy registry in the control plane: strategy_id → image/version → account → risk profile → status
+References
+Freqtrade producer-consumer mode: https://www.freqtrade.io/en/stable/producer-consumer/
+Freqtrade leverage & account isolation: https://www.freqtrade.io/en/stable/leverage/
+Hummingbot architecture (client/API/condor): https://docs.hummingbot.org/
+
+=== PAGE: Risk Engine ===
+The last gate before orders. If risk rejects, nothing trades — even on a strong strategy signal. Capital preservation is the actual goal; profit is the byproduct.
+Pre-trade checks (order of evaluation)
+Instrument-level: symbol active, not blacklisted, exchange on testnet/mainnet as configured
+Portfolio exposure: per-symbol and per-strategy exposure caps
+Size check: order notional within min/max per order, position size ≤ vol-target sizing result
+Daily loss limit: if day_pnl ≤ −daily_max_loss_percent → halt new entries (cooldown)
+Drawdown circuit breaker: portfolio drawdown from peak ≥ threshold → flat + manual disarm required
+Regime guard: in TREND_DOWN / HIGH_VOL, risk multiples shrink and only defensive signals pass
+Kill switch: file- or env-triggered (kill.flag) — flattens all positions, cancels orders, stops entries
+Risk state
+Persisted per day: start-of-day equity, day_pnl, loss cooldown timestamps
+risk_events table logs every rejection with reason — dashboard shows a live risk audit trail
+Order-level protections
+Exchange-side stop-loss + take-profit attached to futures orders where supported
+Max slippage guard: execution cancels/rejects if fill price deviates beyond tolerance
+Order retry limits and hourly order-count (rate limit) budgets
+Liveness & kill
+Heartbeats: bot writes heartbeat row; supervisor/healthcheck restarts on stall
+kill.flag honored within one loop tick; graceful flatten then process exit
+Human override
+Manual flat via CLI/API: cancels orders, closes positions, leaves bot paused
+Strategy can be disabled per-name without code changes (config or API)
+
+=== PAGE: Strategy Catalogue ===
+v1 ships four regime-adaptive strategies selected by the RegimeDetector. 'Profitable in any circumstances' = the ensemble adapts to market regime and risk cuts losses — not a single magic strategy.
+v1 strategies
+trend_follow — EMA fast/slow cross + ADX strength filter + Donchian breakout confirmation. Favoured in TREND_UP / TREND_DOWN
+mean_reversion — Bollinger z-score / RSI extremes mean-reversion within a valid range regime. Favoured in RANGE
+momentum — multi-timeframe momentum score (ROC over 1h/4h/1d) + volume confirmation; ranks symbols, enters strongest. Favoured in TREND_UP
+vol_breakout — ATR-scaled Donchian breakout with vol filter; captures expansion moves. Favoured in HIGH_VOL
+Regime weighting
+RegimeDetector outputs (regime, confidence) → strategy weights per regime (table-driven)
+Signals weighted by confidence × strategy-regime fit; only the top-weighted signal per symbol moves toward orders
+When confidence is low (ambiguous regime), the system defaults to cash/bridge protection (see Risk Engine)
+Position & exit logic
+Entries: signal + sizing = target order; risk engine validates
+Exits: take-profit (ATR multiple), trailing stop, time-based decay, regime flip (de-risk on regime change), stop-loss from risk engine
+All exits symmetric for LONG and SHORT on futures; spot is LONG-only for v1 with bridge (quote) as the safe asset
+Later phases (design stays open)
+Funding-rate arbitrage (futures spot/perp basis)
+Pairs / statistical arbitrage (cointegration screening in research notebooks)
+Grid / market-making with inventory limits (advanced, gated)
+ML regime classification (optional; HMM / gradient-boosted ensemble) as a regime detector variant — never as a black box
+Strategy dev workflow
+Write strategy in src/stratforge/strategies/, subclass BaseStrategy
+Backtest + walk-forward gate in CI (tests/backtests/)
+Paper-trade 7+ days on testnet with dashboard monitoring
+Promote to live only via explicit config + safety checks
+Lessons ported from the fork review
+The old bot's bridge-scout (downgrade strong→weak, wait for reversion) is effectively a mean-reversion/pairs idea — it becomes mean_reversion with proper cooldowns
+Profit-hunter take-profit concept → take-profit exits in the common exit engine
+Avoid the fork's single-file strategy monolith; use the signal/risk separation above
+
+=== PAGE: Quant Engine ===
+Vectorized math on Polars (not pandas). Indicators, regime detection, portfolio sizing and a walk-forward backtester are the same code in research and live — no train/serve drift.
+Indicators (quant/indicators.py)
+Trend: EMA, MACD, ADX, Donchian channel, linear-regression slope
+Mean reversion: RSI, Bollinger Bands, z-score of price vs EMA
+Volatility: ATR, realized volatility (percentile-ranked), Hurst exponent (trend vs mean-reverting signature)
+Volume: VWAP, volume momentum (OBV), candle-range ratios
+All vectorized with Polars expressions; identical signature in research and live pipelines
+Regime detection (quant/regime.py)
+Multi-factor regime classifier on multiple timeframes. Outputs a regime label + confidence + factor vector, persisted to regime_snapshots:
+TREND_UP / TREND_DOWN — EMA alignment + ADX strength + slope sign
+RANGE — low ADX, mean-reversion signature (Hurst near 0.5), Bollinger mean reversion
+HIGH_VOL — volatility percentile spike (breakout-favourable)
+Regime is used to weight strategies and to tilt risk (position size down in adverse regimes)
+Signal model
+@dataclass
+class Signal:
+    strategy_id: str
+    instrument: Instrument
+    side: Side            # LONG / SHORT / FLAT
+    strength: float       # 0..1 conviction
+    price: Decimal
+    meta: dict
+Portfolio sizing (quant/portfolio.py)
+Volatility targeting — position sized so portfolio vol ≈ target (ATR- or realized-vol based)
+Kelly-capped risk fraction (fractional Kelly, configurable cap)
+Per-symbol and per-strategy exposure limits enforced downstream by the risk engine
+Backtester (quant/backtest.py)
+Event-driven replay of stored candles with realistic fee + slippage models
+Metrics: CAGR, Sharpe, Sortino, Max Drawdown, Calmar, win rate, profit factor, exposure
+Walk-forward validation: train → out-of-sample test windows; strategy activation requires passing the gate
+Parameter sanity checks: no look-ahead bias (signals computed strictly on prior bars); warm-up handled explicitly
+Strategy base & sandbox
+BaseStrategy.on_candle() / on_tick() interfaces; each strategy gets its own persisted state (strategy_state table)
+Strategies never touch the broker directly — they emit Signals only
+A signal bus merges and weights signals; the risk engine is the last gate before orders
+Research notebooks
+notebooks/ regime-labelling, indicator validation, strategy lab — Polars + Plotly, reproducible against the DB
+
+=== PAGE: Database Architecture ===
+Two-tier persistence: PostgreSQL + TimescaleDB for time-series at production scale; SQLite fallback so the whole system runs anywhere. Redis/Valkey for hot cache + cross-process pub/sub. SQLAlchemy 2.0 async (asyncpg / aiosqlite).
+Storage tiers
+TimescaleDB (PostgreSQL) — hypertables for candles, ticks, equity snapshots, regime history. Compression + continuous aggregates for dashboard performance
+SQLite — drop-in fallback (same ORM models, aiosqlite driver) for dev/offline research
+Redis / Valkey — hot state cache (current positions, rate-limit buckets), pub/sub for cross-process events, leader election
+Object store (S3-compatible, optional later) — raw tick archives / Parquet research datasets
+Core tables (SQLAlchemy models)
+instruments       id, exchange, symbol, base, quote, asset_type(spot|futures),
+                   contract specs, is_active
+candles           instrument_id, timeframe, ts, o,h,l,c,v, quote_vol, trades
+                   [PK instrument+timeframe+ts]  → Timescale hyper   table
+signals           ts, strategy_id, instrument_id, side, strength, meta(json), acted_on
+regime_snapshots  ts, regime, confidence, factors(json)
+orders            id, instrument_id, side, type, price, qty, status, filled_qty,
+                   avg_fill, client_order_id, strategy_id, ts_created, ts_updated,
+                   raw(json)
+trades            ts, order_id, instrument_id, side, qty, price, fee, realized_pnl
+positions         instrument_id, side, qty, avg_entry, unrealized_pnl, realized_pnl,
+                   strategy_id, updated_at  [unique per instrument]
+equity_snapshots  ts, total_equity, cash, unrealized_pnl, day_pnl, margin_used
+strategy_state    strategy_id, key, value(json), version  [sandbox persistence]
+configs           key, value(json), updated_at
+risk_events       ts, event_type, instrument_id, decision, detail(json)
+users / api_keys  dashboard auth (local single-user in v1)
+Time-series design
+candles as hypertable partitioned by time; indexes on (instrument_id, timeframe, ts)
+Equity + PnL as continuous aggregates → dashboard charts query aggregates, not raw rows
+Scout/margin style telemetry (like the fork's CoinValue) folded into candles + equity snapshots — no separate tables
+State vs. data separation
+Hot operational state (current positions, order book cache) lives in Redis with DB as source of truth
+All writes are append-mostly; mutations logged as events (auditable, replayable)
+Migrations
+Alembic for schema migrations; baseline migration ships with v1; CI runs migrations + tests on a fresh Postgres
+Chart
+erDiagram
+  INSTRUMENTS ||--o{ CANDLES : has
+  INSTRUMENTS ||--o{ ORDERS : traded
+  ORDERS ||--o{ TRADES : fills
+  INSTRUMENTS ||--o{ POSITIONS : holds
+  STRATEGY_STATE }o--|| STRATEGIES : state
+  SIGNALS }o--|| STRATEGIES : emitted
+  REGIME_SNAPSHOTS }o--|| INSTRUMENTS : on
+  EQUITY_SNAPSHOTS ||--o{ INSTRUMENTS : aggregates
+
+=== PAGE: Master Architecture ===
+Event-driven, single asyncio event loop. Market data flows in through adapters → signals → regime gate → risk engine → execution. Every layer is decoupled via an in-process event bus so exchanges and strategies are pluggable.
+System diagram
+flowchart TB
+  subgraph EXCH[Exchange Layer]
+    BIN[Binance Adapter]
+    BINF[Binance Futures Adapter]
+  end
+  subgraph DATA[Data Layer]
+    FEED[Market Data Feed (WS)]
+    AGG[OHLCV Aggregator]
+    HIST[Historical Backfill]
+    STORE[(TimeSeries Store)]
+  end
+  subgraph ENG[Quant Engine]
+    REG[Regime Detector]
+    STRAT[Strategy Manager]
+    SIG[Signal Bus]
+    PORT[Portfolio Sizing]
+  end
+  subgraph RISK[Risk Engine]
+    LIMIT[Limits & Circuit Breakers]
+    KILL[Kill Switch]
+  end
+  subgraph EXEC[Execution Engine]
+    ORD[Order Lifecycle]
+    REC[Reconciliation]
+  end
+  subgraph APP[Application]
+    FAST[FastAPI /api/v1]
+    WS[WebSocket Live]
+    CLI[CLI]
+  end
+  BIN --> FEED
+  BINF --> FEED
+  FEED --> AGG --> STORE
+  HIST --> STORE
+  STORE --> REG --> STRAT
+  STRAT --> SIG --> PORT
+  PORT --> LIMIT --> KILL
+  LIMIT --> ORD --> BIN & BINF
+  REC --> STORE
+  FAST & WS & CLI --> STORE
+  FEED -.-> FAST
+Core design principles
+Single asyncio event loop — no threads for I/O; flows are coroutines over one loop
+Everything is an event: MarketTick, CandleClosed, Signal, RiskRejected, OrderAccepted, OrderFilled… persisted and replayable
+Exchange adapters implement typed interfaces (MarketDataProvider, ExecutionProvider) — Binance spot + USDT-M futures in v1, CCXT-ready later
+Strategies run isolated (state persisted in DB) and emit signals; the risk engine and portfolio sizing decide whether signals become orders
+Paper/simulation mode is a first-class execution provider — same code path as live, zero risk
+Layers
+Exchange Layer — Binance spot & USDT-margined futures adapters (python-binance 1.0.27 REST + unicorn WS stack, adapted for async)
+Data Layer — websocket feed, OHLCV aggregation (1s→1m→5m→15m→1h→4h→1d), historical backfill, time-series store
+Quant Engine — indicators, regime detection, strategy manager, signal bus, portfolio sizing
+Risk Engine — pre-trade checks, limits, circuit breakers, kill switch
+Execution Engine — order lifecycle, fill detection, retry/cancel, reconciliation against exchange
+Application Layer — FastAPI REST, WebSocket live updates, CLI, metrics
+Key flows
+Feed: WS ticker/candle → normalize → persist → broadcast CandleClosed on aggregation boundaries
+Signal: on each completed candle, strategies compute → RegimeDetector weights → winning strategy emits Signal(s)
+Gate: RiskEngine validates size/limits/exposure → approve or reject → ExecutionEngine places order
+Reconcile: periodic + post-fill reconciliation reconciles local positions vs exchange, writes position/equity snapshots
+Dashboard: FastAPI serves REST + WS stream of candles, equity, regime, positions, orders
+Dependency & config
+uv for dependency management (uv.lock, fully pinned). Pydantic-settings for config: defaults → .env → env vars → config DB table. Multi-mode: research (offline), paper (simulated), live (testnet), live (mainnet, explicit opt-in with safety gates).
+Test-first engineering
+Unit: pure logic (indicators, sizing, risk math) with pytest
+Integration: FakeExchange implementing the same provider interfaces as Binance
+E2E: paper-mode run against simulated market data, assert PnL invariants
+Backtest gate: every strategy ships with a walk-forward backtest that must pass before it can be enabled live
+
+=== PAGE: Binance Trade Bot — Project Documentation ===
+Quick navigation
+Project Overview
+Getting Started
+Architecture
+Configuration Reference
+Trading Strategies
+Risk Management
+Web Dashboard & API
+Testing & Backtesting
+Roadmap & Change Log
+
+Status: Phase 1 ✅ · Phase 2 ✅ (profit_hunter in progress) · Phase 3 🚧 · Phase 4 🧪 (30 tests green). Docs maintained here in Notion — the single source of truth.
+
+=== PAGE: Testing & Backtesting ===
+30 pytest cases, all green, in the tests/ directory. Testnet-first: tests use a FakeManager, never real balances.
+Test suite
+tests/conftest.py — FakeManager + Bridge fixtures used across all tests
+tests/test_indicators.py — ema, rsi, percent_change, momentum_score
+tests/test_config_and_stop_loss.py — config defaults, no-user.cfg boot, stop-loss logic
+tests/test_strategies.py — default, momentum, rsi behaviors incl. weakest-coin jump semantics
+Run
+.venv-test\Scripts\python.exe -m pytest tests -q
+Dev tooling
+dev-requirements.txt: pytest 8.3.4, pytest-cov, pylint, black, requests-mock
+Backtesting
+binance_trade_bot/backtest.py provides MockBinanceManager backed by historical Binance klines (get_klines TTL-cached on the real manager; the mock sources historical data). Use it to replay strategies over historical windows before going live. A bonus backtest smoke test is planned for Phase 4.
+CI (planned)
+Add a pytest step to GitHub Actions so the suite runs on every push
+
+=== PAGE: Web Dashboard & API ===
+Flask + Flask-SocketIO JSON API with live updates. Phase 3 (the actual dashboard UI) is in progress — the API surface below already works.
+Server
+python -m binance_trade_bot.api_server   # serves on :5123
+REST endpoints
+GET /api/value_history/<coin> — price history for one coin (period filter: all|Ns|Nh|Nd|Nw|Nm)
+GET /api/value_history — all coins' value history
+GET /api/total_value_history — summed BTC/USD value over time
+GET /api/trade_history — all trades
+GET /api/scouting_history — scout margin history for the current coin
+GET /api/current_coin — the currently held coin (JSON)
+GET /api/current_coin_history — current coin over time
+GET /api/coins — all coins with is_current flag
+GET /api/pairs — all trading pairs
+GET / — dashboard UI (Phase 3) • GET /api/health — liveness (Phase 3)
+WebSocket
+SocketIO namespaces: /backend receives {coin, ratio} updates and re-broadcasts to /frontend, so the dashboard updates live without polling. Runs on simple-websocket threading mode (eventlet dropped).
+Known fixes (Phase 1)
+filter_period() was parsing the literal string "1d" instead of the period value — fixed
+/api/current_coin returned plain text — now returns proper JSON
+
+=== PAGE: Risk Management ===
+A safety layer added in Phase 2: hard stop-loss + trailing stop + cooldown, tracked per-coin in the CoinState model.
+CoinState tracking
+models/coin_state.py stores per-coin: buy_price, peak_price, stop_loss_hit_at. It is written at entry (transaction_through_bridge) and updated every scout cycle. The current coin's state is the source of truth for risk decisions.
+check_stop_loss()
+Runs every scout cycle for the current holding
+Hard stop: if price ≤ buy_price × (1 − stop_loss_percent/100) → sell to bridge, record stop_loss_hit_at
+Trailing stop: peak_price tracks the highest price since entry; if price ≤ peak_price × (1 − trailing_stop_percent/100) → sell to bridge, record stop_loss_hit_at
+Cooldown: if stop_loss_hit_at is recent (< stop_loss_cooldown_hours), the same coin is not re-entered, preventing stop-loss death spirals
+Configuration
+stop_loss_percent — hard stop, 0 disables (default 0)
+trailing_stop_percent — trailing stop, 0 disables (default 0)
+stop_loss_cooldown_hours — re-entry cooldown (default 12)
+Design notes
+Stop-loss exits always go through the bridge (coin → bridge), so funds are never stuck in a halted pair
+The improved bridge_scout picks the most-undervalued coin (not the first match), and skips coins in stop-loss cooldown
+Testnet-first by default means you can rehearse all of this with zero real funds
+
+=== PAGE: Trading Strategies ===
+Strategies subclass AutoTrader and override scout(). Discovered automatically: any file named *_strategy.py in strategies/ is loaded; its class must be named Strategy.
+How to write a strategy
+from binance_trade_bot.auto_trader import AutoTrader
+
+class Strategy(AutoTrader):
+    def scout(self):
+        # your logic here
+        pass
+Then set strategy=<name> (file prefix before _strategy). In a subfolder works too.
+default
+The classic core loop. Each cycle it compares the current coin against all pairs to the bridge; when another coin is significantly undervalued relative to the current one (past the scout threshold), it jumps into that coin through the bridge. Semantics: the bot downgrades strong→weak, buying the cheaper/weaker coin and waiting for price reversion.
+multiple_coins
+Same core logic, but the bot does not require a single global current coin — it can hold and manage multiple coins, making it less likely to get stuck when one coin is untradeable or halted.
+momentum (new)
+Adds a momentum edge to the jump decision. Computes a momentum_score over momentum_window candles (see indicators.py) for candidate coins; only jumps when the cheaper coin also has positive momentum, filtering out falling-knife entries. Tune with momentum_window.
+rsi (new)
+Mean-reversion RSI gating. Uses rsi_period; treats RSI ≤ rsi_oversold as a buy region and RSI ≥ rsi_overbought as a sell region. The jump logic is gated so the bot buys weakness (oversold) and takes profit/sells strength (overbought).
+Planned: profit_hunter
+Port of the profit-hunter take-profit concept from the ajayspi/CEX option-futures quant bot review. Adds a profit_hunter_target knob: when the current coin reaches buy_price × (1 + target%), sell to the bridge to bank profit, then re-enter via the improved bridge_scout. Downside protection reuses the existing check_stop_loss layer. Status: in development.
+Strategy semantics — important!
+This bot jumps INTO the weaker/cheaper coin when the margin turns favorable, waiting for mean reversion. Momentum and RSI strategies gate that jump with indicators — they do not flip the direction. Tests encode this behavior (test_default_strategy_jumps_to_weakest_coin, test_default_strategy_stays_when_other_coin_rallies).
+
+=== PAGE: Configuration Reference ===
+All keys are read from [binance_user_config] in user.cfg. Defaults below mean the bot runs with no file at all.
+Core keys
+api_key / api_secret_key — Binance API credentials (empty = testnet/default flow)
+current_coin — coin the bot starts holding (empty = auto)
+bridge — quote asset used for all trades (default USDT)
+tld — Binance top-level domain, com or us (default com)
+testnet — true = testnet sandbox (default true)
+strategy — default | multiple_coins | momentum | rsi
+Scout / trade loop
+scout_multiplier — jump threshold multiplier (default 5)
+scout_margin — margin buffer when jumping (default 0.8)
+scout_sleep_time — seconds between scout cycles (default 5)
+hourToKeepScoutHistory — scout history retention in hours (default 1)
+sell_timeout / buy_timeout — timestamps of last attempted trades (0 = never tried)
+use_margin — enable margin mode (no)
+Risk management (new)
+stop_loss_percent — hard stop-loss % drop from buy price before force-selling to bridge (0 = disabled)
+trailing_stop_percent — trailing stop % off the peak price since entry (0 = disabled)
+stop_loss_cooldown_hours — wait this long after a stop-loss exit before re-entering the same coin (default 12)
+Momentum strategy (new)
+momentum_window — lookback candles for momentum score (default 10)
+RSI strategy (new)
+rsi_period — RSI lookback period (default 14)
+rsi_oversold — RSI level considered oversold, buy signal (default 30)
+rsi_overbought — RSI level considered overbought, sell signal (default 70)
+Example user.cfg
+[binance_user_config]
+bridge = USDT
+testnet = true
+strategy = momentum
+scout_multiplier = 5
+scout_sleep_time = 5
+momentum_window = 10
+rsi_period = 14
+rsi_oversold = 30
+rsi_overbought = 70
+stop_loss_percent = 5
+trailing_stop_percent = 3
+stop_loss_cooldown_hours = 12
+Environment variable override
+Every key can be overridden by env vars (see Getting Started). SUPPORTED_COIN_LIST can be a space-separated env var or a supported_coin_list file (one coin per line, # comments allowed).
+
+=== PAGE: Architecture ===
+Single-process Python app: scheduler → AutoTrader (strategy) → Binance API manager (+ websocket stream) → SQLite DB → optional Flask-SocketIO dashboard API.
+Module map
+binance_trade_bot/__main__.py — entry point; wires config, scheduler, strategies
+scheduler.py — schedules periodic tasks (scout loop, bridge scout, pruning, telegram reboots)
+auto_trader.py — core trading engine: scout(), bridge_scout(), transaction_through_bridge(), check_stop_loss(); strategies subclass AutoTrader
+binance_api_manager.py — REST client (python-binance 1.0.27); get_klines() TTL-cached, get_ticker_price, balances, orders
+binance_stream_manager.py — unicorn-binance-websocket-api 2.16.1 stream manager (miniTicker + userData); emits price updates into scout logic
+config.py — Config class: defaults, user.cfg + env overlay, supported coin list
+database.py — SQLAlchemy 2.0 session factory + high-level queries (coin states, current coin, values, trades, scouts)
+models/ — ORM models: Coin, CoinValue, Pair, Trade, ScoutHistory, CurrentCoin, CoinState (buy/peak price + stop-loss bookkeeping)
+indicators.py — technical indicators: ema, rsi, percent_change, momentum_score
+strategies/ — pluggable strategies discovered by *_strategy.py scan
+backtest.py — historical-data backtesting harness with MockBinanceManager
+api_server.py — Flask + SocketIO REST/JSON API + live dashboard backend
+notifications.py — apprise push notifications (Telegram/Discord/etc.)
+logger.py — multi-sink logger
+Data flow
+Scheduler wakes AutoTrader.scout() every scout_sleep_time seconds
+scout() pulls ticker prices for supported coins vs bridge, computes margins against current holding
+Strategy decides to jump/swap (downgrade strong→weak logic: enter the undervalued/weaker coin, wait for reversion)
+transaction_through_bridge() executes order pair via bridge (e.g. COIN→USDT→NEWCOIN), records CoinState (buy price, peak price)
+check_stop_loss() runs each cycle — hard stop + trailing stop, with cooldown flagging in CoinState
+Every action is written to SQLite (trades, scout history, coin values) and mirrored to the dashboard via SocketIO
+Key design decisions
+SQLAlchemy upgraded to 2.0.54 with 1.x-isms fixed (select([...]) → select(...), session.get(), declarative_base from sqlalchemy.orm)
+eventlet dropped → Flask-SocketIO simple-websocket threading mode (eventlet is deprecated/bugfix-only)
+websocket client bumped to unicorn-binance-websocket-api 2.16.1 for Binance's Feb 2026 userData WS change
+Strategies auto-discovered by filename (*_strategy.py); class must be named Strategy and subclass AutoTrader
+
+=== PAGE: Getting Started ===
+Local Windows dev environment: Python 3.12.10. The verified venv is .venv-test with all pinned deps installed.
+Prerequisites
+Python 3.12+ installed and on PATH
+A Binance testnet account if you want live feed testing (optional for the default flow)
+Internet access to api.binance.com (REST) and stream.binance.com (websocket)
+Install
+Clone or use the working tree at C:\Users\vigilare\Trading bot
+Create and activate a virtual environment:
+python -m venv .venv-test
+.venv-test\Scripts\activate
+Install pinned dependencies:
+pip install -r requirements.txt
+pip install -r dev-requirements.txt   # for tests/lint
+Run the bot (testnet-first)
+No configuration file is required — the bot boots on sane defaults in testnet mode:
+python -m binance_trade_bot
+To run with a config file, copy .user.cfg.example to user.cfg, edit the values (bridge, strategy, stop-loss knobs…), then run the same command. LIVE TRADING only happens when you set testnet=false AND provide real API keys — do not do that until you understand the risk rules in Risk Management.
+Run the API / dashboard server
+python -m binance_trade_bot.api_server
+# default http://localhost:5123
+Run the test suite
+.venv-test\Scripts\python.exe -m pytest tests -q   # 30 tests, all green
+Environment variables (override user.cfg)
+Every setting can also be set via env var: BRIDGE_SYMBOL, TESTNET, API_KEY, API_SECRET_KEY, TLD, SUPPORTED_COIN_LIST, CURRENT_COIN_SYMBOL, STRATEGY, SELL_TIMEOUT, BUY_TIMEOUT, USE_MARGIN, SCOUT_MULTIPLIER, SCOUT_MARGIN, SCOUT_SLEEP_TIME, HOURS_TO_KEEP_SCOUTING_HISTORY, STOP_LOSS_PERCENT, TRAILING_STOP_PERCENT, STOP_LOSS_COOLDOWN_HOURS, MOMENTUM_WINDOW, RSI_PERIOD, RSI_OVERSOLD, RSI_OVERBOUGHT.
+Environment variables win over user.cfg. SUPPORTED_COIN_LIST can also be supplied via a supported_coin_list file (one coin per line, # comments allowed).
+
+=== PAGE: Project Overview ===
+Modernized binance-trade-bot: runs on Python 3.12 / 2026 tooling, ships new profitable strategies and a modern dashboard. Testnet-first by default.
+What this is
+This is a fully modernized fork of ajayspi/binance-trade-bot (itself a fork of the well-known ccxt-trade-bot). The project was cloned, brought up to date for Python 3.12 and 2026-era dependencies, extended with new trading strategies and a risk-management layer, and is gaining a modern web dashboard.
+Goals
+Run cleanly on current 2026 tooling (Python 3.12, SQLAlchemy 2.0, Flask 3, current websocket stack)
+Add genuinely profitable strategy logic on top of the core bridge-scout loop
+Ship the modern dashboard the project was missing
+Stay testnet-first and safe: no live keys required to run, tests never touch real balances
+Current status
+Phase 1 (2026 readiness): DONE — dependencies, SQLAlchemy 2.0 fixes, config defaults, API fixes
+Phase 2 (strategies + risk): DONE — momentum & RSI strategies, stop-loss/trailing-stop layer, improved bridge_scout
+Phase 3 (dashboard): IN PROGRESS — templates, static assets, live SocketIO updates
+Phase 4 (tests & docs): PARTIAL — 30 pytest cases green; docs now maintained in Notion
+Key facts
+Python 3.12.10 • REST via python-binance 1.0.27 • SQLAlchemy 2.0.54
+WebSocket streaming via unicorn-binance-websocket-api 2.16.1 (handles Binance's Feb 2026 userData WS change)
+Flask-SocketIO runs in simple-websocket threading mode (eventlet dropped — it is deprecated/bugfix-only)
+No user.cfg required: app boots on defaults in testnet mode out of the box
+
+=== PAGE: Quick Note ===
+Notion Tip: Use this template to write quick notes you can reference later and quickly create a rich document. You can embed links, images, to-do’s, and more. Learn more about the different types of content blocks here.
+Jot down some text
+
+They found Mary, as usual, deep in the study of thorough-bass and human nature; and had some extracts to admire, and some new observations of threadbare morality to listen to. Catherine and Lydia had information for them of a different sort.
+Make a to-do list
+
+Wake up
+Brush teeth
+Eat breakfast
+Create sub-pages
+
+
+Embed links
+
+=== PAGE: Getting Started on Mobile ===
+👋 Welcome to Notion!
+
+Here are the basics:
+Tap anywhere and start typing
+Tap the + above your keyboard to add content — headers, sub pages, etc.
+Highlight text and use the bar above your keyboard to format
+Tap and hold this line, then drag
+Tap the home tab button at the bottom left to see your pages
+
+👉 Have a question? Tap Help & feedback in the sidebar.
+
+=== PAGE: Presentation ===
+Notion Tip:  Use this template to present new ideas and status updates with your team. The presentation schedule automatically indexes any topic you add. Use the toggles to show and hide content as your presentation progresses.
+
+
+Opening
+
+🗽 The New York office!
+👋 Welcome to our new hires
+People & company
+
+🚦 Context on Notion OKRs traffic light
+👨‍👩‍👧‍👦 People OKR update
+Product
+
+⚙️ Product OKR update
+✨ New landing page
+Business & customer
+
+💼 Business OKR update
+🌱 Non-profit program
+
+Q&A
+📮 Q&A Notes
+
+
+Recording link
+Add a link to the recording so that folks who couldn't attend the meeting can catch up later!
+All hands ‘22 recording → https://zoom.us/u/123456789
+
+=== PAGE: Ajay Kiran ===
+
+
+=== PAGE: Non-profit launch ===
+Notion Tip: Add more details right in this page, including toggles, images, and more. Break up the page by using our different header options so that it’s easier to read. Learn more about different types of content blocks here.
+
+=== PAGE: Example sub page ===
+In Notion, you can nest pages inside pages inside pages... infinitely. No more messy folders!
+
+👈 To go back, tap the link at the top left, or swipe from left to right across your screen.
+
+=== PAGE: Take Fig on a walk ===
+
+
+=== PAGE: New Task ===
+To Do
+...
+...
+
+=== PAGE: Untitled ===
+Tasks
+...
+...
+
+=== PAGE: So much to be grateful for ===
+Notion Tip: Create a new page and select Daily entry from the list of template options to automatically generate the format below every day.
+Intentions
+
+Happenings
+
+Grateful for
+
+Action items
+
+=== PAGE: Just another day ===
+Notion Tip: Create a new page and select Daily entry from the list of template options to automatically generate the format below every day.
+Intentions
+
+Happenings
+
+Grateful for
+
+Action items
+
+=== PAGE: 28th Birthday ===
+Notion Tip: Create a new page and select Daily entry from the list of template options to automatically generate the format below every day.
+Intentions
+
+Happenings
+
+Grateful for
+
+Action items
+
+=== PAGE: Daily entry ===
+Notion Tip: Create a new page and select Daily entry from the list of template options to automatically generate the format below every day.
+Intentions
+
+Happenings
+
+Grateful for
+
+Action items
+
+=== PAGE: Job Search - September ===
+Notion Tip: Create a new page and select Daily entry from the list of template options to automatically generate the format below every day.
+Intentions
+
+Happenings
+
+Grateful for
+
+Action items
+
+=== PAGE: Date with Stewart ===
+Notion Tip: Create a new page and select Daily entry from the list of template options to automatically generate the format below every day.
+Intentions
+
+Happenings
+
+Grateful for
+
+Action items
+
+=== PAGE: Hawaii Vacation ===
+Notion Tip: Create a new page and select Daily entry from the list of template options to automatically generate the format below every day.
+Intentions
+
+Happenings
+
+Grateful for
+
+Action items
+
+=== PAGE: Daily reflection ===
+Notion Tip: Create a new page and select Daily entry from the list of template options to automatically generate the format below every day.
+Intentions
+
+Happenings
+
+Grateful for
+
+Action items
+
+=== PAGE: New TV series ===
+Notion Tip: Use this page to keep track of all your notes and highlights. You can also reference other Notion pages by typing the [[ command. Learn more here.
+
+
+Notes
+
+Key takeaways
+
+Quotes
+
+Summary
+
+=== PAGE: Sapiens: A Brief History of Humankind ===
+Notion Tip: Use this page to keep track of all your notes and highlights. You can also reference other Notion pages by typing the [[ command. Learn more here.
+
+
+Notes
+
+Key takeaways
+
+Quotes
+
+Summary
+
+=== PAGE: New book ===
+Notion Tip: Use this page to keep track of all your notes and highlights. You can also reference other Notion pages by typing the [[ command. Learn more here.
+
+
+Notes
+
+Key takeaways
+
+Quotes
+
+Summary
+
+=== PAGE: Netflix: explained ===
+Notion Tip: Use this page to keep track of all your notes and highlights. You can also reference other Notion pages by typing the [[ command. Learn more here.
+
+
+Notes
+
+Key takeaways
+
+Quotes
+
+Summary
+
+=== PAGE: Who Will Teach Silicon Valley to Be Ethical?  ===
+Notion Tip: Use this page to keep track of all your notes and highlights. You can also reference other Notion pages by typing the [[ command. Learn more here.
+
+
+Notes
+
+Key takeaways
+
+Quotes
+
+Summary
+
+=== PAGE: New article ===
+Notion Tip: Use this page to keep track of all your notes and highlights. You can also reference other Notion pages by typing the [[ command. Learn more here.
+
+
+Notes
+
+Key takeaways
+
+Quotes
+
+Summary
+
+=== PAGE: Crime and Punishment ===
+Notion Tip: Use this page to keep track of all your notes and highlights. You can also reference other Notion pages by typing the [[ command. Learn more here.
+
+
+Notes
+
+Key takeaways
+
+Quotes
+
+Summary
+
+=== PAGE: Brave New World ===
+Notion Tip: Use this page to keep track of all your notes and highlights. You can also reference other Notion pages by typing the [[ command. Learn more here.
+
+
+
+Notes
+
+Key takeaways
+
+Quotes
+
+Summary
+
+=== PAGE: Sub Page ===
+
+
+=== PAGE: Yearly Goals ===
+Do yoga every day
+
+=== PAGE: Movie List ===
+
+

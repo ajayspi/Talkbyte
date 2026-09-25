@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { INDUSTRIES } from '@/content/homepage';
 
@@ -11,7 +12,7 @@ const DETAILS: Record<string, { hero: string; flows: string[]; checklist: string
     checklist: ['Two weeks of drive-through audio tuning', 'POS firing rules per lane', 'Rain and engine-noise tests'],
   },
   'hospitality-wellness': {
-    hero: 'Reservations are revenue contracts. TalkByte treats them like a private maitre d’ with perfect memory.',
+    hero: 'Reservations are revenue contracts. TalkByte treats them like a private maitre d\' with perfect memory.',
     flows: ['Occasion, allergy, and seating-preference capture', 'Deposit collection without awkward pauses', 'Cancellation backfill from a smart waitlist'],
     checklist: ['Sommelier-approved greeting script', 'VIP tagging and visit memory', 'Deposit and no-show policy wording'],
   },
@@ -26,7 +27,6 @@ const DETAILS: Record<string, { hero: string; flows: string[]; checklist: string
     checklist: ['Service menu and labour rates synced', 'Loan-car and availability rules set', 'Quote follow-up cadence approved'],
   },
 };
-
 
 const FALLBACK = {
   hero: 'Enterprise voice infrastructure tuned to this format.',
@@ -45,10 +45,32 @@ export default function IndustryDetail({ slug }: { slug: string }) {
       <p className="font-mono-grotesk mt-8 text-xs uppercase tracking-[0.28em] text-[#f7dfa0]">{industry.name}</p>
       <h1 className="font-display mt-4 max-w-3xl text-5xl leading-tight md:text-6xl">{industry.headline}</h1>
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-white/65">{detail.hero}</p>
-      <div className="mt-8 inline-flex items-baseline gap-3 rounded-2xl border border-[rgba(217,164,65,0.35)] bg-[rgba(217,164,65,0.08)] px-6 py-4">
-        <span className="font-display text-4xl text-gradient-gold">{industry.metric}</span>
-        <span className="font-mono-grotesk text-xs uppercase tracking-[0.2em] text-white/60">{industry.metricLabel}</span>
-      </div>
+      
+      {industry.imageSrc && (
+        <div className="relative mt-10 h-[400px] w-full overflow-hidden rounded-[32px] border border-white/10">
+          <Image 
+            src={industry.imageSrc} 
+            alt={industry.name} 
+            fill 
+            className="object-cover opacity-60"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+          <div className="absolute bottom-8 left-8 right-8">
+            <div className="inline-flex items-baseline gap-3 rounded-2xl border border-[rgba(217,164,65,0.35)] bg-[rgba(217,164,65,0.28)] backdrop-blur-md px-6 py-4">
+              <span className="font-display text-4xl text-gradient-gold drop-shadow-sm">{industry.metric}</span>
+              <span className="font-mono-grotesk text-xs uppercase tracking-[0.2em] text-white/90 drop-shadow-sm">{industry.metricLabel}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!industry.imageSrc && (
+        <div className="mt-8 inline-flex items-baseline gap-3 rounded-2xl border border-[rgba(217,164,65,0.35)] bg-[rgba(217,164,65,0.08)] px-6 py-4">
+          <span className="font-display text-4xl text-gradient-gold">{industry.metric}</span>
+          <span className="font-mono-grotesk text-xs uppercase tracking-[0.2em] text-white/60">{industry.metricLabel}</span>
+        </div>
+      )}
       <div className="mt-10 grid gap-5 md:grid-cols-2">
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-7">
           <h2 className="font-display text-2xl">How calls flow</h2>

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
 import { GUARDRAILS, INDUSTRIES, OPERATING_MODEL, GLOBAL_SIGNALS, TESTIMONIALS } from "@/content/homepage";
 
@@ -41,19 +42,31 @@ export function IndustryGrid() {
         >
           <Link
             href={`/industries/${industry.slug}`}
-            className="group flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-transparent p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(217,164,65,0.5)] hover:shadow-[0_24px_70px_rgba(217,164,65,0.14)]"
+            className="group relative flex h-[340px] flex-col justify-between overflow-hidden rounded-3xl border border-white/10 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(217,164,65,0.5)] hover:shadow-[0_24px_70px_rgba(217,164,65,0.14)]"
           >
-            <div>
-              <p className="font-mono-grotesk text-[11px] uppercase tracking-[0.24em] text-white/50">{industry.name}</p>
-              <h3 className="font-display mt-3 text-2xl leading-snug text-white">{industry.headline}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-white/60">{industry.detail}</p>
+            {industry.imageSrc && (
+              <div className="absolute inset-0 z-0">
+                <Image 
+                  src={industry.imageSrc} 
+                  alt={industry.name} 
+                  fill 
+                  className="object-cover opacity-30 transition-opacity duration-500 group-hover:opacity-50"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
+              </div>
+            )}
+            <div className="relative z-10">
+              <p className="font-mono-grotesk text-[11px] uppercase tracking-[0.24em] text-white/70 drop-shadow-sm">{industry.name}</p>
+              <h3 className="font-display mt-3 text-2xl leading-snug text-white drop-shadow-sm">{industry.headline}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-white/80 drop-shadow-sm">{industry.detail}</p>
             </div>
-            <div className="mt-6 flex items-end justify-between">
+            <div className="relative z-10 mt-6 flex items-end justify-between">
               <div>
                 <p className="font-display text-4xl text-gradient-gold">{industry.metric}</p>
-                <p className="font-mono-grotesk text-[11px] uppercase tracking-[0.2em] text-white/50">{industry.metricLabel}</p>
+                <p className="font-mono-grotesk text-[11px] uppercase tracking-[0.2em] text-white/70 drop-shadow-sm">{industry.metricLabel}</p>
               </div>
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 transition-all group-hover:border-[#d9a441] group-hover:bg-[#d9a441] group-hover:text-black">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/40 transition-all group-hover:border-[#d9a441] group-hover:bg-[#d9a441] group-hover:text-black">
                 <ArrowUpRight size={17} />
               </span>
             </div>
@@ -132,8 +145,16 @@ export function Testimonials() {
           <p className="font-display text-5xl leading-none text-gradient-gold">{t.metric}</p>
           <p className="mt-2 font-mono-grotesk text-[11px] uppercase tracking-[0.2em] text-white/50">{t.metricLabel}</p>
           <blockquote className="mt-6 flex-1 text-sm leading-relaxed text-white/70">&ldquo;{t.quote}&rdquo;</blockquote>
-          <figcaption className="mt-6 border-t border-white/10 pt-4 text-xs text-white/45">
-            <span className="font-semibold text-white/75">{t.name}</span> · {t.org}
+          <figcaption className="mt-6 flex items-center gap-4 border-t border-white/10 pt-4">
+            {t.avatarSrc && (
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10">
+                <Image src={t.avatarSrc} alt={t.name} fill className="object-cover" />
+              </div>
+            )}
+            <div className="text-xs text-white/45">
+              <p className="font-semibold text-white/75">{t.name}</p>
+              <p>{t.org}</p>
+            </div>
           </figcaption>
         </motion.figure>
       ))}

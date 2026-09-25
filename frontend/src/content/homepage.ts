@@ -62,7 +62,7 @@ export const GUARDRAILS = [
 ];
 
 export const TESTIMONIALS = [
-{ metric: '59%', metricLabel: 'of call volume automated', quote: 'It answers faster than we ever did and books straight into the diary. Our front desk finally does front desk work.', name: 'Practice Manager', org: 'Multi-site dental group' },
-{ metric: '3.2x', metricLabel: 'more after-hours bookings', quote: 'Half our enquiries used to arrive after hours and go cold. Now they are booked and paid before we open.', name: 'Operations Lead', org: 'Home services franchise' },
-{ metric: '-71%', metricLabel: 'average handle time', quote: 'Routine questions never reach a person anymore, and the ones that do come with the whole conversation attached.', name: 'Customer Care Director', org: 'Financial services firm' },
+{ metric: '59%', metricLabel: 'of call volume automated', quote: 'It answers faster than we ever did and books straight into the diary. Our front desk finally does front desk work.', name: 'Practice Manager', org: 'Multi-site dental group', avatarSrc: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
+{ metric: '3.2x', metricLabel: 'more after-hours bookings', quote: 'Half our enquiries used to arrive after hours and go cold. Now they are booked and paid before we open.', name: 'Operations Lead', org: 'Home services franchise', avatarSrc: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
+{ metric: '-71%', metricLabel: 'average handle time', quote: 'Routine questions never reach a person anymore, and the ones that do come with the whole conversation attached.', name: 'Customer Care Director', org: 'Financial services firm', avatarSrc: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80' },
 ];

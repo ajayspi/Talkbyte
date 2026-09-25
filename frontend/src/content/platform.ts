@@ -106,19 +106,20 @@ export type Industry = {
   detail: string;
   metric: string;
   metricLabel: string;
+  imageSrc?: string;
 };
 
 export const INDUSTRIES: Industry[] = [
-  { slug: 'restaurants-qsr', name: 'Restaurants & QSR', headline: 'Two lanes, one voice, zero abandoned cars.', detail: 'Menu-adaptive ordering, phone payments and drive-thru throughput.', metric: '52s', metricLabel: 'peak serve time' },
-  { slug: 'hospitality-wellness', name: 'Hospitality & Wellness', headline: 'A concierge who never sleeps.', detail: 'Bookings, room service and guest enquiries handled 24/7.', metric: '98', metricLabel: 'reservation score' },
-  { slug: 'healthcare', name: 'Healthcare', headline: 'Appointments without the hold music.', detail: 'Patient booking, triage FAQs and reminder calls, privacy-first.', metric: '-71%', metricLabel: 'no-shows' },
-  { slug: 'automotive', name: 'Automotive', headline: 'Books work, not just chats.', detail: 'Service bookings, parts quotes and after-hours showroom leads.', metric: '+31%', metricLabel: 'booked services' },
-  { slug: 'retail', name: 'Retail', headline: 'Fast answers on stock, shipping & returns.', detail: 'Always-on support that lifts sales and repeat purchase.', metric: '24/7', metricLabel: 'coverage' },
-  { slug: 'professional-services', name: 'Professional Services', headline: 'Every enquiry captured, qualified.', detail: 'Intake, qualification and appointment setting for firms and agencies.', metric: '0', metricLabel: 'missed leads' },
-  { slug: 'home-services', name: 'Home Services & Trades', headline: 'On the tools, not on the phone.', detail: 'Job bookings, quoting follow-ups and emergency call triage.', metric: '+38%', metricLabel: 'jobs booked' },
-  { slug: 'real-estate', name: 'Real Estate', headline: 'Inspections booked while you sleep.', detail: 'Enquiry qualification, viewing bookings and nurture calls.', metric: '2.4x', metricLabel: 'viewings booked' },
-  { slug: 'financial-services', name: 'Financial Services', headline: 'Regulated service, done carefully.', detail: 'Account FAQs and scheduling with guardrails and full audit trails.', metric: '100%', metricLabel: 'calls audited' },
-  { slug: 'it-technology', name: 'IT & Technology', headline: 'Smarter, faster support desks.', detail: 'Tier-1 deflection, employee assist and instant knowledge answers.', metric: '-52%', metricLabel: 'ticket volume' },
+  { slug: 'restaurants-qsr', name: 'Restaurants & QSR', headline: 'Two lanes, one voice, zero abandoned cars.', detail: 'Menu-adaptive ordering, phone payments and drive-thru throughput.', metric: '52s', metricLabel: 'peak serve time', imageSrc: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800' },
+  { slug: 'hospitality-wellness', name: 'Hospitality & Wellness', headline: 'A concierge who never sleeps.', detail: 'Bookings, room service and guest enquiries handled 24/7.', metric: '98', metricLabel: 'reservation score', imageSrc: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&q=80&w=800' },
+  { slug: 'healthcare', name: 'Healthcare', headline: 'Appointments without the hold music.', detail: 'Patient booking, triage FAQs and reminder calls, privacy-first.', metric: '-71%', metricLabel: 'no-shows', imageSrc: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=800' },
+  { slug: 'automotive', name: 'Automotive', headline: 'Books work, not just chats.', detail: 'Service bookings, parts quotes and after-hours showroom leads.', metric: '+31%', metricLabel: 'booked services', imageSrc: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800' },
+  { slug: 'retail', name: 'Retail', headline: 'Fast answers on stock, shipping & returns.', detail: 'Always-on support that lifts sales and repeat purchase.', metric: '24/7', metricLabel: 'coverage', imageSrc: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=800' },
+  { slug: 'professional-services', name: 'Professional Services', headline: 'Every enquiry captured, qualified.', detail: 'Intake, qualification and appointment setting for firms and agencies.', metric: '0', metricLabel: 'missed leads', imageSrc: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=800' },
+  { slug: 'home-services', name: 'Home Services & Trades', headline: 'On the tools, not on the phone.', detail: 'Job bookings, quoting follow-ups and emergency call triage.', metric: '+38%', metricLabel: 'jobs booked', imageSrc: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&q=80&w=800' },
+  { slug: 'real-estate', name: 'Real Estate', headline: 'Inspections booked while you sleep.', detail: 'Enquiry qualification, viewing bookings and nurture calls.', metric: '2.4x', metricLabel: 'viewings booked', imageSrc: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=800' },
+  { slug: 'financial-services', name: 'Financial Services', headline: 'Regulated service, done carefully.', detail: 'Account FAQs and scheduling with guardrails and full audit trails.', metric: '100%', metricLabel: 'calls audited', imageSrc: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=800' },
+  { slug: 'it-technology', name: 'IT & Technology', headline: 'Smarter, faster support desks.', detail: 'Tier-1 deflection, employee assist and instant knowledge answers.', metric: '-52%', metricLabel: 'ticket volume', imageSrc: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800' },
 ];
 
 
